@@ -238,17 +238,6 @@ class DeepSintefWidget():
         parametersCollapsibleButton.setTitle("Model Parameters")
         self.layout.addWidget(parametersCollapsibleButton)
 
-        #
-        # Output hands-on Area
-        #
-        outputCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        outputCollapsibleButton.setTitle("Output Parameters")
-        ocblayout = qt.QHBoxLayout(outputCollapsibleButton)
-        slider = qt.QSlider()
-        slider.setOrientation(1)
-        ocblayout.addWidget(slider)
-        self.layout.addWidget(outputCollapsibleButton)
-
         # Layout within the dummy collapsible button
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
         self.modelParameters = ModelParameters(parametersCollapsibleButton)
@@ -967,17 +956,6 @@ class DeepSintefLogic:
         print(out)
         #sub_models = out.strip().split(',')
         slicer.modules.DeepSintefWidget.populateSubModelFromDocker(out)
-
-        #Example for creating new label colors (to be loaded on the fly when receiving segmentation results from Docker)
-        invertedocean = slicer.vtkMRMLColorTableNode()
-        invertedocean.SetTypeToUser()
-        invertedocean.SetNumberOfColors(256)
-        invertedocean.SetName("InvertedOcean")
-
-        for i in range(0, 255):
-            invertedocean.SetColor(i, 0.0, 1 - (i + 1e-16) / 255.0, 1.0, 1.0)
-
-        slicer.mrmlScene.AddNode(invertedocean)
 
         # progress = 0
         # # print('executing')
