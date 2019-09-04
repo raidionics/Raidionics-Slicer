@@ -1,12 +1,5 @@
-# import os
-# import unittest
-# import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
-# from sys import path
-
-#import DeepInfer
-#from DeepInfer import *
 
 import Queue
 import json
@@ -22,8 +15,6 @@ from time import sleep
 
 from __main__ import qt, ctk, slicer
 
-# To avoid the overhead of importing SimpleITK during application
-# startup, the import of SimpleITK is delayed until it is needed.
 import SimpleITK as sitk
 import sitkUtils
 
@@ -50,9 +41,9 @@ if os.path.isdir(TMP_PATH):
     shutil.rmtree(TMP_PATH)
 os.mkdir(TMP_PATH)
 
-#
-# DeepSintef
-#
+"""
+DeepSintef is based upon the DeepInfer code (available at https://github.com/DeepInfer/Slicer-DeepInfer)
+"""
 
 class DeepSintef(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -64,7 +55,7 @@ class DeepSintef(ScriptedLoadableModule):
     self.parent.title = "DeepSintef" # TODO make this more human readable by adding spaces
     self.parent.categories = ["Machine Learning"]
     self.parent.dependencies = []
-    self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["David Bouget (SINTEF)"]
     self.parent.helpText = """
 This is an example of scripted loadable module bundled in an extension.
 It performs a simple thresholding on the input volume and optionally captures a screenshot.
@@ -98,7 +89,7 @@ class DeepSintefWidget():
         self.modelParameters = None
         self.logic = None
 
-    def onReload(self, moduleName="DeepInfer"):
+    def onReload(self, moduleName="DeepBrain"):
         """Generic reload method for any scripted module.
         ModuleWizard will subsitute correct default moduleName.
         """
@@ -620,7 +611,7 @@ class DeepSintefWidget():
         '''
         except:
             self.currentStatusLabel.text = "Exception"
-            slicer.modules.DeepInferWidget.applyButton.enabled = True
+            slicer.modules.DeepSintefWidget.applyButton.enabled = True
             import sys
             msg = sys.exc_info()[0]
             # if there was an exception during start-up make sure to finish
@@ -655,57 +646,6 @@ class DeepSintefWidget():
     def onLogicEventIteration(self, nIter):
         print("Iteration ", nIter)
 
-# class DeepSintefWidget(DeepInferWidget):
-#     def __init__(self, parent=None):
-#         DeepInferWidget.__init__(self, parent)
-#         self.logic = DeepSintefLogic()
-#
-#     def setup(self):
-#         DeepInferWidget.setup(self)
-#         self.extension_selection_layout = qt.QHBoxLayout()
-#         self.extension_selection_label = qt.QLabel("File extension")
-#         self.extension_selection_combobox = qt.QComboBox(self.parent)
-#     #	self.extension_selection_combobox.addItems(['Nifti (.nii.gz)', 'Slicer (.nrrd)', 'Meta (.mhd)'])
-#         self.extension_selection_combobox.addItems(['.nii.gz', '.nrrd', '.mhd'])
-#         self.extension_selection_layout.addWidget(self.extension_selection_label)
-#         self.extension_selection_layout.addWidget(self.extension_selection_combobox)
-#         self.layout.addLayout(self.extension_selection_layout)
-#
-#         self.parse_docker_image_pushbutton = qt.QPushButton(self.parent)
-#         self.parse_docker_image_pushbutton.setText('Parse image for models')
-#         self.layout.addWidget(self.parse_docker_image_pushbutton)
-#
-#         #Connections
-#         self.extension_selection_combobox.connect('currentIndexChanged(const QString &)', self.onExtensionSelectionComboxboxChanged)
-#         self.parse_docker_image_pushbutton.connect('clicked(bool)', self.onParseDockerImageClicked)
-#
-#     def onExtensionSelectionComboxboxChanged(self, value):
-#         print('Changed file extension for docker compatibility: {}'.format(value))
-#         self.logic.notifyChangedFileExtensionForDocker(new_extension=value)
-#
-#     def onParseDockerImageClicked(self, bool):
-#         print('Parsing Docker image...')
-#
-#
-#     def onApplyButton(self):
-#         print('onApply')
-#         # try:
-#         self.currentStatusLabel.text = "Starting"
-#         self.modelParameters.prerun()
-#         self.logic.run(self.modelParameters)
-#
-#         '''
-#         except:
-#             self.currentStatusLabel.text = "Exception"
-#             slicer.modules.DeepSintefWidget.applyButton.enabled = True
-#             import sys
-#             msg = sys.exc_info()[0]
-#             # if there was an exception during start-up make sure to finish
-#             self.onLogicRunStop()
-#             qt.QMessageBox.critical(slicer.util.mainWindow(),
-#                                     "Exception before execution: {0} ".format(self.modelParameters.dockerImageName),
-#                                     msg)
-#         '''
 
 class DeepSintefLogic:
     """This class should implement all the actual
@@ -735,8 +675,7 @@ class DeepSintefLogic:
                 self.setDockerPath(defualt_path)
             else:
                 print('could not determine system type')
-	self.file_extension_docker='.nii.gz'
-
+        self.file_extension_docker='.nii.gz'
 
     def __del__(self):
         if self.main_queue_running:
@@ -791,7 +730,7 @@ class DeepSintefLogic:
         return False
 
     def notifyChangedFileExtensionForDocker(self, new_extension):
-	self.file_extension_docker = new_extension
+        self.file_extension_docker = new_extension
 
     def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, params):
         try:
@@ -982,7 +921,6 @@ class DeepSintefLogic:
             # reported bug reference: https://issues.slicer.org/view.php?id=4414
             # scene.RemoveNode(node)
 
-
     def run(self, modelParamters):
         """
         Run the actual algorithm
@@ -1053,11 +991,10 @@ class DeepSintefLogic:
         #     print(line)
         #    slicer.modules.DeepSintefWidget.populateSubModelFromDocker(line)
 
+
 #
 # Class to manage parameters
 #
-
-   
 class ModelParameters(object):
     """ This class is for managing the widgets for the parameters for a model
     """
