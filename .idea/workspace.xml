@@ -5,40 +5,40 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="Stable-V1" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1QHQACPq7TqyScPY4SYgfOvNX6v" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
   </component>
   <component name="RunManager">
     <configuration name="Slicer remote debugger" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug">
@@ -55,6 +55,18 @@
       <method v="2" />
     </configuration>
   </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -67,7 +79,11 @@
       <updated>1567424895751</updated>
       <workItem from="1567424897392" duration="60000" />
       <workItem from="1567426288194" duration="22843000" />
-      <workItem from="1567599239928" duration="1555000" />
+      <workItem from="1567599239928" duration="3938000" />
+      <workItem from="1569687101028" duration="733000" />
+      <workItem from="1570454107387" duration="6245000" />
+      <workItem from="1572103198502" duration="3242000" />
+      <workItem from="1580457875512" duration="20534000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -76,7 +92,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567599775763</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Removed the slider and other things 'under-construction' for the stable version.">
+      <created>1567600881965</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1567600881965</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -87,7 +110,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
@@ -96,15 +121,69 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="Cleaning stuff to prepare for a V1." />
-    <option name="LAST_COMMIT_MESSAGE" value="Cleaning stuff to prepare for a V1." />
+    <MESSAGE value="Removed the slider and other things 'under-construction' for the stable version." />
+    <option name="LAST_COMMIT_MESSAGE" value="Removed the slider and other things 'under-construction' for the stable version." />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1807" height="392" key="GridCell.Tab.0.bottom" timestamp="1580487634837">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.0.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487634837" />
+    <state width="1807" height="392" key="GridCell.Tab.0.center" timestamp="1580487634837">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.0.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487634837" />
+    <state width="1807" height="392" key="GridCell.Tab.0.left" timestamp="1580487634837">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.0.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487634837" />
+    <state width="1807" height="392" key="GridCell.Tab.0.right" timestamp="1580487634837">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.0.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487634837" />
+    <state width="1807" height="392" key="GridCell.Tab.1.bottom" timestamp="1580487657966">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.1.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487657966" />
+    <state width="1807" height="392" key="GridCell.Tab.1.center" timestamp="1580487657966">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.1.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487657966" />
+    <state width="1807" height="392" key="GridCell.Tab.1.left" timestamp="1580487657966">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.1.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487657966" />
+    <state width="1807" height="392" key="GridCell.Tab.1.right" timestamp="1580487657966">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state width="1807" height="392" key="GridCell.Tab.1.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580487657966" />
+    <state x="2402" y="247" key="SettingsEditor" timestamp="1580486932754">
+      <screen x="1920" y="0" width="1920" height="1200" />
+    </state>
+    <state x="2402" y="247" key="SettingsEditor/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580486932754" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>585</line>
+          <line>642</line>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
+          <line>973</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
+          <line>695</line>
+          <option name="timeStamp" value="19" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
+          <line>696</line>
+          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

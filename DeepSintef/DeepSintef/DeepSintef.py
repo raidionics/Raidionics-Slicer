@@ -1,6 +1,7 @@
 from slicer.ScriptedLoadableModule import *
 import logging
 
+import configparser
 import Queue
 import json
 import platform
@@ -12,7 +13,7 @@ import threading
 from collections import OrderedDict
 from glob import glob
 from time import sleep
-
+from copy import deepcopy
 from __main__ import qt, ctk, slicer
 
 import SimpleITK as sitk
@@ -39,6 +40,9 @@ if not os.path.isdir(JSON_LOCAL_DIR):
 TMP_PATH = os.path.join(DEEPSINTEF_DIR, '.tmp')
 if os.path.isdir(TMP_PATH):
     shutil.rmtree(TMP_PATH)
+
+USER_CONFIG = os.path.join(TMP_PATH, 'runtime_config.ini')
+
 os.mkdir(TMP_PATH)
 
 """
@@ -89,35 +93,13 @@ class DeepSintefWidget():
         self.modelParameters = None
         self.logic = None
 
-    def onReload(self, moduleName="DeepBrain"):
+    def onReload(self, moduleName="DeepSintef"):
         """Generic reload method for any scripted module.
         ModuleWizard will subsitute correct default moduleName.
         """
         globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
 
-    def setup(self):
-
-        # Instantiate and connect widgets ...
-        #
-        # Reload and Test area
-        #
-        reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-        reloadCollapsibleButton.collapsed = True
-        reloadCollapsibleButton.text = "Reload && Test"
-        reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
-
-        # reload button
-        # (use this during development, but remove it when delivering
-        #  your module to users)
-        self.reloadButton = qt.QPushButton("Reload")
-        self.reloadButton.toolTip = "Reload this module."
-        self.reloadButton.name = "Freehand3DUltrasound Reload"
-        reloadFormLayout.addWidget(self.reloadButton)
-        self.reloadButton.connect('clicked()', self.onReload)
-        # uncomment the following line for debug/development.
-        self.layout.addWidget(reloadCollapsibleButton)
-
-        # Docker Settings Area
+    def setup_docker_widget(self):
         self.dockerGroupBox = ctk.ctkCollapsibleGroupBox()
         self.dockerGroupBox.setTitle('Docker Settings')
         self.layout.addWidget(self.dockerGroupBox)
@@ -139,14 +121,12 @@ class DeepSintefWidget():
         if os.path.isfile(nvidiaDockerPath):
             self.dockerPath.setCurrentPath(nvidiaDockerPath)
 
-        # modelRepositoryVerticalLayout = qt.QVBoxLayout(modelRepositoryExpdableArea)
+    def setup_models_list_widget(self):
+        self.modelslistGroupbox = ctk.ctkCollapsibleGroupBox()
+        self.modelslistGroupbox.setTitle('Available models')
+        self.layout.addWidget(self.modelslistGroupbox)
 
-        # Model Repository Area
-        self.modelRepoGroupBox = ctk.ctkCollapsibleGroupBox()
-        # self.modelRepoGroupBox.collapsed = True
-        self.modelRepoGroupBox.setTitle('Cloud Model Repository')
-        self.layout.addWidget(self.modelRepoGroupBox)
-        modelRepoVBLayout1 = qt.QVBoxLayout(self.modelRepoGroupBox)
+        modelRepoVBLayout1 = qt.QVBoxLayout(self.modelslistGroupbox)
         modelRepositoryExpdableArea = ctk.ctkExpandableWidget()
         modelRepoVBLayout1.addWidget(modelRepositoryExpdableArea)
         modelRepoVBLayout2 = qt.QVBoxLayout(modelRepositoryExpdableArea)
@@ -160,15 +140,13 @@ class DeepSintefWidget():
         self.modelRegistryTable.setHorizontalHeaderLabels(self.modelRepositoryTableHeaderLabels)
         self.modelRepositoryTableWidgetHeader = self.modelRegistryTable.horizontalHeader()
         self.modelRepositoryTableWidgetHeader.setStretchLastSection(True)
-        # self.modelRepositoryTableWidgetHeader.setResizeMode(qt.QHeaderView.Stretch)
         modelRepoVBLayout2.addWidget(self.modelRegistryTable)
-        #
         self.progressDownload = qt.QProgressBar()
         self.progressDownload.setRange(0, 100)
         self.progressDownload.setValue(0)
         modelRepoVBLayout2.addWidget(self.progressDownload)
         self.progressDownload.hide()
-        #
+
         self.modelRepositoryTreeSelectionModel = self.modelRegistryTable.selectionModel()
         abstractItemView = qt.QAbstractItemView()
         self.modelRegistryTable.setSelectionBehavior(abstractItemView.SelectRows)
@@ -181,16 +159,66 @@ class DeepSintefWidget():
         refreshWidget = qt.QWidget()
         modelRepoVBLayout2.addWidget(refreshWidget)
         hBoXLayout = qt.QHBoxLayout(refreshWidget)
-        # hBoXLayout.setSpacing(0)
-        # hBoXLayout.setMargin(0)
-        self.connectButton = qt.QPushButton('Connect')
-        self.downloadButton = qt.QPushButton('Download')
-        self.downloadButton.enabled = False
-        self.downloadButton.visible = False
-        hBoXLayout.addStretch(1)
-        hBoXLayout.addWidget(self.connectButton)
-        hBoXLayout.addWidget(self.downloadButton)
-        self.populateModelRegistryTable()
+        self.modelRegistryTable.visible = True
+
+        # self.connectButton = qt.QPushButton('Connect')
+        # self.downloadButton = qt.QPushButton('Download')
+        # self.downloadButton.enabled = False
+        # self.downloadButton.visible = False
+        # hBoXLayout.addStretch(1)
+        # hBoXLayout.addWidget(self.connectButton)
+        # hBoXLayout.addWidget(self.downloadButton)
+        #self.populateModelRegistryTable()
+
+    def setup_models_list_connections(self):
+        self.modelRegistryTable.connect('cellClicked(int, int)', self.onModelSelectionchanged)
+
+    def setup_runtime_parameters_widget(self):
+        self.runtimeParametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
+        self.runtimeParametersCollapsibleButton.setTitle("Runtime Parameters")
+        self.layout.addWidget(self.runtimeParametersCollapsibleButton)
+        # Layout within the dummy collapsible button
+        self.runtimeParametersFormLayout = qt.QFormLayout(self.runtimeParametersCollapsibleButton)
+        self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
+        self.runtimeParametersFormLayout.addRow("Overlap:", self.runtimeParametersOverlapCheckbox)
+        self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
+        self.runtimeParametersSlider.setMaximum(100)
+        self.runtimeParametersSlider.setMinimum(0)
+        self.runtimeParametersSlider.setSingleStep(5)
+        self.runtimeParametersFormLayout.addRow("Threshold:", self.runtimeParametersSlider)
+
+    def setup_runtime_parameters_connections(self):
+        self.runtimeParametersOverlapCheckbox.connect('stateChanged(int)', self.onRuntimeOverlapClicked)
+        self.runtimeParametersSlider.valueChanged.connect(self.onRuntimeThresholdSliderMoved)
+
+    def setup(self):
+        # Instantiate and connect widgets ...
+        #
+        # Reload and Test area
+        #
+        reloadCollapsibleButton = ctk.ctkCollapsibleButton()
+        reloadCollapsibleButton.collapsed = True
+        reloadCollapsibleButton.text = "Reload && Test"
+        reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
+
+        # reload button
+        # (use this during development, but remove it when delivering
+        #  your module to users)
+        self.reloadButton = qt.QPushButton("Reload")
+        self.reloadButton.toolTip = "Reload this module."
+        self.reloadButton.name = "Freehand3DUltrasound Reload"
+        reloadFormLayout.addWidget(self.reloadButton)
+        self.reloadButton.connect('clicked()', self.onReload)
+        # uncomment the following line for debug/development.
+        self.layout.addWidget(reloadCollapsibleButton)
+
+        # Docker Settings Area
+        self.setup_docker_widget()
+
+        # modelRepositoryVerticalLayout = qt.QVBoxLayout(modelRepositoryExpdableArea)
+
+        # Model Repository Area
+        self.setup_models_list_widget()
 
         #
         # Cancel/Apply Row
@@ -242,6 +270,10 @@ class DeepSintefWidget():
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
         self.modelParameters = ModelParameters(parametersCollapsibleButton)
 
+        # Runtime parameters Area
+        self.setup_runtime_parameters_widget()
+        self.setup_runtime_parameters_connections()
+
         # Add vertical spacer
         self.layout.addStretch(1)
 
@@ -290,14 +322,15 @@ class DeepSintefWidget():
         self.layout.addLayout(hlayout)
 
         # connections
-        self.connectButton.connect('clicked(bool)', self.onConnectButton)
-        self.downloadButton.connect('clicked(bool)', self.onDownloadButton)
+        self.setup_runtime_parameters_connections()
+        self.setup_models_list_connections()
+        #self.connectButton.connect('clicked(bool)', self.onConnectButton)
+        #self.downloadButton.connect('clicked(bool)', self.onDownloadButton)
         self.testDockerButton.connect('clicked(bool)', self.onTestDockerButton)
         self.restoreDefaultsButton.connect('clicked(bool)', self.onRestoreDefaultsButton)
         self.applyButton.connect('clicked(bool)', self.onApplyButton)
         self.locateButton.connect('clicked(bool)', self.onLocateButton)
         self.cancelButton.connect('clicked(bool)', self.onCancelButton)
-        self.modelRegistryTable.connect('itemSelectionChanged()', self.onCloudModelSelect)
 
         # Initlial Selection
         self.modelSelector.currentIndexChanged(self.modelSelector.currentIndex)
@@ -349,19 +382,19 @@ class DeepSintefWidget():
             name = j["name"]
             self.modelSelector.addItem(name, idx)
 
-    def onCloudModelSelect(self):
-        self.downloadButton.enabled = False
-        # print("on cloud model select!")
-        for item in self.modelTableItems.keys():
-            if item.isSelected():
-                self.downloadButton.enabled = True
-                self.selectedModelPath = self.modelTableItems[item]
+    # def onCloudModelSelect(self):
+    #     self.downloadButton.enabled = False
+    #     # print("on cloud model select!")
+    #     for item in self.modelTableItems.keys():
+    #         if item.isSelected():
+    #             self.downloadButton.enabled = True
+    #             self.selectedModelPath = self.modelTableItems[item]
 
     def onLogicRunStop(self):
         self.applyButton.setEnabled(True)
         self.restoreDefaultsButton.setEnabled(True)
         self.cancelButton.setEnabled(False)
-        self.logic = None
+        #self.logic = None
         self.progress.hide()
 
     def onLogicRunStart(self):
@@ -563,6 +596,30 @@ class DeepSintefWidget():
                     self.modelRegistryTable.setItem(n, 2, task)
             n += 1
 
+    def populate_models_list_from_docker(self, model_names):
+        self.modelTableItems = dict()
+
+        actual_names = model_names.split('---ModelNames')[1].strip().split(',')
+        print('Actual model names: {}'.format(actual_names))
+        for a, w in enumerate(self.modelParameters.widgets):
+            if w.accessibleName == 'ModelsList':
+                w.clear()
+                w.addItems(actual_names)
+
+        n = 0
+        self.modelRegistryTable.setRowCount(len(actual_names))
+        for model_name in actual_names:
+            nameTableItem = qt.QTableWidgetItem(model_name)
+            #self.modelTableItems[nameTableItem] = model_name
+            self.modelRegistryTable.setItem(n, 0, nameTableItem)
+
+            organ = qt.QTableWidgetItem(model_name.split('_')[1])
+            self.modelRegistryTable.setItem(n, 1, organ)
+
+            task = qt.QTableWidgetItem('segmentation')
+            self.modelRegistryTable.setItem(n, 2, task)
+            n += 1
+
     def populateSubModelFromDocker(self, model_names):
         #self.modelParameters.widgets['ModelsList'].addItems(model_names)
         #print('{} widgets in list.'.format(len(self.modelParameters.widgets)))
@@ -613,7 +670,7 @@ class DeepSintefWidget():
     def onCancelButton(self):
         self.currentStatusLabel.text = "Aborting"
         if self.logic:
-            self.logic.abort = True;
+            self.logic.abort = True
 
     def onLogicEventStart(self):
         self.currentStatusLabel.text = "Running"
@@ -634,6 +691,25 @@ class DeepSintefWidget():
 
     def onLogicEventIteration(self, nIter):
         print("Iteration ", nIter)
+
+    def onModelSelectionchanged(self, row, col):
+        model_choice = self.modelRegistryTable.item(row, 0).text()
+        #print('Chosen model: ', model_choice)
+        self.modelParameters.modelName = model_choice
+
+    def onRuntimeOverlapClicked(self, state):
+        print(self.modelParameters.inputs)
+        #InputVolume
+
+    def onRuntimeThresholdSliderMoved(self, value):
+        original_data = deepcopy(self.logic.output_raw_values['OutputLabel'])
+        volume_node = slicer.util.getNode(self.modelParameters.outputs['OutputLabel'].GetName())
+        arr = slicer.util.arrayFromVolume(volume_node)
+        # Increase image contrast
+        #arr[:] = original_data
+        arr[original_data < (value/100)] = 0
+        arr[original_data >= (value/100)] = 1
+        slicer.util.arrayFromVolumeModified(volume_node)
 
 
 class DeepSintefLogic:
@@ -665,6 +741,11 @@ class DeepSintefLogic:
             else:
                 print('could not determine system type')
         self.file_extension_docker='.nii.gz'
+        self.user_configuration = configparser.ConfigParser()
+        self.user_configuration['Predictions'] = {}
+        self.user_configuration['Predictions']['non_overlapping'] = 'true'
+        self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
+        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
 
     def __del__(self):
         if self.main_queue_running:
@@ -762,7 +843,7 @@ class DeepSintefLogic:
                 paramDict[item] = str(params[item])
 
         if not dataPath:
-            dataPath = '/home/DeepSintef/data'
+            dataPath = '/home/deepsintef/data'
 
         print('docker run command:')
         cmd = list()
@@ -818,6 +899,10 @@ class DeepSintefLogic:
         modelName = modelParameters.modelName
         dataPath = modelParameters.dataPath
         #try:
+
+        with open(USER_CONFIG, 'w') as configfile:
+            self.user_configuration.write(configfile)
+
         self.main_queue_start()
         self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, params)
         if not self.abort:
@@ -873,6 +958,7 @@ class DeepSintefLogic:
         # print('updateOutput method')
         output_volume_files = dict()
         output_fiduciallist_files = dict()
+        self.output_raw_values = dict()
         for item in iodict:
             if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
@@ -884,6 +970,7 @@ class DeepSintefLogic:
         for output_volume in output_volume_files.keys():
             result = sitk.ReadImage(output_volume_files[output_volume])
             #print(result.GetPixelIDTypeAsString())
+            self.output_raw_values[output_volume] = deepcopy(sitk.GetArrayFromImage(result))
             output_node = outputs[output_volume]
             output_node_name = output_node.GetName()
             nodeWriteAddress = sitkUtils.GetSlicerITKReadWriteAddress(output_node_name)
@@ -954,8 +1041,9 @@ class DeepSintefLogic:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         out, err = p.communicate()
         print(out)
-        #sub_models = out.strip().split(',')
-        slicer.modules.DeepSintefWidget.populateSubModelFromDocker(out)
+
+        #slicer.modules.DeepSintefWidget.populateSubModelFromDocker(out)
+        slicer.modules.DeepSintefWidget.populate_models_list_from_docker(out)
 
         # progress = 0
         # # print('executing')
