@@ -99,6 +99,14 @@ class DeepSintefWidget():
         """
         globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
 
+    def enable_user_interface(self, state):
+        self.runtimeParametersOverlapCheckbox.setEnabled(state)
+        self.runtimeParametersPredictionsCombobox.setEnabled(state)
+        self.runtimeParametersResamplingCombobox.blockSignals(True)
+        self.runtimeParametersResamplingCombobox.setCurrentText('Second')
+        self.runtimeParametersResamplingCombobox.blockSignals(False)
+        self.runtimeParametersResamplingCombobox.setEnabled(state)
+
     def setup_docker_widget(self):
         self.dockerGroupBox = ctk.ctkCollapsibleGroupBox()
         self.dockerGroupBox.setTitle('Docker Settings')
@@ -123,7 +131,7 @@ class DeepSintefWidget():
 
     def setup_models_list_widget(self):
         self.modelslistGroupbox = ctk.ctkCollapsibleGroupBox()
-        self.modelslistGroupbox.setTitle('Available models')
+        self.modelslistGroupbox.setTitle('Local models description')
         self.layout.addWidget(self.modelslistGroupbox)
 
         modelRepoVBLayout1 = qt.QVBoxLayout(self.modelslistGroupbox)
@@ -133,7 +141,7 @@ class DeepSintefWidget():
         self.modelRegistryTable = qt.QTableWidget()
         self.modelRegistryTable.visible = False
         self.modelRepositoryModel = qt.QStandardItemModel()
-        self.modelRepositoryTableHeaderLabels = ['Model', 'Organ', 'Task', 'Status']
+        self.modelRepositoryTableHeaderLabels = ['Model', 'Organ', 'Task', 'Details'] #also add Architecture and Nb params?
         self.modelRegistryTable.setColumnCount(4)
         self.modelRegistryTable.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.modelRegistryTable.sortingEnabled = True
@@ -160,6 +168,7 @@ class DeepSintefWidget():
         modelRepoVBLayout2.addWidget(refreshWidget)
         hBoXLayout = qt.QHBoxLayout(refreshWidget)
         self.modelRegistryTable.visible = True
+        #self.modelRegistryTable.setEditTriggers(qt.Qt.NoEditTriggers) #@TODO.
 
         # self.connectButton = qt.QPushButton('Connect')
         # self.downloadButton = qt.QPushButton('Download')
@@ -177,18 +186,48 @@ class DeepSintefWidget():
         self.runtimeParametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
         self.runtimeParametersCollapsibleButton.setTitle("Runtime Parameters")
         self.layout.addWidget(self.runtimeParametersCollapsibleButton)
-        # Layout within the dummy collapsible button
-        self.runtimeParametersFormLayout = qt.QFormLayout(self.runtimeParametersCollapsibleButton)
+        self.runtimeParametersGridLayout = qt.QGridLayout(self.runtimeParametersCollapsibleButton)
+        self.runtimeParametersOverlapLabel = qt.QLabel('Overlap')
         self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
-        self.runtimeParametersFormLayout.addRow("Overlap:", self.runtimeParametersOverlapCheckbox)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapLabel, 0, 0, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapCheckbox, 0, 1, 1, 1)
+
+        self.runtimeParametersResamplingLabel = qt.QLabel('Resampling')
+        self.runtimeParametersResamplingCombobox = qt.QComboBox()
+        self.runtimeParametersResamplingCombobox.addItems(['First', 'Second'])
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingLabel, 0, 2, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingCombobox, 0, 3, 1, 1)
+
+        self.runtimeParametersPredictionsLabel = qt.QLabel('Predictions')
+        self.runtimeParametersPredictionsCombobox = qt.QComboBox()
+        self.runtimeParametersPredictionsCombobox.addItems(['Binary', 'Probabilities'])
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsLabel, 0, 4, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsCombobox, 0, 5, 1, 1)
+
+        self.runtimeParametersThresholdLabel = qt.QLabel('Threshold')
+        self.runtimeParametersThresholdClassCombobox = qt.QComboBox()
         self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
         self.runtimeParametersSlider.setMaximum(100)
         self.runtimeParametersSlider.setMinimum(0)
         self.runtimeParametersSlider.setSingleStep(5)
-        self.runtimeParametersFormLayout.addRow("Threshold:", self.runtimeParametersSlider)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdLabel, 1, 0, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdClassCombobox, 1, 1, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersSlider, 1, 2, 1, 5)
+
+        # self.runtimeParametersFormLayout = qt.QFormLayout(self.runtimeParametersCollapsibleButton)
+        # self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
+        # self.runtimeParametersFormLayout.addRow("Overlap:", self.runtimeParametersOverlapCheckbox)
+        # self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
+        # self.runtimeParametersSlider.setMaximum(100)
+        # self.runtimeParametersSlider.setMinimum(0)
+        # self.runtimeParametersSlider.setSingleStep(5)
+        # self.runtimeParametersFormLayout.addRow("Threshold:", self.runtimeParametersSlider)
 
     def setup_runtime_parameters_connections(self):
         self.runtimeParametersOverlapCheckbox.connect('stateChanged(int)', self.onRuntimeOverlapClicked)
+        self.runtimeParametersResamplingCombobox.connect('currentIndexChanged(QString)', self.onRuntimeSamplingOrderChanged)
+        self.runtimeParametersPredictionsCombobox.connect('currentIndexChanged(QString)', self.onRuntimePredictionsTypeChanged)
+        self.runtimeParametersThresholdClassCombobox.connect('currentIndexChanged(int)', self.onRuntimeThresholdClassChanged)
         self.runtimeParametersSlider.valueChanged.connect(self.onRuntimeThresholdSliderMoved)
 
     def setup(self):
@@ -334,6 +373,7 @@ class DeepSintefWidget():
 
         # Initlial Selection
         self.modelSelector.currentIndexChanged(self.modelSelector.currentIndex)
+        self.enable_user_interface(False)
 
     def cleanup(self):
         pass
@@ -642,16 +682,17 @@ class DeepSintefWidget():
         print('onLocate')
         self.logic = DeepSintefLogic()
         # try:
-        self.currentStatusLabel.text = "Starting"
+        self.currentStatusLabel.text = "Locating"
         self.modelParameters.prerun()
         self.logic.locate(self.modelParameters)
+        self.enable_user_interface(True)
 
     def onApplyButton(self):
         print('onApply')
-        self.logic = DeepSintefLogic()
+        #self.logic = DeepSintefLogic()
         # try:
         self.currentStatusLabel.text = "Starting"
-        self.modelParameters.prerun()
+        #self.modelParameters.prerun()
         self.logic.run(self.modelParameters)
 
         '''
@@ -682,6 +723,10 @@ class DeepSintefWidget():
         self.currentStatusLabel.text = "Completed"
         self.progress.setValue(1000)
 
+        for c, class_name in enumerate(self.modelParameters.outputs.keys()): #[current_class].GetName())
+            #self.runtimeParametersThresholdClassCombobox.addItem(self.modelParameters.outputs[class_name].GetName())
+            self.runtimeParametersThresholdClassCombobox.addItem(class_name)
+
     def onLogicEventAbort(self):
         self.currentStatusLabel.text = "Aborted"
 
@@ -698,18 +743,39 @@ class DeepSintefWidget():
         self.modelParameters.modelName = model_choice
 
     def onRuntimeOverlapClicked(self, state):
-        print(self.modelParameters.inputs)
-        #InputVolume
+        if state == qt.Qt.Checked:
+            self.logic.user_configuration['Predictions']['non_overlapping'] = 'False'
+        elif state == qt.Qt.Unchecked:
+            self.logic.user_configuration['Predictions']['non_overlapping'] = 'True'
+
+    def onRuntimeSamplingOrderChanged(self, resampling_order):
+        if resampling_order == 'First':
+            self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+        else:
+            self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
+
+    def onRuntimePredictionsTypeChanged(self, prediction_type):
+        if prediction_type == 'Binary':
+            self.logic.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+        else:
+            self.logic.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
+
+    def onRuntimeThresholdClassChanged(self, selected_index):
+        self.logic.current_threshold_class_index = selected_index
+        self.runtimeParametersSlider.setValue(self.logic.current_class_thresholds[selected_index])
 
     def onRuntimeThresholdSliderMoved(self, value):
-        original_data = deepcopy(self.logic.output_raw_values['OutputLabel'])
-        volume_node = slicer.util.getNode(self.modelParameters.outputs['OutputLabel'].GetName())
+        current_class = self.runtimeParametersThresholdClassCombobox.currentText  # 'OutputLabel'
+        value = float(value)
+        original_data = deepcopy(self.logic.output_raw_values[current_class])
+        volume_node = slicer.util.getNode(self.modelParameters.outputs[current_class].GetName())
         arr = slicer.util.arrayFromVolume(volume_node)
         # Increase image contrast
         #arr[:] = original_data
         arr[original_data < (value/100)] = 0
         arr[original_data >= (value/100)] = 1
         slicer.util.arrayFromVolumeModified(volume_node)
+        self.logic.current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
 
 
 class DeepSintefLogic:
@@ -740,12 +806,15 @@ class DeepSintefLogic:
                 self.setDockerPath(defualt_path)
             else:
                 print('could not determine system type')
-        self.file_extension_docker='.nii.gz'
+        self.file_extension_docker = '.nii.gz'
         self.user_configuration = configparser.ConfigParser()
         self.user_configuration['Predictions'] = {}
         self.user_configuration['Predictions']['non_overlapping'] = 'true'
         self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
         self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+
+        self.current_threshold_class_index = None
+        self.current_class_thresholds = None
 
     def __del__(self):
         if self.main_queue_running:
@@ -832,9 +901,13 @@ class DeepSintefLogic:
                     sitk.WriteImage(img, str(os.path.join(TMP_PATH, fileName)))
                     #except Exception as e:
                     #    print(e.message)
+                elif iodict[item]["type"] == "configuration":
+                    with open(USER_CONFIG, 'w') as configfile:
+                        self.user_configuration.write(configfile)
+                    #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
-                      outputDict[item] = item + self.file_extension_docker
+                      outputDict[item] = item # + self.file_extension_docker
                 elif iodict[item]["type"] == "point_vec":
                     outputDict[item] = item + '.fcsv'
                 else:
@@ -856,8 +929,9 @@ class DeepSintefLogic:
         arguments = []
         for key in inputDict.keys():
             arguments.append(key + ' ' + dataPath + '/' + inputDict[key])
-        for key in outputDict.keys():
-            arguments.append(key + ' ' + dataPath + '/' + outputDict[key])
+        # for key in outputDict.keys():
+        #     arguments.append(key + ' ' + dataPath + '/' + outputDict[key])
+        arguments.append('OutputPrefix' + ' ' + dataPath + '/' + 'DeepSintefOutput')
         # arguments.append(dataPath + '/' + inputDict['InputVolume'])
         # arguments.append(dataPath + '/' + outputDict['OutputLabel'])
         if modelName:
@@ -889,7 +963,6 @@ class DeepSintefLogic:
                     break
             print(line)
 
-
     def thread_doit(self, modelParameters):
         iodict = modelParameters.iodict
         inputs = modelParameters.inputs
@@ -899,10 +972,6 @@ class DeepSintefLogic:
         modelName = modelParameters.modelName
         dataPath = modelParameters.dataPath
         #try:
-
-        with open(USER_CONFIG, 'w') as configfile:
-            self.user_configuration.write(configfile)
-
         self.main_queue_start()
         self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, params)
         if not self.abort:
@@ -959,14 +1028,28 @@ class DeepSintefLogic:
         output_volume_files = dict()
         output_fiduciallist_files = dict()
         self.output_raw_values = dict()
+        created_files = []
+        for _, _, files in os.walk(TMP_PATH):
+            for f, file in enumerate(files):
+                if 'Output' in file:
+                    created_files.append(file)
+            break
+
+        nb_class = 0
         for item in iodict:
             if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
-                    fileName = str(os.path.join(TMP_PATH, item + self.file_extension_docker))
+                    #fileName = str(os.path.join(TMP_PATH, item + self.file_extension_docker))
+                    fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
                     output_volume_files[item] = fileName
+                    nb_class = nb_class + 1
                 if iodict[item]["type"] == "point_vec":
                     fileName = str(os.path.join(TMP_PATH, item + '.fcsv'))
                     output_fiduciallist_files[item] = fileName
+
+        self.current_threshold_class_index = 0
+        self.current_class_thresholds = [0.55] * nb_class
+
         for output_volume in output_volume_files.keys():
             result = sitk.ReadImage(output_volume_files[output_volume])
             #print(result.GetPixelIDTypeAsString())
@@ -1281,6 +1364,8 @@ class ModelParameters(object):
                 w = self.createBoolWidget(member["name"], default=member["default"])
             elif t == "str":
                 w = self.createStringWidget(member["name"], default=member["default"])
+            elif t == "configuration":
+                pass
             elif t in ["uint8_t", "int8_t",
                        "uint16_t", "int16_t",
                        "uint32_t", "int32_t",
