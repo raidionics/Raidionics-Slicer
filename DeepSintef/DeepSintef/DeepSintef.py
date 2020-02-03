@@ -6,6 +6,7 @@ import Queue
 import json
 import platform
 import os
+import numpy
 import re
 import subprocess
 import shutil
@@ -14,7 +15,7 @@ from collections import OrderedDict
 from glob import glob
 from time import sleep
 from copy import deepcopy
-from __main__ import qt, ctk, slicer
+from __main__ import qt, ctk, slicer, vtk
 
 import SimpleITK as sitk
 import sitkUtils
@@ -107,6 +108,14 @@ class DeepSintefWidget():
         self.runtimeParametersResamplingCombobox.blockSignals(False)
         self.runtimeParametersResamplingCombobox.setEnabled(state)
 
+    def enable_threshold_function_interface(self, state):
+        self.runtimeParametersThresholdClassCombobox.setEnabled(state)
+        self.runtimeParametersSlider.setEnabled(state)
+        self.runtimeParametersSlider.blockSignals(True)
+        #self.runtimeParametersSlider.setValue(self.logic.current_class_thresholds[selected_index])
+        self.runtimeParametersSlider.blockSignals(False)
+        self.runtimeParametersThresholdClassCombobox.clear()
+
     def setup_docker_widget(self):
         self.dockerGroupBox = ctk.ctkCollapsibleGroupBox()
         self.dockerGroupBox.setTitle('Docker Settings')
@@ -141,8 +150,8 @@ class DeepSintefWidget():
         self.modelRegistryTable = qt.QTableWidget()
         self.modelRegistryTable.visible = False
         self.modelRepositoryModel = qt.QStandardItemModel()
-        self.modelRepositoryTableHeaderLabels = ['Model', 'Organ', 'Task', 'Details'] #also add Architecture and Nb params?
-        self.modelRegistryTable.setColumnCount(4)
+        self.modelRepositoryTableHeaderLabels = ['Model', 'Task', 'Modality', 'Organ', 'Owner', 'Comments', '# Params']
+        self.modelRegistryTable.setColumnCount(7)
         self.modelRegistryTable.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.modelRegistryTable.sortingEnabled = True
         self.modelRegistryTable.setHorizontalHeaderLabels(self.modelRepositoryTableHeaderLabels)
@@ -188,6 +197,8 @@ class DeepSintefWidget():
         self.layout.addWidget(self.runtimeParametersCollapsibleButton)
         self.runtimeParametersGridLayout = qt.QGridLayout(self.runtimeParametersCollapsibleButton)
         self.runtimeParametersOverlapLabel = qt.QLabel('Overlap')
+        self.runtimeParametersOverlapLabel.setToolTip("If checked, the predictions will be optimized for each slice"
+                                                      " (longer to process).")
         self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapLabel, 0, 0, 1, 1)
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapCheckbox, 0, 1, 1, 1)
@@ -195,10 +206,14 @@ class DeepSintefWidget():
         self.runtimeParametersResamplingLabel = qt.QLabel('Resampling')
         self.runtimeParametersResamplingCombobox = qt.QComboBox()
         self.runtimeParametersResamplingCombobox.addItems(['First', 'Second'])
+        self.runtimeParametersResamplingLabel.setToolTip("Resampling first will produce nicer/smoother results,"
+                                                         " at the cost of a longer processing time.")
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingLabel, 0, 2, 1, 1)
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingCombobox, 0, 3, 1, 1)
 
         self.runtimeParametersPredictionsLabel = qt.QLabel('Predictions')
+        self.runtimeParametersPredictionsLabel.setToolTip("Binary is the optimally thresholded result; probabilities is"
+                                                          " the full prediction, allowing to play with the threshold.")
         self.runtimeParametersPredictionsCombobox = qt.QComboBox()
         self.runtimeParametersPredictionsCombobox.addItems(['Binary', 'Probabilities'])
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsLabel, 0, 4, 1, 1)
@@ -206,6 +221,7 @@ class DeepSintefWidget():
 
         self.runtimeParametersThresholdLabel = qt.QLabel('Threshold')
         self.runtimeParametersThresholdClassCombobox = qt.QComboBox()
+
         self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
         self.runtimeParametersSlider.setMaximum(100)
         self.runtimeParametersSlider.setMinimum(0)
@@ -213,6 +229,17 @@ class DeepSintefWidget():
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdLabel, 1, 0, 1, 1)
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdClassCombobox, 1, 1, 1, 1)
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersSlider, 1, 2, 1, 5)
+
+        self.runtimeParametersCurrentThresholdLabel = qt.QLabel('Current threshold')
+        self.runtimeParametersCurrentThresholdLabel.setToolTip("Currently selected prediction threshold")
+        self.runtimeParametersCurrentThresholdValueLabel = qt.QLabel('')
+        self.runtimeParametersOptimalThresholdLabel = qt.QLabel('Optimal threshold')
+        self.runtimeParametersOptimalThresholdLabel.setToolTip("Optimal prediction threshold from training")
+        self.runtimeParametersOptimalThresholdValueLabel = qt.QLabel('')
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersCurrentThresholdLabel, 2, 0, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersCurrentThresholdValueLabel, 2, 1, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOptimalThresholdLabel, 2, 2, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOptimalThresholdValueLabel, 2, 3, 1, 1)
 
         # self.runtimeParametersFormLayout = qt.QFormLayout(self.runtimeParametersCollapsibleButton)
         # self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
@@ -468,6 +495,9 @@ class DeepSintefWidget():
         else:
             self.modelSelector.setToolTip("")
 
+        self.enable_user_interface(True)
+        #self.onLocateButton()
+
     def onConnectButton(self):
         try:
             self.modelRegistryTable.visible = True
@@ -615,10 +645,10 @@ class DeepSintefWidget():
     def populateModelRegistryTable(self):
         self.modelTableItems = dict()
         # print("populate Model Registry Table")
-        model_files = glob(JSON_CLOUD_DIR + '/*.json')
+        model_files = glob(JSON_LOCAL_DIR + '/*.json')
         self.modelRegistryTable.setRowCount(len(model_files))
         n = 0
-        model_files = [os.path.join(JSON_CLOUD_DIR, model_file) for model_file in model_files]
+        model_files = [os.path.join(JSON_LOCAL_DIR, model_file) for model_file in model_files]
         for model_file in model_files:
             with open(model_file) as json_data:
                 model = json.load(json_data)
@@ -628,12 +658,21 @@ class DeepSintefWidget():
                     nameTableItem = qt.QTableWidgetItem(str(model['name']))
                     self.modelTableItems[nameTableItem] = model_file
                     self.modelRegistryTable.setItem(n, 0, nameTableItem)
-                if key == 'organ':
-                    organ = qt.QTableWidgetItem(str(model['organ']))
-                    self.modelRegistryTable.setItem(n, 1, organ)
                 if key == 'task':
                     task = qt.QTableWidgetItem(str(model['task']))
-                    self.modelRegistryTable.setItem(n, 2, task)
+                    self.modelRegistryTable.setItem(n, 1, task)
+                if key == 'modality':
+                    modality = qt.QTableWidgetItem(str(model['modality']))
+                    self.modelRegistryTable.setItem(n, 2, modality)
+                if key == 'organ':
+                    organ = qt.QTableWidgetItem(str(model['organ']))
+                    self.modelRegistryTable.setItem(n, 3, organ)
+                if key == 'owner':
+                    owner = qt.QTableWidgetItem(str(model['owner']))
+                    self.modelRegistryTable.setItem(n, 4, owner)
+                if key == 'owner':
+                    details = qt.QTableWidgetItem(str(model['train_test_data_details']))
+                    self.modelRegistryTable.setItem(n, 5, details)
             n += 1
 
     def populate_models_list_from_docker(self, model_names):
@@ -645,20 +684,20 @@ class DeepSintefWidget():
             if w.accessibleName == 'ModelsList':
                 w.clear()
                 w.addItems(actual_names)
-
-        n = 0
-        self.modelRegistryTable.setRowCount(len(actual_names))
-        for model_name in actual_names:
-            nameTableItem = qt.QTableWidgetItem(model_name)
-            #self.modelTableItems[nameTableItem] = model_name
-            self.modelRegistryTable.setItem(n, 0, nameTableItem)
-
-            organ = qt.QTableWidgetItem(model_name.split('_')[1])
-            self.modelRegistryTable.setItem(n, 1, organ)
-
-            task = qt.QTableWidgetItem('segmentation')
-            self.modelRegistryTable.setItem(n, 2, task)
-            n += 1
+        self.populateModelRegistryTable()
+        # n = 0
+        # self.modelRegistryTable.setRowCount(len(actual_names))
+        # for model_name in actual_names:
+        #     nameTableItem = qt.QTableWidgetItem(model_name)
+        #     #self.modelTableItems[nameTableItem] = model_name
+        #     self.modelRegistryTable.setItem(n, 0, nameTableItem)
+        #
+        #     organ = qt.QTableWidgetItem(model_name.split('_')[1])
+        #     self.modelRegistryTable.setItem(n, 1, organ)
+        #
+        #     task = qt.QTableWidgetItem('segmentation')
+        #     self.modelRegistryTable.setItem(n, 2, task)
+        #     n += 1
 
     def populateSubModelFromDocker(self, model_names):
         #self.modelParameters.widgets['ModelsList'].addItems(model_names)
@@ -686,12 +725,15 @@ class DeepSintefWidget():
         self.modelParameters.prerun()
         self.logic.locate(self.modelParameters)
         self.enable_user_interface(True)
+        self.enable_threshold_function_interface(False)
 
     def onApplyButton(self):
         print('onApply')
         #self.logic = DeepSintefLogic()
         # try:
         self.currentStatusLabel.text = "Starting"
+        if self.runtimeParametersPredictionsCombobox.currentText == 'Probabilities':
+            self.enable_threshold_function_interface(True)
         #self.modelParameters.prerun()
         self.logic.run(self.modelParameters)
 
@@ -743,6 +785,24 @@ class DeepSintefWidget():
         self.modelParameters.modelName = model_choice
 
     def onRuntimeOverlapClicked(self, state):
+        # nodes = slicer.util.getNodes('TestLabel')
+        # if len(nodes) == 0:
+        #     node = slicer.vtkMRMLLabelMapVolumeNode()
+        #     node.SetName('TestLabel')
+        #     slicer.mrmlScene.AddNode(node)
+        #     node.CreateDefaultDisplayNodes()
+        #     imageData = vtk.vtkImageData()
+        #     imageData.SetDimensions((150, 150, 150))
+        #     imageData.AllocateScalars(vtk.VTK_SHORT, 1)
+        #     node.SetAndObserveImageData(imageData)
+        # else:
+        #     node = nodes['TestLabel']
+        #
+        # slicer_node = slicer.util.getNode('TestLabel')
+        # array = slicer.util.arrayFromVolume(slicer_node)
+        # array = numpy.zeros((200, 200, 200))
+        # slicer.util.arrayFromVolumeModified(slicer_node)
+
         if state == qt.Qt.Checked:
             self.logic.user_configuration['Predictions']['non_overlapping'] = 'False'
         elif state == qt.Qt.Unchecked:
@@ -776,6 +836,7 @@ class DeepSintefWidget():
         arr[original_data >= (value/100)] = 1
         slicer.util.arrayFromVolumeModified(volume_node)
         self.logic.current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
+        self.runtimeParametersCurrentThresholdValueLabel.setText(str(value))
 
 
 class DeepSintefLogic:
@@ -810,8 +871,8 @@ class DeepSintefLogic:
         self.user_configuration = configparser.ConfigParser()
         self.user_configuration['Predictions'] = {}
         self.user_configuration['Predictions']['non_overlapping'] = 'true'
-        self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
-        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+        self.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
 
         self.current_threshold_class_index = None
         self.current_class_thresholds = None
@@ -871,7 +932,7 @@ class DeepSintefLogic:
     def notifyChangedFileExtensionForDocker(self, new_extension):
         self.file_extension_docker = new_extension
 
-    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, params):
+    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params):
         try:
             assert self.checkDockerDaemon(), "Docker Daemon is not running"
         except Exception as e:
@@ -907,7 +968,18 @@ class DeepSintefLogic:
                     #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
-                      outputDict[item] = item # + self.file_extension_docker
+                      outputDict[item] = item
+                      nodes = slicer.util.getNodes(outputDict[item])
+                      if len(nodes) == 0:
+                          node = slicer.vtkMRMLLabelMapVolumeNode()
+                          node.SetName(outputDict[item])
+                          slicer.mrmlScene.AddNode(node)
+                          node.CreateDefaultDisplayNodes()
+                          imageData = vtk.vtkImageData()
+                          imageData.SetDimensions((150, 150, 150))
+                          imageData.AllocateScalars(vtk.VTK_SHORT, 1)
+                          node.SetAndObserveImageData(imageData)
+                          outputs[item] = node
                 elif iodict[item]["type"] == "point_vec":
                     outputDict[item] = item + '.fcsv'
                 else:
@@ -973,7 +1045,7 @@ class DeepSintefLogic:
         dataPath = modelParameters.dataPath
         #try:
         self.main_queue_start()
-        self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, params)
+        self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params)
         if not self.abort:
             self.updateOutput(iodict, outputs)
             self.main_queue_stop()
@@ -1039,8 +1111,8 @@ class DeepSintefLogic:
         for item in iodict:
             if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
-                    #fileName = str(os.path.join(TMP_PATH, item + self.file_extension_docker))
-                    fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
+                    #fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
+                    fileName = str(os.path.join(TMP_PATH, created_files[[item in x for x in created_files].index(True)]))
                     output_volume_files[item] = fileName
                     nb_class = nb_class + 1
                 if iodict[item]["type"] == "point_vec":
