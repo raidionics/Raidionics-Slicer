@@ -57,30 +57,28 @@ class DeepSintef(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "DeepSintef" # TODO make this more human readable by adding spaces
+    self.parent.title = "DeepSintef"
     self.parent.categories = ["Machine Learning"]
     self.parent.dependencies = []
     self.parent.contributors = ["David Bouget (SINTEF)"]
     self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-It performs a simple thresholding on the input volume and optionally captures a screenshot.
-"""
+    This is a plugin developped by SINTEF MedTek, allowing users to run pre-trained models on neuro and mediastinum
+    data."""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
-""" # replace with organization, grant and thanks.
+    This plugin is based about the DeepInfer plugin (available at https://github.com/DeepInfer/Slicer-DeepInfer), 
+    originally developed by Jean-Christophe Fillion-Robin, Kitware Inc. and Steve Pieper, Isomics, Inc.. """
 
 
-#
-# DeepSintefWidget
-#
 class DeepSintefWidget():
+    """
+    Main GUI object, similar to a QMainWindow, where all widgets and user interactions are defined.
+    """
     def __init__(self, parent=None):
+        """
 
-        # To avoid the overhead of importing SimpleITK during application
-        # startup, the import of SimpleITK is delayed until it is needed.
-
+        :param parent: the parent will be a reference to the 3D Slicer window where this plugin will be displayed
+        """
         if not parent:
             self.parent = slicer.qMRMLWidget()
             self.parent.setLayout(qt.QVBoxLayout())
@@ -95,12 +93,20 @@ class DeepSintefWidget():
         self.logic = None
 
     def onReload(self, moduleName="DeepSintef"):
-        """Generic reload method for any scripted module.
-        ModuleWizard will subsitute correct default moduleName.
+        """
+        Generic reload method for any scripted module.
+        ModuleWizard will substitute correct default moduleName.
         """
         globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
+        #@TODO. Should add some module specific clean/reload functions here?
 
     def enable_user_interface(self, state):
+        """
+        Enables the widgets accessible to the user for generating the predictions.
+        Should be enabled only when a model (*.json file) has been loaded.
+        :param state: True or False, to enable or disable the set of widgets.
+        :return:
+        """
         self.runtimeParametersOverlapCheckbox.setEnabled(state)
         self.runtimeParametersPredictionsCombobox.setEnabled(state)
         self.runtimeParametersResamplingCombobox.blockSignals(True)
@@ -109,6 +115,12 @@ class DeepSintefWidget():
         self.runtimeParametersResamplingCombobox.setEnabled(state)
 
     def enable_threshold_function_interface(self, state):
+        """
+        Enables the widgets accessible to the user for interacting with the predictions.
+        Should be enabled only when a model has been ran and predictions returned.
+        :param state: True or False, to enable or disable the set of widgets.
+        :return:
+        """
         self.runtimeParametersThresholdClassCombobox.setEnabled(state)
         self.runtimeParametersSlider.setEnabled(state)
         self.runtimeParametersSlider.blockSignals(True)
@@ -258,10 +270,12 @@ class DeepSintefWidget():
         self.runtimeParametersSlider.valueChanged.connect(self.onRuntimeThresholdSliderMoved)
 
     def setup(self):
-        # Instantiate and connect widgets ...
-        #
+        """
+        Instantiate and connect widgets
+        :return:
+        """
+
         # Reload and Test area
-        #
         reloadCollapsibleButton = ctk.ctkCollapsibleButton()
         reloadCollapsibleButton.collapsed = True
         reloadCollapsibleButton.text = "Reload && Test"
@@ -325,9 +339,7 @@ class DeepSintefWidget():
         # connections
         self.modelSelector.connect('currentIndexChanged(int)', self.onModelSelect)
 
-        #
         # Parameters Area
-        #
         parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
         parametersCollapsibleButton.setTitle("Model Parameters")
         self.layout.addWidget(parametersCollapsibleButton)
@@ -343,9 +355,7 @@ class DeepSintefWidget():
         # Add vertical spacer
         self.layout.addStretch(1)
 
-        #
         # Status and Progress
-        #
         statusLabel = qt.QLabel("Status: ")
         self.currentStatusLabel = qt.QLabel("Idle")
         hlayout = qt.QHBoxLayout()
@@ -360,9 +370,7 @@ class DeepSintefWidget():
         self.layout.addWidget(self.progress)
         self.progress.hide()
 
-        #
         # Cancel/Apply Row
-        #
         self.restoreDefaultsButton = qt.QPushButton("Restore Defaults")
         self.restoreDefaultsButton.toolTip = "Restore the default parameters."
         self.restoreDefaultsButton.enabled = True
@@ -994,6 +1002,7 @@ class DeepSintefLogic:
         cmd = list()
         cmd.append(self.dockerPath)
         cmd.extend(('run', '-t', '-v'))
+        #cmd.append(' --runtime=nvidia ') # @TODO. needs an if/else statement to check if gpu support is requested
         cmd.append(TMP_PATH + ':' + dataPath)
         cmd.append(dockerName)
         cmd.append('--' + 'Task')
