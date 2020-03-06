@@ -38,7 +38,9 @@ JSON_LOCAL_DIR = os.path.join(DEEPSINTEF_DIR, 'json', 'local')
 if not os.path.isdir(JSON_LOCAL_DIR):
     os.makedirs(JSON_LOCAL_DIR)
 
-TMP_PATH = os.path.join(DEEPSINTEF_DIR, '.tmp')
+RESOURCES_PATH = os.path.join(DEEPSINTEF_DIR, 'resources')
+
+TMP_PATH = os.path.join(RESOURCES_PATH, 'data')
 if os.path.isdir(TMP_PATH):
     shutil.rmtree(TMP_PATH)
 
@@ -113,6 +115,7 @@ class DeepSintefWidget():
         self.runtimeParametersResamplingCombobox.setCurrentText('Second')
         self.runtimeParametersResamplingCombobox.blockSignals(False)
         self.runtimeParametersResamplingCombobox.setEnabled(state)
+        self.runtimeParametersUseGPUCheckbox.setEnabled(state)
 
     def enable_threshold_function_interface(self, state):
         """
@@ -231,6 +234,13 @@ class DeepSintefWidget():
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsLabel, 0, 4, 1, 1)
         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsCombobox, 0, 5, 1, 1)
 
+        self.runtimeParametersUseGPULabel = qt.QLabel('GPU')
+        self.runtimeParametersUseGPULabel.setToolTip("Make sure you have a GPU AND Nvidia drivers installed before"
+                                                      " ticking the box.")
+        self.runtimeParametersUseGPUCheckbox = qt.QCheckBox()
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersUseGPULabel, 0, 6, 1, 1)
+        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersUseGPUCheckbox, 0, 7, 1, 1)
+
         self.runtimeParametersThresholdLabel = qt.QLabel('Threshold')
         self.runtimeParametersThresholdClassCombobox = qt.QComboBox()
 
@@ -266,6 +276,7 @@ class DeepSintefWidget():
         self.runtimeParametersOverlapCheckbox.connect('stateChanged(int)', self.onRuntimeOverlapClicked)
         self.runtimeParametersResamplingCombobox.connect('currentIndexChanged(QString)', self.onRuntimeSamplingOrderChanged)
         self.runtimeParametersPredictionsCombobox.connect('currentIndexChanged(QString)', self.onRuntimePredictionsTypeChanged)
+        self.runtimeParametersUseGPUCheckbox.connect('stateChanged(int)', self.onRuntimeUseGPUClicked)
         self.runtimeParametersThresholdClassCombobox.connect('currentIndexChanged(int)', self.onRuntimeThresholdClassChanged)
         self.runtimeParametersSlider.valueChanged.connect(self.onRuntimeThresholdSliderMoved)
 
@@ -816,6 +827,12 @@ class DeepSintefWidget():
         elif state == qt.Qt.Unchecked:
             self.logic.user_configuration['Predictions']['non_overlapping'] = 'True'
 
+    def onRuntimeUseGPUClicked(self, state):
+        if state == qt.Qt.Checked:
+            self.logic.use_gpu = True
+        elif state == qt.Qt.Unchecked:
+            self.logic.use_gpu = False
+
     def onRuntimeSamplingOrderChanged(self, resampling_order):
         if resampling_order == 'First':
             self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
@@ -882,6 +899,7 @@ class DeepSintefLogic:
         self.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
         self.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
 
+        self.use_gpu = False
         self.current_threshold_class_index = None
         self.current_class_thresholds = None
 
@@ -996,23 +1014,25 @@ class DeepSintefLogic:
                 paramDict[item] = str(params[item])
 
         if not dataPath:
-            dataPath = '/home/deepsintef/data'
+            dataPath = '/home/deepsintef/resources'
 
         print('docker run command:')
         cmd = list()
         cmd.append(self.dockerPath)
         cmd.extend(('run', '-t', '-v'))
-        #cmd.append(' --runtime=nvidia ') # @TODO. needs an if/else statement to check if gpu support is requested
-        cmd.append(TMP_PATH + ':' + dataPath)
+        if self.use_gpu:
+            cmd.append(' --runtime=nvidia ')
+        #cmd.append(TMP_PATH + ':' + dataPath)
+        cmd.append(RESOURCES_PATH + ':' + dataPath)
         cmd.append(dockerName)
         cmd.append('--' + 'Task')
         cmd.append('segmentation')
         arguments = []
         for key in inputDict.keys():
-            arguments.append(key + ' ' + dataPath + '/' + inputDict[key])
+            arguments.append(key + ' ' + dataPath + '/data/' + inputDict[key])
         # for key in outputDict.keys():
         #     arguments.append(key + ' ' + dataPath + '/' + outputDict[key])
-        arguments.append('OutputPrefix' + ' ' + dataPath + '/' + 'DeepSintefOutput')
+        arguments.append('OutputPrefix' + ' ' + dataPath + '/data/' + 'DeepSintefOutput')
         # arguments.append(dataPath + '/' + inputDict['InputVolume'])
         # arguments.append(dataPath + '/' + outputDict['OutputLabel'])
         if modelName:
@@ -1188,13 +1208,15 @@ class DeepSintefLogic:
             self.abort = True
 
         if not dataPath:
-            dataPath = '/home/DeepSintef/data'
+            #dataPath = '/home/DeepSintef/data'
+            dataPath = '/home/deepsintef/resources'
 
         print('docker run command:')
         cmd = list()
         cmd.append(self.dockerPath)
         cmd.extend(('run', '-t', '-v'))
-        cmd.append(TMP_PATH + ':' + dataPath)
+        #cmd.append(TMP_PATH + ':' + dataPath)
+        cmd.append(RESOURCES_PATH + ':' + dataPath)
         cmd.append(dockerName)
         cmd.append('--' + 'Task')
         cmd.append('parsing')

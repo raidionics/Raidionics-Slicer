@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Only the fly creation of slicer label volumes, only missing the fetch of optimal thresholds from the Docker image. Added other info to the models table.">
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Adding comments, stuff to do, to clean/improve the plugin.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" afterDir="false" />
     </list>
@@ -83,7 +83,9 @@
       <workItem from="1569687101028" duration="733000" />
       <workItem from="1570454107387" duration="6245000" />
       <workItem from="1572103198502" duration="3242000" />
-      <workItem from="1580457875512" duration="61849000" />
+      <workItem from="1580457875512" duration="63093000" />
+      <workItem from="1581087590872" duration="595000" />
+      <workItem from="1581168541189" duration="5876000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -120,7 +122,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580746163745</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Adding comments, stuff to do, to clean/improve the plugin.">
+      <created>1580825703731</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1580825703731</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -146,141 +155,147 @@
     <MESSAGE value="Starting a new GUI, clean from deepinfer. Will only keep the ModelParameters connecting the nifti images to 3DSlicer objects." />
     <MESSAGE value="New architecture running. Need of improvment for multi-class predictions, and user parameters editing." />
     <MESSAGE value="Only the fly creation of slicer label volumes, only missing the fetch of optimal thresholds from the Docker image. Added other info to the models table." />
-    <option name="LAST_COMMIT_MESSAGE" value="Only the fly creation of slicer label volumes, only missing the fetch of optimal thresholds from the Docker image. Added other info to the models table." />
+    <MESSAGE value="Adding comments, stuff to do, to clean/improve the plugin." />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding comments, stuff to do, to clean/improve the plugin." />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2" timestamp="1580821185904">
+    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2" timestamp="1580832497198">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580821185904" />
-    <state width="1807" height="392" key="GridCell.Tab.0.bottom" timestamp="1580741128106">
+    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580832497198" />
+    <state width="1807" height="392" key="GridCell.Tab.0.bottom" timestamp="1583510460598">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741128106" />
-    <state width="1807" height="392" key="GridCell.Tab.0.center" timestamp="1580741128106">
+    <state width="1807" height="392" key="GridCell.Tab.0.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
+    <state width="1807" height="392" key="GridCell.Tab.0.center" timestamp="1583510460598">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741128106" />
-    <state width="1807" height="392" key="GridCell.Tab.0.left" timestamp="1580741128106">
+    <state width="1807" height="392" key="GridCell.Tab.0.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
+    <state width="1807" height="392" key="GridCell.Tab.0.left" timestamp="1583510460598">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741128106" />
-    <state width="1807" height="392" key="GridCell.Tab.0.right" timestamp="1580741128106">
+    <state width="1807" height="392" key="GridCell.Tab.0.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
+    <state width="1807" height="392" key="GridCell.Tab.0.right" timestamp="1583510460598">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741128106" />
-    <state width="1807" height="392" key="GridCell.Tab.1.bottom" timestamp="1580741148861">
+    <state width="1807" height="392" key="GridCell.Tab.0.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
+    <state width="1807" height="392" key="GridCell.Tab.1.bottom" timestamp="1583510415703">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741148861" />
-    <state width="1807" height="392" key="GridCell.Tab.1.center" timestamp="1580741148861">
+    <state width="1807" height="392" key="GridCell.Tab.1.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
+    <state width="1807" height="392" key="GridCell.Tab.1.center" timestamp="1583510415703">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741148861" />
-    <state width="1807" height="392" key="GridCell.Tab.1.left" timestamp="1580741148861">
+    <state width="1807" height="392" key="GridCell.Tab.1.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
+    <state width="1807" height="392" key="GridCell.Tab.1.left" timestamp="1583510415703">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741148861" />
-    <state width="1807" height="392" key="GridCell.Tab.1.right" timestamp="1580741148861">
+    <state width="1807" height="392" key="GridCell.Tab.1.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
+    <state width="1807" height="392" key="GridCell.Tab.1.right" timestamp="1583510415703">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580741148861" />
+    <state width="1807" height="392" key="GridCell.Tab.1.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
     <state x="2402" y="247" key="SettingsEditor" timestamp="1580486932754">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
     <state x="2402" y="247" key="SettingsEditor/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580486932754" />
-    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580821195631">
+    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580825709248">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580821195631" />
+    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580825709248" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>729</line>
+          <line>740</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>790</line>
+          <line>801</line>
           <option name="timeStamp" value="19" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>791</line>
+          <line>802</line>
           <option name="timeStamp" value="20" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1005</line>
+          <line>1024</line>
           <option name="timeStamp" value="26" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>775</line>
+          <line>786</line>
           <option name="timeStamp" value="44" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1153</line>
+          <line>1173</line>
           <option name="timeStamp" value="50" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1056</line>
+          <line>1076</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>820</line>
-          <option name="timeStamp" value="72" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>822</line>
-          <option name="timeStamp" value="73" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>831</line>
+          <line>848</line>
           <option name="timeStamp" value="75" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>742</line>
+          <line>753</line>
           <option name="timeStamp" value="88" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>745</line>
+          <line>756</line>
           <option name="timeStamp" value="89" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>743</line>
+          <line>754</line>
           <option name="timeStamp" value="90" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>777</line>
+          <line>788</line>
           <option name="timeStamp" value="91" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1119</line>
+          <line>1139</line>
           <option name="timeStamp" value="93" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1122</line>
+          <line>1142</line>
           <option name="timeStamp" value="94" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>979</line>
+          <line>997</line>
           <option name="timeStamp" value="95" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
+          <line>1025</line>
+          <option name="timeStamp" value="96" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
+          <line>1031</line>
+          <option name="timeStamp" value="97" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
+          <line>1034</line>
+          <option name="timeStamp" value="98" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
