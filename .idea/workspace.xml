@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Adding comments, stuff to do, to clean/improve the plugin.">
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +85,7 @@
       <workItem from="1572103198502" duration="3242000" />
       <workItem from="1580457875512" duration="63093000" />
       <workItem from="1581087590872" duration="595000" />
-      <workItem from="1581168541189" duration="5876000" />
+      <workItem from="1581168541189" duration="7852000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -129,7 +129,14 @@
       <option name="project" value="LOCAL" />
       <updated>1580825703731</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Fix for handling differently the models location.">
+      <created>1583512418962</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1583512418962</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -156,13 +163,14 @@
     <MESSAGE value="New architecture running. Need of improvment for multi-class predictions, and user parameters editing." />
     <MESSAGE value="Only the fly creation of slicer label volumes, only missing the fetch of optimal thresholds from the Docker image. Added other info to the models table." />
     <MESSAGE value="Adding comments, stuff to do, to clean/improve the plugin." />
-    <option name="LAST_COMMIT_MESSAGE" value="Adding comments, stuff to do, to clean/improve the plugin." />
+    <MESSAGE value="Fix for handling differently the models location." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix for handling differently the models location." />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2" timestamp="1580832497198">
+    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2" timestamp="1583512418890">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580832497198" />
+    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583512418890" />
     <state width="1807" height="392" key="GridCell.Tab.0.bottom" timestamp="1583510460598">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
@@ -199,10 +207,10 @@
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
     <state x="2402" y="247" key="SettingsEditor/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580486932754" />
-    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580825709248">
+    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1583512425615">
       <screen x="1920" y="0" width="1920" height="1200" />
     </state>
-    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580825709248" />
+    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583512425615" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
