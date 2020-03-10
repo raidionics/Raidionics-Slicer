@@ -1,6 +1,7 @@
 Installation
 
 • Download 3DSlicer.  
+• git clone --single-branch --branch full-update https://github.com/dbouget/Slicer-DeepSintef.git /path/to/folder/
 • Install DeepSintef Module:  
 ∘ Download locally the module from github.  
 ∘ All Modules > Extension Wizard.  
