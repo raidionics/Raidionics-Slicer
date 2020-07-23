@@ -1020,13 +1020,17 @@ class DeepSintefLogic:
         cmd = list()
         cmd.append(self.dockerPath)
         cmd.extend(('run', '-t', '-v'))
-        if self.use_gpu:
-            cmd.append(' --runtime=nvidia ')
+        # if self.use_gpu:
+        #     cmd.append(' --runtime=nvidia ')
         #cmd.append(TMP_PATH + ':' + dataPath)
         cmd.append(RESOURCES_PATH + ':' + dataPath)
         cmd.append(dockerName)
-        cmd.append('--' + 'Task')
-        cmd.append('segmentation')
+        if not self.use_gpu:
+            cmd.append('--' + 'Task')
+            cmd.append('segmentation')
+        else:
+            cmd.append('--' + 'Task')
+            cmd.append('database')
         arguments = []
         for key in inputDict.keys():
             arguments.append(key + ' ' + dataPath + '/data/' + inputDict[key])

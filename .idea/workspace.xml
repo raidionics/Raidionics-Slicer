@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Added README.md">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,7 +28,6 @@
   <component name="ProjectId" id="1QHQACPq7TqyScPY4SYgfOvNX6v" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
@@ -55,18 +54,6 @@
       <method v="2" />
     </configuration>
   </component>
-  <component name="ServiceViewManager">
-    <option name="viewStates">
-      <list>
-        <serviceView>
-          <treeState>
-            <expand />
-            <select />
-          </treeState>
-        </serviceView>
-      </list>
-    </option>
-  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -85,7 +72,12 @@
       <workItem from="1572103198502" duration="3242000" />
       <workItem from="1580457875512" duration="63093000" />
       <workItem from="1581087590872" duration="595000" />
-      <workItem from="1581168541189" duration="7852000" />
+      <workItem from="1581168541189" duration="9330000" />
+      <workItem from="1585659430488" duration="1568000" />
+      <workItem from="1594029058729" duration="1280000" />
+      <workItem from="1594037564122" duration="49000" />
+      <workItem from="1594037754588" duration="1237000" />
+      <workItem from="1594281516618" duration="2651000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -136,24 +128,30 @@
       <option name="project" value="LOCAL" />
       <updated>1583512418962</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added README.md">
+      <created>1583829064495</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1583829064495</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
@@ -164,53 +162,14 @@
     <MESSAGE value="Only the fly creation of slicer label volumes, only missing the fetch of optimal thresholds from the Docker image. Added other info to the models table." />
     <MESSAGE value="Adding comments, stuff to do, to clean/improve the plugin." />
     <MESSAGE value="Fix for handling differently the models location." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix for handling differently the models location." />
+    <MESSAGE value="Added README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added README.md" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2" timestamp="1583512418890">
-      <screen x="1920" y="0" width="1920" height="1200" />
+    <state x="623" y="267" width="672" height="678" key="search.everywhere.popup" timestamp="1594029738149">
+      <screen x="0" y="27" width="1920" height="1173" />
     </state>
-    <state x="2412" y="209" width="993" height="807" key="CommitChangelistDialog2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583512418890" />
-    <state width="1807" height="392" key="GridCell.Tab.0.bottom" timestamp="1583510460598">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
-    <state width="1807" height="392" key="GridCell.Tab.0.center" timestamp="1583510460598">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
-    <state width="1807" height="392" key="GridCell.Tab.0.left" timestamp="1583510460598">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
-    <state width="1807" height="392" key="GridCell.Tab.0.right" timestamp="1583510460598">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.0.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510460598" />
-    <state width="1807" height="392" key="GridCell.Tab.1.bottom" timestamp="1583510415703">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.bottom/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
-    <state width="1807" height="392" key="GridCell.Tab.1.center" timestamp="1583510415703">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.center/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
-    <state width="1807" height="392" key="GridCell.Tab.1.left" timestamp="1583510415703">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.left/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
-    <state width="1807" height="392" key="GridCell.Tab.1.right" timestamp="1583510415703">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state width="1807" height="392" key="GridCell.Tab.1.right/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583510415703" />
-    <state x="2402" y="247" key="SettingsEditor" timestamp="1580486932754">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state x="2402" y="247" key="SettingsEditor/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1580486932754" />
-    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1583512425615">
-      <screen x="1920" y="0" width="1920" height="1200" />
-    </state>
-    <state x="2508" y="348" width="800" height="528" key="Vcs.Push.Dialog.v2/1920.0.1920.1200/0.27.1920.1173@1920.0.1920.1200" timestamp="1583512425615" />
+    <state x="623" y="267" width="672" height="678" key="search.everywhere.popup/1920.0.1920.1200/0.27.1920.1173@0.27.1920.1173" timestamp="1594029738149" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -242,12 +201,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1173</line>
+          <line>1177</line>
           <option name="timeStamp" value="50" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1076</line>
+          <line>1080</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -277,12 +236,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1139</line>
+          <line>1143</line>
           <option name="timeStamp" value="93" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1142</line>
+          <line>1146</line>
           <option name="timeStamp" value="94" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -297,12 +256,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1031</line>
+          <line>1035</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py</url>
-          <line>1034</line>
+          <line>1038</line>
           <option name="timeStamp" value="98" />
         </line-breakpoint>
       </breakpoints>
