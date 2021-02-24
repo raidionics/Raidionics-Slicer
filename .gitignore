@@ -12,3 +12,5 @@ numpy
 /venv
 *.ini
 *.sqlite3
+*.user
+*.xml
