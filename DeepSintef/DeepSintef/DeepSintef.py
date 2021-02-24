@@ -19,6 +19,8 @@ from __main__ import qt, ctk, slicer, vtk
 
 import SimpleITK as sitk
 import sitkUtils
+from src.DeepSintefLogic import *
+from src.gui.DeepSintefWidget import *
 
 ICON_DIR = os.path.dirname(os.path.realpath(__file__)) + '/Resources/Icons/'
 
@@ -68,1184 +70,1204 @@ class DeepSintef(ScriptedLoadableModule):
     data."""
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
-    This plugin is based about the DeepInfer plugin (available at https://github.com/DeepInfer/Slicer-DeepInfer), 
+    This plugin is based upon the DeepInfer plugin (available at https://github.com/DeepInfer/Slicer-DeepInfer), 
     originally developed by Jean-Christophe Fillion-Robin, Kitware Inc. and Steve Pieper, Isomics, Inc.. """
 
-
-class DeepSintefWidget():
-    """
-    Main GUI object, similar to a QMainWindow, where all widgets and user interactions are defined.
-    """
-    def __init__(self, parent=None):
-        """
-
-        :param parent: the parent will be a reference to the 3D Slicer window where this plugin will be displayed
-        """
-        if not parent:
-            self.parent = slicer.qMRMLWidget()
-            self.parent.setLayout(qt.QVBoxLayout())
-            self.parent.setMRMLScene(slicer.mrmlScene)
-        else:
-            self.parent = parent
-        self.layout = self.parent.layout()
-        if not parent:
-            self.parent.show()
-
-        self.modelParameters = None
-        self.logic = None
-
-    def onReload(self, moduleName="DeepSintef"):
-        """
-        Generic reload method for any scripted module.
-        ModuleWizard will substitute correct default moduleName.
-        """
-        globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
-        #@TODO. Should add some module specific clean/reload functions here?
-
-    def enable_user_interface(self, state):
-        """
-        Enables the widgets accessible to the user for generating the predictions.
-        Should be enabled only when a model (*.json file) has been loaded.
-        :param state: True or False, to enable or disable the set of widgets.
-        :return:
-        """
-        self.runtimeParametersOverlapCheckbox.setEnabled(state)
-        self.runtimeParametersPredictionsCombobox.setEnabled(state)
-        self.runtimeParametersResamplingCombobox.blockSignals(True)
-        self.runtimeParametersResamplingCombobox.setCurrentText('Second')
-        self.runtimeParametersResamplingCombobox.blockSignals(False)
-        self.runtimeParametersResamplingCombobox.setEnabled(state)
-        self.runtimeParametersUseGPUCheckbox.setEnabled(state)
-
-    def enable_threshold_function_interface(self, state):
-        """
-        Enables the widgets accessible to the user for interacting with the predictions.
-        Should be enabled only when a model has been ran and predictions returned.
-        :param state: True or False, to enable or disable the set of widgets.
-        :return:
-        """
-        self.runtimeParametersThresholdClassCombobox.setEnabled(state)
-        self.runtimeParametersSlider.setEnabled(state)
-        self.runtimeParametersSlider.blockSignals(True)
-        #self.runtimeParametersSlider.setValue(self.logic.current_class_thresholds[selected_index])
-        self.runtimeParametersSlider.blockSignals(False)
-        self.runtimeParametersThresholdClassCombobox.clear()
-
-    def setup_docker_widget(self):
-        self.dockerGroupBox = ctk.ctkCollapsibleGroupBox()
-        self.dockerGroupBox.setTitle('Docker Settings')
-        self.layout.addWidget(self.dockerGroupBox)
-        dockerForm = qt.QFormLayout(self.dockerGroupBox)
-        self.dockerPath = ctk.ctkPathLineEdit()
-        # self.dockerPath.setMaximumWidth(300)
-        dockerForm.addRow("Docker Executable Path:", self.dockerPath)
-        self.testDockerButton = qt.QPushButton('Test!')
-        dockerForm.addRow("Test Docker Configuration:", self.testDockerButton)
-        if platform.system() == 'Darwin':
-            self.dockerPath.setCurrentPath('/usr/local/bin/docker')
-        if platform.system() == 'Linux':
-            self.dockerPath.setCurrentPath('/usr/bin/docker')
-        if platform.system() == 'Windows':
-            self.dockerPath.setCurrentPath("C:/Program Files/Docker/Docker/resources/bin/docker.exe")
-
-        ### use nvidia-docker if it is installed
-        nvidiaDockerPath = self.dockerPath.currentPath.replace('bin/docker', 'bin/nvidia-docker')
-        if os.path.isfile(nvidiaDockerPath):
-            self.dockerPath.setCurrentPath(nvidiaDockerPath)
-
-    def setup_models_list_widget(self):
-        self.modelslistGroupbox = ctk.ctkCollapsibleGroupBox()
-        self.modelslistGroupbox.setTitle('Local models description')
-        self.layout.addWidget(self.modelslistGroupbox)
-
-        modelRepoVBLayout1 = qt.QVBoxLayout(self.modelslistGroupbox)
-        modelRepositoryExpdableArea = ctk.ctkExpandableWidget()
-        modelRepoVBLayout1.addWidget(modelRepositoryExpdableArea)
-        modelRepoVBLayout2 = qt.QVBoxLayout(modelRepositoryExpdableArea)
-        self.modelRegistryTable = qt.QTableWidget()
-        self.modelRegistryTable.visible = False
-        self.modelRepositoryModel = qt.QStandardItemModel()
-        self.modelRepositoryTableHeaderLabels = ['Model', 'Task', 'Modality', 'Organ', 'Owner', 'Comments', '# Params']
-        self.modelRegistryTable.setColumnCount(7)
-        self.modelRegistryTable.setSelectionMode(qt.QAbstractItemView.SingleSelection)
-        self.modelRegistryTable.sortingEnabled = True
-        self.modelRegistryTable.setHorizontalHeaderLabels(self.modelRepositoryTableHeaderLabels)
-        self.modelRepositoryTableWidgetHeader = self.modelRegistryTable.horizontalHeader()
-        self.modelRepositoryTableWidgetHeader.setStretchLastSection(True)
-        modelRepoVBLayout2.addWidget(self.modelRegistryTable)
-        self.progressDownload = qt.QProgressBar()
-        self.progressDownload.setRange(0, 100)
-        self.progressDownload.setValue(0)
-        modelRepoVBLayout2.addWidget(self.progressDownload)
-        self.progressDownload.hide()
-
-        self.modelRepositoryTreeSelectionModel = self.modelRegistryTable.selectionModel()
-        abstractItemView = qt.QAbstractItemView()
-        self.modelRegistryTable.setSelectionBehavior(abstractItemView.SelectRows)
-        verticalheader = self.modelRegistryTable.verticalHeader()
-        verticalheader.setDefaultSectionSize(20)
-        modelRepoVBLayout1.setSpacing(0)
-        modelRepoVBLayout2.setSpacing(0)
-        modelRepoVBLayout1.setMargin(0)
-        modelRepoVBLayout2.setContentsMargins(7, 3, 7, 7)
-        refreshWidget = qt.QWidget()
-        modelRepoVBLayout2.addWidget(refreshWidget)
-        hBoXLayout = qt.QHBoxLayout(refreshWidget)
-        self.modelRegistryTable.visible = True
-        #self.modelRegistryTable.setEditTriggers(qt.Qt.NoEditTriggers) #@TODO.
-
-        # self.connectButton = qt.QPushButton('Connect')
-        # self.downloadButton = qt.QPushButton('Download')
-        # self.downloadButton.enabled = False
-        # self.downloadButton.visible = False
-        # hBoXLayout.addStretch(1)
-        # hBoXLayout.addWidget(self.connectButton)
-        # hBoXLayout.addWidget(self.downloadButton)
-        #self.populateModelRegistryTable()
-
-    def setup_models_list_connections(self):
-        self.modelRegistryTable.connect('cellClicked(int, int)', self.onModelSelectionchanged)
-
-    def setup_runtime_parameters_widget(self):
-        self.runtimeParametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        self.runtimeParametersCollapsibleButton.setTitle("Runtime Parameters")
-        self.layout.addWidget(self.runtimeParametersCollapsibleButton)
-        self.runtimeParametersGridLayout = qt.QGridLayout(self.runtimeParametersCollapsibleButton)
-        self.runtimeParametersOverlapLabel = qt.QLabel('Overlap')
-        self.runtimeParametersOverlapLabel.setToolTip("If checked, the predictions will be optimized for each slice"
-                                                      " (longer to process).")
-        self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapLabel, 0, 0, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapCheckbox, 0, 1, 1, 1)
-
-        self.runtimeParametersResamplingLabel = qt.QLabel('Resampling')
-        self.runtimeParametersResamplingCombobox = qt.QComboBox()
-        self.runtimeParametersResamplingCombobox.addItems(['First', 'Second'])
-        self.runtimeParametersResamplingLabel.setToolTip("Resampling first will produce nicer/smoother results,"
-                                                         " at the cost of a longer processing time.")
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingLabel, 0, 2, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingCombobox, 0, 3, 1, 1)
-
-        self.runtimeParametersPredictionsLabel = qt.QLabel('Predictions')
-        self.runtimeParametersPredictionsLabel.setToolTip("Binary is the optimally thresholded result; probabilities is"
-                                                          " the full prediction, allowing to play with the threshold.")
-        self.runtimeParametersPredictionsCombobox = qt.QComboBox()
-        self.runtimeParametersPredictionsCombobox.addItems(['Binary', 'Probabilities'])
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsLabel, 0, 4, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsCombobox, 0, 5, 1, 1)
-
-        self.runtimeParametersUseGPULabel = qt.QLabel('GPU')
-        self.runtimeParametersUseGPULabel.setToolTip("Make sure you have a GPU AND Nvidia drivers installed before"
-                                                      " ticking the box.")
-        self.runtimeParametersUseGPUCheckbox = qt.QCheckBox()
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersUseGPULabel, 0, 6, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersUseGPUCheckbox, 0, 7, 1, 1)
-
-        self.runtimeParametersThresholdLabel = qt.QLabel('Threshold')
-        self.runtimeParametersThresholdClassCombobox = qt.QComboBox()
-
-        self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
-        self.runtimeParametersSlider.setMaximum(100)
-        self.runtimeParametersSlider.setMinimum(0)
-        self.runtimeParametersSlider.setSingleStep(5)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdLabel, 1, 0, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdClassCombobox, 1, 1, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersSlider, 1, 2, 1, 5)
-
-        self.runtimeParametersCurrentThresholdLabel = qt.QLabel('Current threshold')
-        self.runtimeParametersCurrentThresholdLabel.setToolTip("Currently selected prediction threshold")
-        self.runtimeParametersCurrentThresholdValueLabel = qt.QLabel('')
-        self.runtimeParametersOptimalThresholdLabel = qt.QLabel('Optimal threshold')
-        self.runtimeParametersOptimalThresholdLabel.setToolTip("Optimal prediction threshold from training")
-        self.runtimeParametersOptimalThresholdValueLabel = qt.QLabel('')
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersCurrentThresholdLabel, 2, 0, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersCurrentThresholdValueLabel, 2, 1, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOptimalThresholdLabel, 2, 2, 1, 1)
-        self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOptimalThresholdValueLabel, 2, 3, 1, 1)
-
-        # self.runtimeParametersFormLayout = qt.QFormLayout(self.runtimeParametersCollapsibleButton)
-        # self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
-        # self.runtimeParametersFormLayout.addRow("Overlap:", self.runtimeParametersOverlapCheckbox)
-        # self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
-        # self.runtimeParametersSlider.setMaximum(100)
-        # self.runtimeParametersSlider.setMinimum(0)
-        # self.runtimeParametersSlider.setSingleStep(5)
-        # self.runtimeParametersFormLayout.addRow("Threshold:", self.runtimeParametersSlider)
-
-    def setup_runtime_parameters_connections(self):
-        self.runtimeParametersOverlapCheckbox.connect('stateChanged(int)', self.onRuntimeOverlapClicked)
-        self.runtimeParametersResamplingCombobox.connect('currentIndexChanged(QString)', self.onRuntimeSamplingOrderChanged)
-        self.runtimeParametersPredictionsCombobox.connect('currentIndexChanged(QString)', self.onRuntimePredictionsTypeChanged)
-        self.runtimeParametersUseGPUCheckbox.connect('stateChanged(int)', self.onRuntimeUseGPUClicked)
-        self.runtimeParametersThresholdClassCombobox.connect('currentIndexChanged(int)', self.onRuntimeThresholdClassChanged)
-        self.runtimeParametersSlider.valueChanged.connect(self.onRuntimeThresholdSliderMoved)
-
-    def setup(self):
-        """
-        Instantiate and connect widgets
-        :return:
-        """
-
-        # Reload and Test area
-        reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-        reloadCollapsibleButton.collapsed = True
-        reloadCollapsibleButton.text = "Reload && Test"
-        reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
-
-        # reload button
-        # (use this during development, but remove it when delivering
-        #  your module to users)
-        self.reloadButton = qt.QPushButton("Reload")
-        self.reloadButton.toolTip = "Reload this module."
-        self.reloadButton.name = "Freehand3DUltrasound Reload"
-        reloadFormLayout.addWidget(self.reloadButton)
-        self.reloadButton.connect('clicked()', self.onReload)
-        # uncomment the following line for debug/development.
-        self.layout.addWidget(reloadCollapsibleButton)
-
-        # Docker Settings Area
-        self.setup_docker_widget()
-
-        # modelRepositoryVerticalLayout = qt.QVBoxLayout(modelRepositoryExpdableArea)
-
-        # Model Repository Area
-        self.setup_models_list_widget()
-
-        #
-        # Cancel/Apply Row
-        #
-        self.restoreDefaultsButton = qt.QPushButton("Restore Defaults")
-        self.restoreDefaultsButton.toolTip = "Restore the default parameters."
-        self.restoreDefaultsButton.enabled = True
-
-        self.cancelButton = qt.QPushButton("Cancel")
-        self.cancelButton.toolTip = "Abort the algorithm."
-        self.cancelButton.enabled = False
-
-        self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Run the algorithm."
-        self.applyButton.enabled = True
-
-        hlayout = qt.QHBoxLayout()
-
-        #
-        # Local Models Area
-        #
-        modelsCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        modelsCollapsibleButton.setTitle("Local Models")
-        self.layout.addWidget(modelsCollapsibleButton)
-        # Layout within the dummy collapsible button
-        self.modelsFormLayout = qt.QFormLayout(modelsCollapsibleButton)
-
-        # model search
-        self.searchBox = ctk.ctkSearchBox()
-        self.modelsFormLayout.addRow("Search:", self.searchBox)
-        self.searchBox.connect("textChanged(QString)", self.onSearch)
-
-        # model selector
-        self.modelSelector = qt.QComboBox()
-        self.modelsFormLayout.addRow("Model:", self.modelSelector)
-        self.populateLocalModels()
-
-        # connections
-        self.modelSelector.connect('currentIndexChanged(int)', self.onModelSelect)
-
-        # Parameters Area
-        parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        parametersCollapsibleButton.setTitle("Model Parameters")
-        self.layout.addWidget(parametersCollapsibleButton)
-
-        # Layout within the dummy collapsible button
-        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-        self.modelParameters = ModelParameters(parametersCollapsibleButton)
-
-        # Runtime parameters Area
-        self.setup_runtime_parameters_widget()
-        self.setup_runtime_parameters_connections()
-
-        # Add vertical spacer
-        self.layout.addStretch(1)
-
-        # Status and Progress
-        statusLabel = qt.QLabel("Status: ")
-        self.currentStatusLabel = qt.QLabel("Idle")
-        hlayout = qt.QHBoxLayout()
-        hlayout.addStretch(1)
-        hlayout.addWidget(statusLabel)
-        hlayout.addWidget(self.currentStatusLabel)
-        self.layout.addLayout(hlayout)
-
-        self.progress = qt.QProgressBar()
-        self.progress.setRange(0, 1000)
-        self.progress.setValue(0)
-        self.layout.addWidget(self.progress)
-        self.progress.hide()
-
-        # Cancel/Apply Row
-        self.restoreDefaultsButton = qt.QPushButton("Restore Defaults")
-        self.restoreDefaultsButton.toolTip = "Restore the default parameters."
-        self.restoreDefaultsButton.enabled = True
-
-        self.cancelButton = qt.QPushButton("Cancel")
-        self.cancelButton.toolTip = "Abort the algorithm."
-        self.cancelButton.enabled = False
-
-        self.applyButton = qt.QPushButton("Apply")
-        self.applyButton.toolTip = "Run the algorithm."
-        self.applyButton.enabled = True
-
-        self.locateButton = qt.QPushButton("Locate models")
-        self.locateButton.enabled = True
-
-        hlayout = qt.QHBoxLayout()
-
-        hlayout.addWidget(self.restoreDefaultsButton)
-        hlayout.addStretch(1)
-        hlayout.addWidget(self.cancelButton)
-        hlayout.addWidget(self.applyButton)
-        hlayout.addWidget(self.locateButton)
-        self.layout.addLayout(hlayout)
-
-        # connections
-        self.setup_runtime_parameters_connections()
-        self.setup_models_list_connections()
-        #self.connectButton.connect('clicked(bool)', self.onConnectButton)
-        #self.downloadButton.connect('clicked(bool)', self.onDownloadButton)
-        self.testDockerButton.connect('clicked(bool)', self.onTestDockerButton)
-        self.restoreDefaultsButton.connect('clicked(bool)', self.onRestoreDefaultsButton)
-        self.applyButton.connect('clicked(bool)', self.onApplyButton)
-        self.locateButton.connect('clicked(bool)', self.onLocateButton)
-        self.cancelButton.connect('clicked(bool)', self.onCancelButton)
-
-        # Initlial Selection
-        self.modelSelector.currentIndexChanged(self.modelSelector.currentIndex)
-        self.enable_user_interface(False)
-
-    def cleanup(self):
-        pass
-
-    def getAllDigests(self):
-        cmd = []
-        cmd.append(self.dockerPath.currentPath)
-        cmd.append('images')
-        cmd.append('--digests')
-        # print(cmd)
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        digest_index = 2
-        digests = []
-        try:
-            while True:
-                slicer.app.processEvents()
-                line = p.stdout.readline()
-                if not line:
-                    break
-                line = line.split()
-                if 'DIGEST' in line:
-                    digest_index = line.index('DIGEST')
-                else:
-                    digests.append(line[digest_index])
-        except Exception as e:
-            print("Exception: {}".format(e))
-        return digests
-
-    def populateLocalModels(self):
-        digests = self.getAllDigests()
-        jsonFiles = glob(JSON_LOCAL_DIR + "/*.json")
-        jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
-        self.jsonModels = []
-        for fname in jsonFiles:
-            with open(fname, "r") as fp:
-                j = json.load(fp, object_pairs_hook=OrderedDict)
-
-            self.jsonModels.append(j)
-            # if j['docker']['digest'] in digests:
-            #     self.jsonModels.append(j)
-            # else:
-            #     os.remove(fname)
-        # add all the models listed in the json files
-
-        for idx, j in enumerate(self.jsonModels):
-            name = j["name"]
-            self.modelSelector.addItem(name, idx)
-
-    # def onCloudModelSelect(self):
-    #     self.downloadButton.enabled = False
-    #     # print("on cloud model select!")
-    #     for item in self.modelTableItems.keys():
-    #         if item.isSelected():
-    #             self.downloadButton.enabled = True
-    #             self.selectedModelPath = self.modelTableItems[item]
-
-    def onLogicRunStop(self):
-        self.applyButton.setEnabled(True)
-        self.restoreDefaultsButton.setEnabled(True)
-        self.cancelButton.setEnabled(False)
-        #self.logic = None
-        self.progress.hide()
-
-    def onLogicRunStart(self):
-        self.applyButton.setEnabled(False)
-        self.restoreDefaultsButton.setEnabled(False)
-
-    def onSearch(self, searchText):
-        # add all the models listed in the json files
-        self.modelSelector.clear()
-        # split text on whitespace of and string search
-        searchTextList = searchText.split()
-        for idx, j in enumerate(self.jsonModels):
-            lname = j["name"].lower()
-            # require all elements in list, to add to select. case insensitive
-            if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
-                self.modelSelector.addItem(j["name"], idx)
-
-    def onModelSelect(self, selectorIndex):
-        # print("on model select")
-        self.modelParameters.destroy()
-        if selectorIndex < 0:
-            return
-        jsonIndex = self.modelSelector.itemData(selectorIndex)
-        json_model = self.jsonModels[jsonIndex]
-        self.modelParameters.create(json_model)
-
-        if "briefdescription" in self.jsonModels[jsonIndex]:
-            tip = self.jsonModels[jsonIndex]["briefdescription"]
-            tip = tip.rstrip()
-            self.modelSelector.setToolTip(tip)
-        else:
-            self.modelSelector.setToolTip("")
-
-        self.enable_user_interface(True)
-        #self.onLocateButton()
-
-    def onConnectButton(self):
-        try:
-            self.modelRegistryTable.visible = True
-            self.downloadButton.visible = True
-            self.connectButton.visible = False
-            self.connectButton.enabled = False
-            import urllib2
-            url = 'https://api.github.com/repos/DeepInfer/Model-Registry/contents/'
-            response = urllib2.urlopen(url)
-            data = json.load(response)
-            for item in data:
-                if 'json' in item['name']:
-                    # print(item['name'])
-                    url = item['url']
-                    response = urllib2.urlopen(url)
-                    data = json.load(response)
-                    dl_url = data['download_url']
-                    print("downloading: {}...".format(dl_url))
-                    response = urllib2.urlopen(dl_url)
-                    content = response.read()
-                    outputPath = os.path.join(JSON_CLOUD_DIR, dl_url.split('/')[-1])
-                    with open(outputPath, 'w') as f:
-                        f.write(content)
-            self.populateModelRegistryTable()
-        except Exception as e:
-            print("Exception occured: {}".format(e))
-            self.connectButton.enabled = True
-            self.modelRegistryTable.visible = False
-            self.downloadButton.visible = False
-            self.connectButton.visible = True
-        self.connectButton.enabled = True
-
-    def onTestDockerButton(self):
-        cmd = []
-        cmd.append(self.dockerPath.currentPath)
-        cmd.append('--version')
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        message = p.stdout.readline()
-        if message.startswith('Docker version'):
-            qt.QMessageBox.information(None, 'Docker Status', 'Docker is configured correctly'
-                                                              ' ({}).'.format(message))
-        else:
-            qt.QMessageBox.critical(None, 'Docker Status', 'Docker is not configured correctly. Check your docker '
-                                                           'installation and make sure that it is configured to '
-                                                           'be run by non-root user.')
-
-    def onDownloadButton(self):
-        with open(self.selectedModelPath) as json_data:
-            model = json.load(json_data)
-        size = model['docker']['size']
-        model_name = model['name']
-        dockerhub_address = model['docker']['dockerhub_repository'] + '@' + model['docker']['digest']
-        if platform.system() == 'Windows':
-            terminal = 'Command Prompt or PowerShell, but not PowerShell ISE'
-        else:
-            terminal = 'terminal'
-        message_title = '1. Copy the following command from the box below.\n' \
-                        '2. Open the {}, paste and run the copied command.\n' \
-                        '3. Wait until the docker image download is finished.\n' \
-                        '4. Restart 3D Slicer.\n' \
-                        '5. You should see the downloaded model in the \"Local Models\" section.\n' \
-                        '(Please note that the size of the \"{}\" docker image is {}.\n' \
-                        'Make sure that you have enough storage space on your machine.)'.format(terminal, model_name,
-                                                                                                size)
-        pull_command = 'docker pull {}'.format(dockerhub_address)
-        mainWindow = slicer.util.mainWindow()
-        downloadWidget = qt.QWidget()
-        layout = qt.QVBoxLayout()
-        downloadWidget.setLayout(layout)
-        popupGeometry = qt.QRect()
-        if mainWindow:
-            width = 400
-            height = 200
-            popupGeometry.setWidth(width)
-            popupGeometry.setHeight(height)
-            downloadWidget.setGeometry(popupGeometry)
-
-        pos = mainWindow.pos
-        downloadWidget.move(pos.x() + (mainWindow.width - downloadWidget.width) / 2,
-                            pos.y() + (mainWindow.height - downloadWidget.height) / 2)
-
-        titleLabel = qt.QLabel(message_title)
-        layout.addWidget(titleLabel)
-        te = qt.QTextEdit(pull_command)
-        te.readOnly = True
-        layout.addWidget(te)
-        closeButton = qt.QPushButton('Close')
-        layout.addWidget(closeButton)
-        downloadWidget.show()
-
-        def hide_download():
-            downloadWidget.hide()
-
-        closeButton.connect('clicked(bool)', hide_download)
-        shutil.copy(self.selectedModelPath, os.path.join(JSON_LOCAL_DIR, os.path.basename(self.selectedModelPath)))
-
-    '''
-    def onDownloadButton(self):
-        with open(self.selectedModelPath) as json_data:
-            model = json.load(json_data)
-        size = model['docker']['size']
-        resoponse = self.Question("The size of the selected image to download is {}. Are you sure you want to proceed?".format(size),
-                      title="Download", parent=None)
-        if resoponse:
-            cmd = []
-            cmd.append(self.dockerPath.currentPath)
-            cmd.append('pull')
-            cmd.append(model['docker']['dockerhub_repository'] + '@' + model['docker']['digest'])
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            print(cmd)
-            parts = dict()
-            try:
-                while True:
-                    self.progressDownload.show()
-                    slicer.app.processEvents()
-                    line = p.stdout.readline()
-                    if not line:
-                        break
-                    line = line.rstrip()
-                    print(line)
-                    part = line.split(':')[0]
-                    if len(part) == 12:
-                        parts[part] = line.split(':')[1]
-                    if parts.keys():
-                        print('-'*100)
-                        print(parts)
-                        n_parts = len(parts.keys())
-                        n_completed = len([status for status in parts.values() if status == ' Pull complete'])
-                        self.progressDownload.setValue(int((100*n_completed)/n_parts))
-            except Exception as e:
-                print("Exception: {}".format(e))
-            print(parts)
-            self.progressDownload.setValue(0)
-            self.progressDownload.hide()
-            shutil.copy(self.selectedModelPath, os.path.join(JSON_LOCAL_DIR, os.path.basename(self.selectedModelPath)))
-            self.populateLocalModels()
-        else:
-            print("Download was canceled!")
-    '''
-
-    def Question(self, text, title="", parent=None):
-        return qt.QMessageBox.question(parent, title, text,
-                                       qt.QMessageBox.Yes, qt.QMessageBox.No) == qt.QMessageBox.Yes
-
-    def populateModelRegistryTable(self):
-        self.modelTableItems = dict()
-        # print("populate Model Registry Table")
-        model_files = glob(JSON_LOCAL_DIR + '/*.json')
-        self.modelRegistryTable.setRowCount(len(model_files))
-        n = 0
-        model_files = [os.path.join(JSON_LOCAL_DIR, model_file) for model_file in model_files]
-        for model_file in model_files:
-            with open(model_file) as json_data:
-                model = json.load(json_data)
-            keys = model.keys()
-            for key in keys:
-                if key == 'name':
-                    nameTableItem = qt.QTableWidgetItem(str(model['name']))
-                    self.modelTableItems[nameTableItem] = model_file
-                    self.modelRegistryTable.setItem(n, 0, nameTableItem)
-                if key == 'task':
-                    task = qt.QTableWidgetItem(str(model['task']))
-                    self.modelRegistryTable.setItem(n, 1, task)
-                if key == 'modality':
-                    modality = qt.QTableWidgetItem(str(model['modality']))
-                    self.modelRegistryTable.setItem(n, 2, modality)
-                if key == 'organ':
-                    organ = qt.QTableWidgetItem(str(model['organ']))
-                    self.modelRegistryTable.setItem(n, 3, organ)
-                if key == 'owner':
-                    owner = qt.QTableWidgetItem(str(model['owner']))
-                    self.modelRegistryTable.setItem(n, 4, owner)
-                if key == 'owner':
-                    details = qt.QTableWidgetItem(str(model['train_test_data_details']))
-                    self.modelRegistryTable.setItem(n, 5, details)
-            n += 1
-
-    def populate_models_list_from_docker(self, model_names):
-        self.modelTableItems = dict()
-
-        actual_names = model_names.split('---ModelNames')[1].strip().split(',')
-        print('Actual model names: {}'.format(actual_names))
-        for a, w in enumerate(self.modelParameters.widgets):
-            if w.accessibleName == 'ModelsList':
-                w.clear()
-                w.addItems(actual_names)
-        self.populateModelRegistryTable()
-        # n = 0
-        # self.modelRegistryTable.setRowCount(len(actual_names))
-        # for model_name in actual_names:
-        #     nameTableItem = qt.QTableWidgetItem(model_name)
-        #     #self.modelTableItems[nameTableItem] = model_name
-        #     self.modelRegistryTable.setItem(n, 0, nameTableItem)
-        #
-        #     organ = qt.QTableWidgetItem(model_name.split('_')[1])
-        #     self.modelRegistryTable.setItem(n, 1, organ)
-        #
-        #     task = qt.QTableWidgetItem('segmentation')
-        #     self.modelRegistryTable.setItem(n, 2, task)
-        #     n += 1
-
-    def populateSubModelFromDocker(self, model_names):
-        #self.modelParameters.widgets['ModelsList'].addItems(model_names)
-        #print('{} widgets in list.'.format(len(self.modelParameters.widgets)))
-        actual_names = model_names.split('---ModelNames')[1].strip().split(',')
-        print('Actual model names: {}'.format(actual_names))
-        for a,w in enumerate(self.modelParameters.widgets):
-            if w.accessibleName == 'ModelsList':
-                w.clear()
-                w.addItems(actual_names)
-            #print('Widget {} is {}'.format(a, w.accessibleName))
-        #print(self.modelParameters.widgets[5])
-        # self.subModelSelector = qt.QComboBox()
-        # self.modelsFormLayout.addRow("SubModel:", self.subModelSelector)
-        # self.subModelSelector.addItems(model_names)
-
-    def onRestoreDefaultsButton(self):
-        self.onModelSelect(self.modelSelector.currentIndex)
-
-    def onLocateButton(self):
-        print('onLocate')
-        self.logic = DeepSintefLogic()
-        # try:
-        self.currentStatusLabel.text = "Locating"
-        self.modelParameters.prerun()
-        self.logic.locate(self.modelParameters)
-        self.enable_user_interface(True)
-        self.enable_threshold_function_interface(False)
-
-    def onApplyButton(self):
-        print('onApply')
-        #self.logic = DeepSintefLogic()
-        # try:
-        self.currentStatusLabel.text = "Starting"
-        if self.runtimeParametersPredictionsCombobox.currentText == 'Probabilities':
-            self.enable_threshold_function_interface(True)
-        #self.modelParameters.prerun()
-        self.logic.run(self.modelParameters)
-
-        '''
-        except:
-            self.currentStatusLabel.text = "Exception"
-            slicer.modules.DeepSintefWidget.applyButton.enabled = True
-            import sys
-            msg = sys.exc_info()[0]
-            # if there was an exception during start-up make sure to finish
-            self.onLogicRunStop()
-            qt.QMessageBox.critical(slicer.util.mainWindow(),
-                                    "Exception before execution: {0} ".format(self.modelParameters.dockerImageName),
-                                    msg)
-        '''
-
-    def onCancelButton(self):
-        self.currentStatusLabel.text = "Aborting"
-        if self.logic:
-            self.logic.abort = True
-
-    def onLogicEventStart(self):
-        self.currentStatusLabel.text = "Running"
-        self.cancelButton.setDisabled(False)
-        self.progress.setValue(0)
-        self.progress.show()
-
-    def onLogicEventEnd(self):
-        self.currentStatusLabel.text = "Completed"
-        self.progress.setValue(1000)
-
-        for c, class_name in enumerate(self.modelParameters.outputs.keys()): #[current_class].GetName())
-            #self.runtimeParametersThresholdClassCombobox.addItem(self.modelParameters.outputs[class_name].GetName())
-            self.runtimeParametersThresholdClassCombobox.addItem(class_name)
-
-    def onLogicEventAbort(self):
-        self.currentStatusLabel.text = "Aborted"
-
-    def onLogicEventProgress(self, progress):
-        self.currentStatusLabel.text = "Running ({0:6.5f})".format(progress)
-        self.progress.setValue(progress * 1000)
-
-    def onLogicEventIteration(self, nIter):
-        print("Iteration ", nIter)
-
-    def onModelSelectionchanged(self, row, col):
-        model_choice = self.modelRegistryTable.item(row, 0).text()
-        #print('Chosen model: ', model_choice)
-        self.modelParameters.modelName = model_choice
-
-    def onRuntimeOverlapClicked(self, state):
-        # nodes = slicer.util.getNodes('TestLabel')
-        # if len(nodes) == 0:
-        #     node = slicer.vtkMRMLLabelMapVolumeNode()
-        #     node.SetName('TestLabel')
-        #     slicer.mrmlScene.AddNode(node)
-        #     node.CreateDefaultDisplayNodes()
-        #     imageData = vtk.vtkImageData()
-        #     imageData.SetDimensions((150, 150, 150))
-        #     imageData.AllocateScalars(vtk.VTK_SHORT, 1)
-        #     node.SetAndObserveImageData(imageData)
-        # else:
-        #     node = nodes['TestLabel']
-        #
-        # slicer_node = slicer.util.getNode('TestLabel')
-        # array = slicer.util.arrayFromVolume(slicer_node)
-        # array = numpy.zeros((200, 200, 200))
-        # slicer.util.arrayFromVolumeModified(slicer_node)
-
-        if state == qt.Qt.Checked:
-            self.logic.user_configuration['Predictions']['non_overlapping'] = 'False'
-        elif state == qt.Qt.Unchecked:
-            self.logic.user_configuration['Predictions']['non_overlapping'] = 'True'
-
-    def onRuntimeUseGPUClicked(self, state):
-        if state == qt.Qt.Checked:
-            self.logic.use_gpu = True
-        elif state == qt.Qt.Unchecked:
-            self.logic.use_gpu = False
-
-    def onRuntimeSamplingOrderChanged(self, resampling_order):
-        if resampling_order == 'First':
-            self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
-        else:
-            self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
-
-    def onRuntimePredictionsTypeChanged(self, prediction_type):
-        if prediction_type == 'Binary':
-            self.logic.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
-        else:
-            self.logic.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
-
-    def onRuntimeThresholdClassChanged(self, selected_index):
-        self.logic.current_threshold_class_index = selected_index
-        self.runtimeParametersSlider.setValue(self.logic.current_class_thresholds[selected_index])
-
-    def onRuntimeThresholdSliderMoved(self, value):
-        current_class = self.runtimeParametersThresholdClassCombobox.currentText  # 'OutputLabel'
-        value = float(value)
-        original_data = deepcopy(self.logic.output_raw_values[current_class])
-        volume_node = slicer.util.getNode(self.modelParameters.outputs[current_class].GetName())
-        arr = slicer.util.arrayFromVolume(volume_node)
-        # Increase image contrast
-        #arr[:] = original_data
-        arr[original_data < (value/100)] = 0
-        arr[original_data >= (value/100)] = 1
-        slicer.util.arrayFromVolumeModified(volume_node)
-        self.logic.current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
-        self.runtimeParametersCurrentThresholdValueLabel.setText(str(value))
-
-
-class DeepSintefLogic:
-    """This class should implement all the actual
-    computation done by your module.  The interface
-    should be such that other python code can import
-    this class and make use of the functionality without
-    requiring an instance of the Widget
-    """
-
-    def __init__(self):
-        self.main_queue = Queue.Queue()
-        self.main_queue_running = False
-        self.thread = threading.Thread()
-        self.abort = False
-        modules = slicer.modules
-        if hasattr(modules, 'DeepSintefWidget'):
-            self.dockerPath = slicer.modules.DeepSintefWidget.dockerPath.currentPath
-        else:
-            if platform.system() == 'Darwin':
-                defualt_path = '/usr/local/bin/docker'
-                self.setDockerPath(defualt_path)
-            elif platform.system() == 'Linux':
-                defualt_path = '/usr/bin/docker'
-                self.setDockerPath(defualt_path)
-            elif platform.system() == 'Windows':
-                defualt_path = "C:/Program Files/Docker/Docker/resources/bin/docker.exe"
-                self.setDockerPath(defualt_path)
-            else:
-                print('could not determine system type')
-        self.file_extension_docker = '.nii.gz'
-        self.user_configuration = configparser.ConfigParser()
-        self.user_configuration['Predictions'] = {}
-        self.user_configuration['Predictions']['non_overlapping'] = 'true'
-        self.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
-        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
-
-        self.use_gpu = False
-        self.current_threshold_class_index = None
-        self.current_class_thresholds = None
-
-    def __del__(self):
-        if self.main_queue_running:
-            self.main_queue_stop()
-        if self.thread.is_alive():
-            self.thread.join()
-
-    def setDockerPath(self, path):
-        self.dockerPath = path
-
-    def yieldPythonGIL(self, seconds=0):
-        sleep(seconds)
-
-    def cmdCheckAbort(self, p):
-        if self.abort:
-            p.kill()
-            self.cmdAbortEvent()
-
-    def cmdStartEvent(self):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
-            widget.onLogicEventStart()
-        self.yieldPythonGIL()
-
-    def cmdProgressEvent(self, progress):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
-            widget.onLogicEventProgress(progress)
-        self.yieldPythonGIL()
-
-    def cmdAbortEvent(self):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
-            widget.onLogicEventAbort()
-        self.yieldPythonGIL()
-
-    def cmdEndEvent(self):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
-            widget.onLogicEventEnd()
-        self.yieldPythonGIL()
-
-    def checkDockerDaemon(self):
-        cmd = list()
-        cmd.append(self.dockerPath)
-        cmd.append('ps')
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        slicer.app.processEvents()
-        line = p.stdout.readline()
-        if line[:9] == 'CONTAINER':
-            return True
-        return False
-
-    def notifyChangedFileExtensionForDocker(self, new_extension):
-        self.file_extension_docker = new_extension
-
-    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params):
-        try:
-            assert self.checkDockerDaemon(), "Docker Daemon is not running"
-        except Exception as e:
-            print(e.message)
-            self.abort = True
-
-        modules = slicer.modules
-        if hasattr(modules, 'DeepSintefWidget'):
-            widgetPresent = True
-        else:
-            widgetPresent = False
-
-        if widgetPresent:
-            self.cmdStartEvent()
-        inputDict = dict()
-        outputDict = dict()
-        paramDict = dict()
-        for item in iodict:
-            if iodict[item]["iotype"] == "input":
-                if iodict[item]["type"] == "volume":
-                    # print(inputs[item])
-                    input_node_name = inputs[item].GetName()
-                    #try:
-                    img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
-                    fileName = item + self.file_extension_docker
-                    inputDict[item] = fileName
-                    sitk.WriteImage(img, str(os.path.join(TMP_PATH, fileName)))
-                    #except Exception as e:
-                    #    print(e.message)
-                elif iodict[item]["type"] == "configuration":
-                    with open(USER_CONFIG, 'w') as configfile:
-                        self.user_configuration.write(configfile)
-                    #inputDict[item] = configfile
-            elif iodict[item]["iotype"] == "output":
-                if iodict[item]["type"] == "volume":
-                      outputDict[item] = item
-                      nodes = slicer.util.getNodes(outputDict[item])
-                      if len(nodes) == 0:
-                          node = slicer.vtkMRMLLabelMapVolumeNode()
-                          node.SetName(outputDict[item])
-                          slicer.mrmlScene.AddNode(node)
-                          node.CreateDefaultDisplayNodes()
-                          imageData = vtk.vtkImageData()
-                          imageData.SetDimensions((150, 150, 150))
-                          imageData.AllocateScalars(vtk.VTK_SHORT, 1)
-                          node.SetAndObserveImageData(imageData)
-                          outputs[item] = node
-                elif iodict[item]["type"] == "point_vec":
-                    outputDict[item] = item + '.fcsv'
-                else:
-                    paramDict[item] = str(params[item])
-            elif iodict[item]["iotype"] == "parameter":
-                paramDict[item] = str(params[item])
-
-        if not dataPath:
-            dataPath = '/home/deepsintef/resources'
-
-        print('docker run command:')
-        cmd = list()
-        cmd.append(self.dockerPath)
-        cmd.extend(('run', '-t', '-v'))
-        # if self.use_gpu:
-        #     cmd.append(' --runtime=nvidia ')
-        #cmd.append(TMP_PATH + ':' + dataPath)
-        cmd.append(RESOURCES_PATH + ':' + dataPath)
-        cmd.append(dockerName)
-        if not self.use_gpu:
-            cmd.append('--' + 'Task')
-            cmd.append('segmentation')
-        else:
-            cmd.append('--' + 'Task')
-            cmd.append('database')
-        arguments = []
-        for key in inputDict.keys():
-            arguments.append(key + ' ' + dataPath + '/data/' + inputDict[key])
-        # for key in outputDict.keys():
-        #     arguments.append(key + ' ' + dataPath + '/' + outputDict[key])
-        arguments.append('OutputPrefix' + ' ' + dataPath + '/data/' + 'DeepSintefOutput')
-        # arguments.append(dataPath + '/' + inputDict['InputVolume'])
-        # arguments.append(dataPath + '/' + outputDict['OutputLabel'])
-        if modelName:
-            arguments.append('ModelName ' + modelName)
-        for key in paramDict.keys():
-            if iodict[key]["type"] == "bool":
-                if paramDict[key]:
-                    cmd.append(key)
-            else:
-                arguments.append(key + ' ' + paramDict[key])
-        # print('-'*100)
-        cmd.append('--' + 'Arguments')
-        cmd.append(','.join(arguments))
-        print(cmd)
-
-        # TODO: add a line to check wether the docker image is present or not. If not ask user to download it.
-        # try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        progress = 0
-        # print('executing')
-        while True:
-            progress += 0.15
-            slicer.app.processEvents()
-            self.cmdCheckAbort(p)
-            if widgetPresent:
-                self.cmdProgressEvent(progress)
-            line = p.stdout.readline()
-            if not line:
-                    break
-            print(line)
-
-    def thread_doit(self, modelParameters):
-        iodict = modelParameters.iodict
-        inputs = modelParameters.inputs
-        params = modelParameters.params
-        outputs = modelParameters.outputs
-        dockerName = modelParameters.dockerImageName
-        modelName = modelParameters.modelName
-        dataPath = modelParameters.dataPath
-        #try:
-        self.main_queue_start()
-        self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params)
-        if not self.abort:
-            self.updateOutput(iodict, outputs)
-            self.main_queue_stop()
-            self.cmdEndEvent()
-
-        '''
-        except Exception as e:
-            msg = e.message
-            qt.QMessageBox.critical(slicer.util.mainWindow(), "Exception during execution of ", msg)
-            slicer.modules.DeepSintefWidget.applyButton.enabled = True
-            slicer.modules.DeepSintefWidget.progress.hide = True
-            self.abort = True
-            self.yieldPythonGIL()
-        '''
-    def main_queue_start(self):
-        """Begins monitoring of main_queue for callables"""
-        self.main_queue_running = True
-        slicer.modules.DeepSintefWidget.onLogicRunStart()
-        qt.QTimer.singleShot(0, self.main_queue_process)
-
-    def main_queue_stop(self):
-        """End monitoring of main_queue for callables"""
-        self.main_queue_running = False
-        if self.thread.is_alive():
-            self.thread.join()
-        slicer.modules.DeepSintefWidget.onLogicRunStop()
-
-    def main_queue_process(self):
-        """processes the main_queue of callables"""
-        try:
-            while not self.main_queue.empty():
-                f = self.main_queue.get_nowait()
-                if callable(f):
-                    f()
-
-            if self.main_queue_running:
-                # Yield the GIL to allow other thread to do some python work.
-                # This is needed since pyQt doesn't yield the python GIL
-                self.yieldPythonGIL(.01)
-                qt.QTimer.singleShot(0, self.main_queue_process)
-
-        except Exception as e:
-            import sys
-            sys.stderr.write("ModelLogic error in main_queue: \"{0}\"".format(e))
-
-            # if there was an error try to resume
-            if not self.main_queue.empty() or self.main_queue_running:
-                qt.QTimer.singleShot(0, self.main_queue_process)
-
-    def updateOutput(self, iodict, outputs):
-        # print('updateOutput method')
-        output_volume_files = dict()
-        output_fiduciallist_files = dict()
-        self.output_raw_values = dict()
-        created_files = []
-        for _, _, files in os.walk(TMP_PATH):
-            for f, file in enumerate(files):
-                if 'Output' in file:
-                    created_files.append(file)
-            break
-
-        nb_class = 0
-        for item in iodict:
-            if iodict[item]["iotype"] == "output":
-                if iodict[item]["type"] == "volume":
-                    #fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
-                    fileName = str(os.path.join(TMP_PATH, created_files[[item in x for x in created_files].index(True)]))
-                    output_volume_files[item] = fileName
-                    nb_class = nb_class + 1
-                if iodict[item]["type"] == "point_vec":
-                    fileName = str(os.path.join(TMP_PATH, item + '.fcsv'))
-                    output_fiduciallist_files[item] = fileName
-
-        self.current_threshold_class_index = 0
-        self.current_class_thresholds = [0.55] * nb_class
-
-        for output_volume in output_volume_files.keys():
-            result = sitk.ReadImage(output_volume_files[output_volume])
-            #print(result.GetPixelIDTypeAsString())
-            self.output_raw_values[output_volume] = deepcopy(sitk.GetArrayFromImage(result))
-            output_node = outputs[output_volume]
-            output_node_name = output_node.GetName()
-            nodeWriteAddress = sitkUtils.GetSlicerITKReadWriteAddress(output_node_name)
-            self.display_port = nodeWriteAddress
-            sitk.WriteImage(result, nodeWriteAddress)
-            applicationLogic = slicer.app.applicationLogic()
-            selectionNode = applicationLogic.GetSelectionNode()
-
-            outputLabelMap = True
-            if outputLabelMap:
-                selectionNode.SetReferenceActiveLabelVolumeID(output_node.GetID())
-            else:
-                selectionNode.SetReferenceActiveVolumeID(output_node.GetID())
-
-            applicationLogic.PropagateVolumeSelection(0)
-            applicationLogic.FitSliceToAll()
-        for fiduciallist in output_fiduciallist_files.keys():
-            # information about loading markups: https://www.slicer.org/wiki/Documentation/Nightly/Modules/Markups
-            output_node = outputs[fiduciallist]
-            _, node = slicer.util.loadMarkupsFiducialList(output_fiduciallist_files[fiduciallist], True)
-            output_node.Copy(node)
-            scene = slicer.mrmlScene
-            # todo: currently due to a bug in markups module removing the node will create some unexpected behaviors
-            # reported bug reference: https://issues.slicer.org/view.php?id=4414
-            # scene.RemoveNode(node)
-
-    def run(self, modelParamters):
-        """
-        Run the actual algorithm
-        """
-        if self.thread.is_alive():
-            import sys
-            sys.stderr.write("ModelLogic is already executing!")
-            return
-        self.abort = False
-        self.thread = threading.Thread(target=self.thread_doit(modelParameters=modelParamters))
-
-    def locate(self, modelParameters):
-        iodict = modelParameters.iodict
-        inputs = modelParameters.inputs
-        params = modelParameters.params
-        outputs = modelParameters.outputs
-        dockerName = modelParameters.dockerImageName
-        modelName = modelParameters.modelName
-        dataPath = modelParameters.dataPath
-
-        try:
-            assert self.checkDockerDaemon(), "Docker Daemon is not running"
-        except Exception as e:
-            print(e.message)
-            self.abort = True
-
-        if not dataPath:
-            #dataPath = '/home/DeepSintef/data'
-            dataPath = '/home/deepsintef/resources'
-
-        print('docker run command:')
-        cmd = list()
-        cmd.append(self.dockerPath)
-        cmd.extend(('run', '-t', '-v'))
-        #cmd.append(TMP_PATH + ':' + dataPath)
-        cmd.append(RESOURCES_PATH + ':' + dataPath)
-        cmd.append(dockerName)
-        cmd.append('--' + 'Task')
-        cmd.append('parsing')
-        print(cmd)
-
-        # TODO: add a line to check wether the docker image is present or not. If not ask user to download it.
-        # try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        print(out)
-
-        #slicer.modules.DeepSintefWidget.populateSubModelFromDocker(out)
-        slicer.modules.DeepSintefWidget.populate_models_list_from_docker(out)
-
-        # progress = 0
-        # # print('executing')
-        # while True:
-        #     progress += 0.15
-        #     slicer.app.processEvents()
-        #     self.cmdCheckAbort(p)
-        #     line = p.stdout.readline()
-        #     if not line:
-        #         break
-        #     print(line)
-        #    slicer.modules.DeepSintefWidget.populateSubModelFromDocker(line)
+#
+# class DeepSintefWidget():
+#     """
+#     Main GUI object, similar to a QMainWindow, where all widgets and user interactions are defined.
+#     """
+#     def __init__(self, parent=None):
+#         """
+#
+#         :param parent: the parent will be a reference to the 3D Slicer window where this plugin will be displayed
+#         """
+#         if not parent:
+#             self.parent = slicer.qMRMLWidget()
+#             self.parent.setLayout(qt.QVBoxLayout())
+#             self.parent.setMRMLScene(slicer.mrmlScene)
+#         else:
+#             self.parent = parent
+#         self.layout = self.parent.layout()
+#         if not parent:
+#             self.parent.show()
+#
+#         self.modelParameters = None
+#         self.logic = None
+#
+#     def onReload(self, moduleName="DeepSintef"):
+#         """
+#         Generic reload method for any scripted module.
+#         ModuleWizard will substitute correct default moduleName.
+#         """
+#         globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
+#         #@TODO. Should add some module specific clean/reload functions here?
+#
+#     def enable_user_interface(self, state):
+#         """
+#         Enables the widgets accessible to the user for generating the predictions.
+#         Should be enabled only when a model (*.json file) has been loaded.
+#         :param state: True or False, to enable or disable the set of widgets.
+#         :return:
+#         """
+#         self.runtimeParametersOverlapCheckbox.setEnabled(state)
+#         self.runtimeParametersPredictionsCombobox.setEnabled(state)
+#         self.runtimeParametersResamplingCombobox.blockSignals(True)
+#         self.runtimeParametersResamplingCombobox.setCurrentText('Second')
+#         self.runtimeParametersResamplingCombobox.blockSignals(False)
+#         self.runtimeParametersResamplingCombobox.setEnabled(state)
+#         self.runtimeParametersUseGPUCheckbox.setEnabled(state)
+#
+#     def enable_threshold_function_interface(self, state):
+#         """
+#         Enables the widgets accessible to the user for interacting with the predictions.
+#         Should be enabled only when a model has been ran and predictions returned.
+#         :param state: True or False, to enable or disable the set of widgets.
+#         :return:
+#         """
+#         self.runtimeParametersThresholdClassCombobox.setEnabled(state)
+#         self.runtimeParametersSlider.setEnabled(state)
+#         self.runtimeParametersSlider.blockSignals(True)
+#         #self.runtimeParametersSlider.setValue(self.logic.current_class_thresholds[selected_index])
+#         self.runtimeParametersSlider.blockSignals(False)
+#         self.runtimeParametersThresholdClassCombobox.clear()
+#
+#
+#     def setup_docker_widget(self):
+#         self.dockerGroupBox = ctk.ctkCollapsibleGroupBox()
+#         self.dockerGroupBox.setTitle('Docker Settings')
+#         self.dockerGroupBox.setChecked(False)
+#         self.layout.addWidget(self.dockerGroupBox)
+#         dockerForm = qt.QFormLayout(self.dockerGroupBox)
+#         self.dockerPath = ctk.ctkPathLineEdit()
+#         # self.dockerPath.setMaximumWidth(300)
+#         dockerForm.addRow("Docker Executable Path:", self.dockerPath)
+#         self.testDockerButton = qt.QPushButton('Test!')
+#         dockerForm.addRow("Test Docker Configuration:", self.testDockerButton)
+#         if platform.system() == 'Darwin':
+#             self.dockerPath.setCurrentPath('/usr/local/bin/docker')
+#         if platform.system() == 'Linux':
+#             self.dockerPath.setCurrentPath('/usr/bin/docker')
+#         if platform.system() == 'Windows':
+#             self.dockerPath.setCurrentPath("C:/Program Files/Docker/Docker/resources/bin/docker.exe")
+#
+#         ### use nvidia-docker if it is installed
+#         nvidiaDockerPath = self.dockerPath.currentPath.replace('bin/docker', 'bin/nvidia-docker')
+#         if os.path.isfile(nvidiaDockerPath):
+#             self.dockerPath.setCurrentPath(nvidiaDockerPath)
+#
+#     def setup_models_list_widget(self):
+#         self.modelslistGroupbox = ctk.ctkCollapsibleGroupBox()
+#         self.modelslistGroupbox.setTitle('Local models description')
+#         self.layout.addWidget(self.modelslistGroupbox)
+#
+#         modelRepoVBLayout1 = qt.QVBoxLayout(self.modelslistGroupbox)
+#         modelRepositoryExpdableArea = ctk.ctkExpandableWidget()
+#         modelRepoVBLayout1.addWidget(modelRepositoryExpdableArea)
+#         modelRepoVBLayout2 = qt.QVBoxLayout(modelRepositoryExpdableArea)
+#         self.modelRegistryTable = qt.QTableWidget()
+#         self.modelRegistryTable.visible = False
+#         self.modelRepositoryModel = qt.QStandardItemModel()
+#         self.modelRepositoryTableHeaderLabels = ['Model', 'Task', 'Target', 'Modality', 'Sequence', 'Organ', 'Owner', 'Comments', '# Params']
+#         self.modelRegistryTable.setColumnCount(9)
+#         self.modelRegistryTable.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+#         self.modelRegistryTable.sortingEnabled = True
+#         self.modelRegistryTable.setHorizontalHeaderLabels(self.modelRepositoryTableHeaderLabels)
+#         self.modelRepositoryTableWidgetHeader = self.modelRegistryTable.horizontalHeader()
+#         self.modelRepositoryTableWidgetHeader.setStretchLastSection(True)
+#         modelRepoVBLayout2.addWidget(self.modelRegistryTable)
+#         self.progressDownload = qt.QProgressBar()
+#         self.progressDownload.setRange(0, 100)
+#         self.progressDownload.setValue(0)
+#         modelRepoVBLayout2.addWidget(self.progressDownload)
+#         self.progressDownload.hide()
+#
+#         self.modelRepositoryTreeSelectionModel = self.modelRegistryTable.selectionModel()
+#         abstractItemView = qt.QAbstractItemView()
+#         self.modelRegistryTable.setSelectionBehavior(abstractItemView.SelectRows)
+#         verticalheader = self.modelRegistryTable.verticalHeader()
+#         verticalheader.setDefaultSectionSize(20)
+#         modelRepoVBLayout1.setSpacing(0)
+#         modelRepoVBLayout2.setSpacing(0)
+#         modelRepoVBLayout1.setMargin(0)
+#         modelRepoVBLayout2.setContentsMargins(7, 3, 7, 7)
+#         refreshWidget = qt.QWidget()
+#         modelRepoVBLayout2.addWidget(refreshWidget)
+#         hBoXLayout = qt.QHBoxLayout(refreshWidget)
+#         self.modelRegistryTable.visible = True
+#         #self.modelRegistryTable.setEditTriggers(qt.Qt.NoEditTriggers) #@TODO.
+#
+#         # self.connectButton = qt.QPushButton('Connect')
+#         # self.downloadButton = qt.QPushButton('Download')
+#         # self.downloadButton.enabled = False
+#         # self.downloadButton.visible = False
+#         # hBoXLayout.addStretch(1)
+#         # hBoXLayout.addWidget(self.connectButton)
+#         # hBoXLayout.addWidget(self.downloadButton)
+#         #self.populateModelRegistryTable()
+#
+#     def setup_models_list_connections(self):
+#         self.modelRegistryTable.connect('cellClicked(int, int)', self.onModelSelectionchanged)
+#
+#     def setup_runtime_parameters_widget(self):
+#         self.runtimeParametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
+#         self.runtimeParametersCollapsibleButton.setTitle("Runtime Parameters")
+#         self.layout.addWidget(self.runtimeParametersCollapsibleButton)
+#         self.runtimeParametersGridLayout = qt.QGridLayout(self.runtimeParametersCollapsibleButton)
+#         self.runtimeParametersOverlapLabel = qt.QLabel('Overlap')
+#         self.runtimeParametersOverlapLabel.setToolTip("If checked, the predictions will be optimized for each slice"
+#                                                       " (longer to process).")
+#         self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapLabel, 0, 0, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOverlapCheckbox, 0, 1, 1, 1)
+#
+#         self.runtimeParametersResamplingLabel = qt.QLabel('Resampling')
+#         self.runtimeParametersResamplingCombobox = qt.QComboBox()
+#         self.runtimeParametersResamplingCombobox.addItems(['First', 'Second'])
+#         self.runtimeParametersResamplingLabel.setToolTip("Resampling first will produce nicer/smoother results,"
+#                                                          " at the cost of a longer processing time.")
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingLabel, 0, 2, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersResamplingCombobox, 0, 3, 1, 1)
+#
+#         self.runtimeParametersPredictionsLabel = qt.QLabel('Predictions')
+#         self.runtimeParametersPredictionsLabel.setToolTip("Binary is the optimally thresholded result; probabilities is"
+#                                                           " the full prediction, allowing to play with the threshold.")
+#         self.runtimeParametersPredictionsCombobox = qt.QComboBox()
+#         self.runtimeParametersPredictionsCombobox.addItems(['Binary', 'Probabilities'])
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsLabel, 0, 4, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersPredictionsCombobox, 0, 5, 1, 1)
+#
+#         self.runtimeParametersUseGPULabel = qt.QLabel('GPU')
+#         self.runtimeParametersUseGPULabel.setToolTip("Make sure you have a GPU AND Nvidia drivers installed before"
+#                                                       " ticking the box.")
+#         self.runtimeParametersUseGPUCheckbox = qt.QCheckBox()
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersUseGPULabel, 0, 6, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersUseGPUCheckbox, 0, 7, 1, 1)
+#
+#         self.runtimeParametersThresholdLabel = qt.QLabel('Threshold')
+#         self.runtimeParametersThresholdClassCombobox = qt.QComboBox()
+#
+#         self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
+#         self.runtimeParametersSlider.setMaximum(100)
+#         self.runtimeParametersSlider.setMinimum(0)
+#         self.runtimeParametersSlider.setSingleStep(5)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdLabel, 1, 0, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersThresholdClassCombobox, 1, 1, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersSlider, 1, 2, 1, 5)
+#
+#         self.runtimeParametersCurrentThresholdLabel = qt.QLabel('Current threshold')
+#         self.runtimeParametersCurrentThresholdLabel.setToolTip("Currently selected prediction threshold")
+#         self.runtimeParametersCurrentThresholdValueLabel = qt.QLabel('')
+#         self.runtimeParametersOptimalThresholdLabel = qt.QLabel('Optimal threshold')
+#         self.runtimeParametersOptimalThresholdLabel.setToolTip("Optimal prediction threshold from training")
+#         self.runtimeParametersOptimalThresholdValueLabel = qt.QLabel('')
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersCurrentThresholdLabel, 2, 0, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersCurrentThresholdValueLabel, 2, 1, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOptimalThresholdLabel, 2, 2, 1, 1)
+#         self.runtimeParametersGridLayout.addWidget(self.runtimeParametersOptimalThresholdValueLabel, 2, 3, 1, 1)
+#
+#         # self.runtimeParametersFormLayout = qt.QFormLayout(self.runtimeParametersCollapsibleButton)
+#         # self.runtimeParametersOverlapCheckbox = qt.QCheckBox()
+#         # self.runtimeParametersFormLayout.addRow("Overlap:", self.runtimeParametersOverlapCheckbox)
+#         # self.runtimeParametersSlider = qt.QSlider(qt.Qt.Horizontal)
+#         # self.runtimeParametersSlider.setMaximum(100)
+#         # self.runtimeParametersSlider.setMinimum(0)
+#         # self.runtimeParametersSlider.setSingleStep(5)
+#         # self.runtimeParametersFormLayout.addRow("Threshold:", self.runtimeParametersSlider)
+#
+#     def setup_runtime_parameters_connections(self):
+#         self.runtimeParametersOverlapCheckbox.connect('stateChanged(int)', self.onRuntimeOverlapClicked)
+#         self.runtimeParametersResamplingCombobox.connect('currentIndexChanged(QString)', self.onRuntimeSamplingOrderChanged)
+#         self.runtimeParametersPredictionsCombobox.connect('currentIndexChanged(QString)', self.onRuntimePredictionsTypeChanged)
+#         self.runtimeParametersUseGPUCheckbox.connect('stateChanged(int)', self.onRuntimeUseGPUClicked)
+#         self.runtimeParametersThresholdClassCombobox.connect('currentIndexChanged(int)', self.onRuntimeThresholdClassChanged)
+#         self.runtimeParametersSlider.valueChanged.connect(self.onRuntimeThresholdSliderMoved)
+#
+#     def setup(self):
+#         """
+#         Instantiate the plugin layout and connect widgets
+#         :return:
+#         """
+#
+#         # Reload and Test area
+#         reloadCollapsibleButton = ctk.ctkCollapsibleButton()
+#         reloadCollapsibleButton.collapsed = True
+#         reloadCollapsibleButton.text = "Reload && Test"
+#         reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
+#
+#         # reload button
+#         # (use this during development, but remove it when delivering
+#         #  your module to users)
+#         self.reloadButton = qt.QPushButton("Reload")
+#         self.reloadButton.toolTip = "Reload this module."
+#         self.reloadButton.name = "Freehand3DUltrasound Reload"
+#         reloadFormLayout.addWidget(self.reloadButton)
+#         self.reloadButton.connect('clicked()', self.onReload)
+#         # uncomment the following line for debug/development.
+#         self.layout.addWidget(reloadCollapsibleButton)
+#
+#         # Docker Settings Area
+#         self.setup_docker_widget()
+#
+#         # modelRepositoryVerticalLayout = qt.QVBoxLayout(modelRepositoryExpdableArea)
+#
+#         # Model Repository Area
+#         self.setup_models_list_widget()
+#
+#         #
+#         # Cancel/Apply Row
+#         #
+#         self.restoreDefaultsButton = qt.QPushButton("Restore Defaults")
+#         self.restoreDefaultsButton.toolTip = "Restore the default parameters."
+#         self.restoreDefaultsButton.enabled = True
+#
+#         self.cancelButton = qt.QPushButton("Cancel")
+#         self.cancelButton.toolTip = "Abort the algorithm."
+#         self.cancelButton.enabled = False
+#
+#         self.applyButton = qt.QPushButton("Apply")
+#         self.applyButton.toolTip = "Run the algorithm."
+#         self.applyButton.enabled = True
+#
+#         hlayout = qt.QHBoxLayout()
+#
+#         #
+#         # Local Models Area
+#         #
+#         modelsCollapsibleButton = ctk.ctkCollapsibleGroupBox()
+#         modelsCollapsibleButton.setTitle("Local Models")
+#         self.layout.addWidget(modelsCollapsibleButton)
+#         # Layout within the dummy collapsible button
+#         self.modelsFormLayout = qt.QFormLayout(modelsCollapsibleButton)
+#
+#         # model search
+#         self.searchBox = ctk.ctkSearchBox()
+#         self.modelsFormLayout.addRow("Search:", self.searchBox)
+#         self.searchBox.connect("textChanged(QString)", self.onSearch)
+#
+#         # model selector
+#         self.modelSelector = qt.QComboBox()
+#         self.modelsFormLayout.addRow("Model:", self.modelSelector)
+#         self.populateLocalModels()
+#
+#         # connections
+#         self.modelSelector.connect('currentIndexChanged(int)', self.onModelSelect)
+#
+#         # Parameters Area
+#         parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
+#         parametersCollapsibleButton.setTitle("Model Parameters")
+#         self.layout.addWidget(parametersCollapsibleButton)
+#
+#         # Layout within the dummy collapsible button
+#         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+#         self.modelParameters = ModelParameters(parametersCollapsibleButton)
+#
+#         # Runtime parameters Area
+#         self.setup_runtime_parameters_widget()
+#         self.setup_runtime_parameters_connections()
+#
+#         # Add vertical spacer
+#         self.layout.addStretch(1)
+#
+#         # Status and Progress
+#         statusLabel = qt.QLabel("Status: ")
+#         self.currentStatusLabel = qt.QLabel("Idle")
+#         hlayout = qt.QHBoxLayout()
+#         hlayout.addStretch(1)
+#         hlayout.addWidget(statusLabel)
+#         hlayout.addWidget(self.currentStatusLabel)
+#         self.layout.addLayout(hlayout)
+#
+#         self.progress = qt.QProgressBar()
+#         self.progress.setRange(0, 1000)
+#         self.progress.setValue(0)
+#         self.layout.addWidget(self.progress)
+#         self.progress.hide()
+#
+#         # Cancel/Apply Row
+#         self.restoreDefaultsButton = qt.QPushButton("Restore Defaults")
+#         self.restoreDefaultsButton.toolTip = "Restore the default parameters."
+#         self.restoreDefaultsButton.enabled = True
+#
+#         self.cancelButton = qt.QPushButton("Cancel")
+#         self.cancelButton.toolTip = "Abort the algorithm."
+#         self.cancelButton.enabled = False
+#
+#         self.applyButton = qt.QPushButton("Apply")
+#         self.applyButton.toolTip = "Run the algorithm."
+#         self.applyButton.enabled = True
+#
+#         self.locateButton = qt.QPushButton("Locate models")
+#         self.locateButton.enabled = True
+#
+#         hlayout = qt.QHBoxLayout()
+#
+#         hlayout.addWidget(self.restoreDefaultsButton)
+#         hlayout.addStretch(1)
+#         hlayout.addWidget(self.cancelButton)
+#         hlayout.addWidget(self.applyButton)
+#         hlayout.addWidget(self.locateButton)
+#         self.layout.addLayout(hlayout)
+#
+#         # connections
+#         self.setup_runtime_parameters_connections()
+#         self.setup_models_list_connections()
+#         #self.connectButton.connect('clicked(bool)', self.onConnectButton)
+#         #self.downloadButton.connect('clicked(bool)', self.onDownloadButton)
+#         self.testDockerButton.connect('clicked(bool)', self.onTestDockerButton)
+#         self.restoreDefaultsButton.connect('clicked(bool)', self.onRestoreDefaultsButton)
+#         self.applyButton.connect('clicked(bool)', self.onApplyButton)
+#         self.locateButton.connect('clicked(bool)', self.onLocateButton)
+#         self.cancelButton.connect('clicked(bool)', self.onCancelButton)
+#
+#         # Initlial Selection
+#         self.modelSelector.currentIndexChanged(self.modelSelector.currentIndex)
+#         self.enable_user_interface(False)
+#
+#         # Should have a call here to parse all local model sub-folders.
+#         # Results should be used to fill in the 'Local models description'
+#
+#     def cleanup(self):
+#         pass
+#
+#     def getAllDigests(self):
+#         cmd = []
+#         cmd.append(self.dockerPath.currentPath)
+#         cmd.append('images')
+#         cmd.append('--digests')
+#         # print(cmd)
+#         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#         digest_index = 2
+#         digests = []
+#         try:
+#             while True:
+#                 slicer.app.processEvents()
+#                 line = p.stdout.readline()
+#                 if not line:
+#                     break
+#                 line = line.split()
+#                 if 'DIGEST' in line:
+#                     digest_index = line.index('DIGEST')
+#                 else:
+#                     digests.append(line[digest_index])
+#         except Exception as e:
+#             print("Exception: {}".format(e))
+#         return digests
+#
+#     def populateLocalModels(self):
+#         digests = self.getAllDigests()
+#         jsonFiles = glob(JSON_LOCAL_DIR + "/*.json")
+#         jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
+#         self.jsonModels = []
+#         for fname in jsonFiles:
+#             with open(fname, "r") as fp:
+#                 j = json.load(fp, object_pairs_hook=OrderedDict)
+#
+#             self.jsonModels.append(j)
+#             # if j['docker']['digest'] in digests:
+#             #     self.jsonModels.append(j)
+#             # else:
+#             #     os.remove(fname)
+#         # add all the models listed in the json files
+#
+#         for idx, j in enumerate(self.jsonModels):
+#             name = j["name"]
+#             self.modelSelector.addItem(name, idx)
+#
+#     # def onCloudModelSelect(self):
+#     #     self.downloadButton.enabled = False
+#     #     # print("on cloud model select!")
+#     #     for item in self.modelTableItems.keys():
+#     #         if item.isSelected():
+#     #             self.downloadButton.enabled = True
+#     #             self.selectedModelPath = self.modelTableItems[item]
+#
+#     def onLogicRunStop(self):
+#         self.applyButton.setEnabled(True)
+#         self.restoreDefaultsButton.setEnabled(True)
+#         self.cancelButton.setEnabled(False)
+#         #self.logic = None
+#         self.progress.hide()
+#
+#     def onLogicRunStart(self):
+#         self.applyButton.setEnabled(False)
+#         self.restoreDefaultsButton.setEnabled(False)
+#
+#     def onSearch(self, searchText):
+#         # add all the models listed in the json files
+#         self.modelSelector.clear()
+#         # split text on whitespace of and string search
+#         searchTextList = searchText.split()
+#         for idx, j in enumerate(self.jsonModels):
+#             lname = j["name"].lower()
+#             # require all elements in list, to add to select. case insensitive
+#             if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
+#                 self.modelSelector.addItem(j["name"], idx)
+#
+#     def onModelSelect(self, selectorIndex):
+#         # print("on model select")
+#         self.modelParameters.destroy()
+#         if selectorIndex < 0:
+#             return
+#         jsonIndex = self.modelSelector.itemData(selectorIndex)
+#         json_model = self.jsonModels[jsonIndex]
+#         self.modelParameters.create(json_model)
+#
+#         if "briefdescription" in self.jsonModels[jsonIndex]:
+#             tip = self.jsonModels[jsonIndex]["briefdescription"]
+#             tip = tip.rstrip()
+#             self.modelSelector.setToolTip(tip)
+#         else:
+#             self.modelSelector.setToolTip("")
+#
+#         self.enable_user_interface(True)
+#         #self.onLocateButton()
+#
+#     def onConnectButton(self):
+#         try:
+#             self.modelRegistryTable.visible = True
+#             self.downloadButton.visible = True
+#             self.connectButton.visible = False
+#             self.connectButton.enabled = False
+#             import urllib2
+#             url = 'https://api.github.com/repos/DeepInfer/Model-Registry/contents/'
+#             response = urllib2.urlopen(url)
+#             data = json.load(response)
+#             for item in data:
+#                 if 'json' in item['name']:
+#                     # print(item['name'])
+#                     url = item['url']
+#                     response = urllib2.urlopen(url)
+#                     data = json.load(response)
+#                     dl_url = data['download_url']
+#                     print("downloading: {}...".format(dl_url))
+#                     response = urllib2.urlopen(dl_url)
+#                     content = response.read()
+#                     outputPath = os.path.join(JSON_CLOUD_DIR, dl_url.split('/')[-1])
+#                     with open(outputPath, 'w') as f:
+#                         f.write(content)
+#             self.populateModelRegistryTable()
+#         except Exception as e:
+#             print("Exception occured: {}".format(e))
+#             self.connectButton.enabled = True
+#             self.modelRegistryTable.visible = False
+#             self.downloadButton.visible = False
+#             self.connectButton.visible = True
+#         self.connectButton.enabled = True
+#
+#     def onTestDockerButton(self):
+#         cmd = []
+#         cmd.append(self.dockerPath.currentPath)
+#         cmd.append('--version')
+#         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#         message = p.stdout.readline()
+#         if message.startswith('Docker version'):
+#             qt.QMessageBox.information(None, 'Docker Status', 'Docker is configured correctly'
+#                                                               ' ({}).'.format(message))
+#         else:
+#             qt.QMessageBox.critical(None, 'Docker Status', 'Docker is not configured correctly. Check your docker '
+#                                                            'installation and make sure that it is configured to '
+#                                                            'be run by non-root user.')
+#
+#     def onDownloadButton(self):
+#         with open(self.selectedModelPath) as json_data:
+#             model = json.load(json_data)
+#         size = model['docker']['size']
+#         model_name = model['name']
+#         dockerhub_address = model['docker']['dockerhub_repository'] + '@' + model['docker']['digest']
+#         if platform.system() == 'Windows':
+#             terminal = 'Command Prompt or PowerShell, but not PowerShell ISE'
+#         else:
+#             terminal = 'terminal'
+#         message_title = '1. Copy the following command from the box below.\n' \
+#                         '2. Open the {}, paste and run the copied command.\n' \
+#                         '3. Wait until the docker image download is finished.\n' \
+#                         '4. Restart 3D Slicer.\n' \
+#                         '5. You should see the downloaded model in the \"Local Models\" section.\n' \
+#                         '(Please note that the size of the \"{}\" docker image is {}.\n' \
+#                         'Make sure that you have enough storage space on your machine.)'.format(terminal, model_name,
+#                                                                                                 size)
+#         pull_command = 'docker pull {}'.format(dockerhub_address)
+#         mainWindow = slicer.util.mainWindow()
+#         downloadWidget = qt.QWidget()
+#         layout = qt.QVBoxLayout()
+#         downloadWidget.setLayout(layout)
+#         popupGeometry = qt.QRect()
+#         if mainWindow:
+#             width = 400
+#             height = 200
+#             popupGeometry.setWidth(width)
+#             popupGeometry.setHeight(height)
+#             downloadWidget.setGeometry(popupGeometry)
+#
+#         pos = mainWindow.pos
+#         downloadWidget.move(pos.x() + (mainWindow.width - downloadWidget.width) / 2,
+#                             pos.y() + (mainWindow.height - downloadWidget.height) / 2)
+#
+#         titleLabel = qt.QLabel(message_title)
+#         layout.addWidget(titleLabel)
+#         te = qt.QTextEdit(pull_command)
+#         te.readOnly = True
+#         layout.addWidget(te)
+#         closeButton = qt.QPushButton('Close')
+#         layout.addWidget(closeButton)
+#         downloadWidget.show()
+#
+#         def hide_download():
+#             downloadWidget.hide()
+#
+#         closeButton.connect('clicked(bool)', hide_download)
+#         shutil.copy(self.selectedModelPath, os.path.join(JSON_LOCAL_DIR, os.path.basename(self.selectedModelPath)))
+#
+#     '''
+#     def onDownloadButton(self):
+#         with open(self.selectedModelPath) as json_data:
+#             model = json.load(json_data)
+#         size = model['docker']['size']
+#         resoponse = self.Question("The size of the selected image to download is {}. Are you sure you want to proceed?".format(size),
+#                       title="Download", parent=None)
+#         if resoponse:
+#             cmd = []
+#             cmd.append(self.dockerPath.currentPath)
+#             cmd.append('pull')
+#             cmd.append(model['docker']['dockerhub_repository'] + '@' + model['docker']['digest'])
+#             p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#             print(cmd)
+#             parts = dict()
+#             try:
+#                 while True:
+#                     self.progressDownload.show()
+#                     slicer.app.processEvents()
+#                     line = p.stdout.readline()
+#                     if not line:
+#                         break
+#                     line = line.rstrip()
+#                     print(line)
+#                     part = line.split(':')[0]
+#                     if len(part) == 12:
+#                         parts[part] = line.split(':')[1]
+#                     if parts.keys():
+#                         print('-'*100)
+#                         print(parts)
+#                         n_parts = len(parts.keys())
+#                         n_completed = len([status for status in parts.values() if status == ' Pull complete'])
+#                         self.progressDownload.setValue(int((100*n_completed)/n_parts))
+#             except Exception as e:
+#                 print("Exception: {}".format(e))
+#             print(parts)
+#             self.progressDownload.setValue(0)
+#             self.progressDownload.hide()
+#             shutil.copy(self.selectedModelPath, os.path.join(JSON_LOCAL_DIR, os.path.basename(self.selectedModelPath)))
+#             self.populateLocalModels()
+#         else:
+#             print("Download was canceled!")
+#     '''
+#
+#     def Question(self, text, title="", parent=None):
+#         return qt.QMessageBox.question(parent, title, text,
+#                                        qt.QMessageBox.Yes, qt.QMessageBox.No) == qt.QMessageBox.Yes
+#
+#     def populateModelRegistryTable(self):
+#         """
+#         Fill in the widget from the content of the different json files
+#         :return:
+#         """
+#         self.modelTableItems = dict()
+#         # print("populate Model Registry Table")
+#         model_files = glob(JSON_LOCAL_DIR + '/*.json')
+#         self.modelRegistryTable.setRowCount(len(model_files))
+#         n = 0
+#         model_files = [os.path.join(JSON_LOCAL_DIR, model_file) for model_file in model_files]
+#         for model_file in model_files:
+#             with open(model_file) as json_data:
+#                 model = json.load(json_data)
+#             keys = model.keys()
+#             for key in keys:
+#                 if key == 'name':
+#                     nameTableItem = qt.QTableWidgetItem(str(model['name']))
+#                     self.modelTableItems[nameTableItem] = model_file
+#                     self.modelRegistryTable.setItem(n, 0, nameTableItem)
+#                 if key == 'task':
+#                     task = qt.QTableWidgetItem(str(model['task']))
+#                     self.modelRegistryTable.setItem(n, 1, task)
+#                 if key == 'target':
+#                     target = qt.QTableWidgetItem(str(model['target']))
+#                     self.modelRegistryTable.setItem(n, 2, target)
+#                 if key == 'modality':
+#                     modality = qt.QTableWidgetItem(str(model['modality']))
+#                     self.modelRegistryTable.setItem(n, 3, modality)
+#                 if key == 'sequence':
+#                     sequence = qt.QTableWidgetItem(str(model['sequence']))
+#                     self.modelRegistryTable.setItem(n, 4, sequence)
+#                 if key == 'organ':
+#                     organ = qt.QTableWidgetItem(str(model['organ']))
+#                     self.modelRegistryTable.setItem(n, 5, organ)
+#                 if key == 'owner':
+#                     owner = qt.QTableWidgetItem(str(model['owner']))
+#                     self.modelRegistryTable.setItem(n, 6, owner)
+#                 if key == 'owner':
+#                     details = qt.QTableWidgetItem(str(model['train_test_data_details']))
+#                     self.modelRegistryTable.setItem(n, 7, details)
+#             n += 1
+#
+#     def populate_models_list_from_docker(self, model_names):
+#         self.modelTableItems = dict()
+#
+#         actual_names = model_names.split('---ModelNames')[1].strip().split(',')
+#         print('Actual model names: {}'.format(actual_names))
+#         for a, w in enumerate(self.modelParameters.widgets):
+#             if w.accessibleName == 'ModelsList':
+#                 w.clear()
+#                 w.addItems(actual_names)
+#         self.populateModelRegistryTable()
+#         # n = 0
+#         # self.modelRegistryTable.setRowCount(len(actual_names))
+#         # for model_name in actual_names:
+#         #     nameTableItem = qt.QTableWidgetItem(model_name)
+#         #     #self.modelTableItems[nameTableItem] = model_name
+#         #     self.modelRegistryTable.setItem(n, 0, nameTableItem)
+#         #
+#         #     organ = qt.QTableWidgetItem(model_name.split('_')[1])
+#         #     self.modelRegistryTable.setItem(n, 1, organ)
+#         #
+#         #     task = qt.QTableWidgetItem('segmentation')
+#         #     self.modelRegistryTable.setItem(n, 2, task)
+#         #     n += 1
+#
+#     def populateSubModelFromDocker(self, model_names):
+#         #self.modelParameters.widgets['ModelsList'].addItems(model_names)
+#         #print('{} widgets in list.'.format(len(self.modelParameters.widgets)))
+#         actual_names = model_names.split('---ModelNames')[1].strip().split(',')
+#         print('Actual model names: {}'.format(actual_names))
+#         for a,w in enumerate(self.modelParameters.widgets):
+#             if w.accessibleName == 'ModelsList':
+#                 w.clear()
+#                 w.addItems(actual_names)
+#             #print('Widget {} is {}'.format(a, w.accessibleName))
+#         #print(self.modelParameters.widgets[5])
+#         # self.subModelSelector = qt.QComboBox()
+#         # self.modelsFormLayout.addRow("SubModel:", self.subModelSelector)
+#         # self.subModelSelector.addItems(model_names)
+#
+#     def onRestoreDefaultsButton(self):
+#         self.onModelSelect(self.modelSelector.currentIndex)
+#
+#     def onLocateButton(self):
+#         print('onLocate')
+#         self.logic = DeepSintefLogic()
+#         # try:
+#         self.currentStatusLabel.text = "Locating"
+#         self.modelParameters.prerun()
+#         self.logic.locate(self.modelParameters)
+#         self.enable_user_interface(True)
+#         self.enable_threshold_function_interface(False)
+#
+#     def onApplyButton(self):
+#         print('onApply')
+#         #self.logic = DeepSintefLogic()
+#         # try:
+#         self.currentStatusLabel.text = "Starting"
+#         if self.runtimeParametersPredictionsCombobox.currentText == 'Probabilities':
+#             self.enable_threshold_function_interface(True)
+#         #self.modelParameters.prerun()
+#         self.logic.run(self.modelParameters)
+#
+#         '''
+#         except:
+#             self.currentStatusLabel.text = "Exception"
+#             slicer.modules.DeepSintefWidget.applyButton.enabled = True
+#             import sys
+#             msg = sys.exc_info()[0]
+#             # if there was an exception during start-up make sure to finish
+#             self.onLogicRunStop()
+#             qt.QMessageBox.critical(slicer.util.mainWindow(),
+#                                     "Exception before execution: {0} ".format(self.modelParameters.dockerImageName),
+#                                     msg)
+#         '''
+#
+#     def onCancelButton(self):
+#         self.currentStatusLabel.text = "Aborting"
+#         if self.logic:
+#             self.logic.abort = True
+#
+#     def onLogicEventStart(self):
+#         self.currentStatusLabel.text = "Running"
+#         self.cancelButton.setDisabled(False)
+#         self.progress.setValue(0)
+#         self.progress.show()
+#
+#     def onLogicEventEnd(self):
+#         self.currentStatusLabel.text = "Completed"
+#         self.progress.setValue(1000)
+#
+#         for c, class_name in enumerate(self.modelParameters.outputs.keys()): #[current_class].GetName())
+#             #self.runtimeParametersThresholdClassCombobox.addItem(self.modelParameters.outputs[class_name].GetName())
+#             self.runtimeParametersThresholdClassCombobox.addItem(class_name)
+#
+#     def onLogicEventAbort(self):
+#         self.currentStatusLabel.text = "Aborted"
+#
+#     def onLogicEventProgress(self, progress):
+#         self.currentStatusLabel.text = "Running ({0:6.5f})".format(progress)
+#         self.progress.setValue(progress * 1000)
+#
+#     def onLogicEventIteration(self, nIter):
+#         print("Iteration ", nIter)
+#
+#     def onModelSelectionchanged(self, row, col):
+#         model_choice = self.modelRegistryTable.item(row, 0).text()
+#         #print('Chosen model: ', model_choice)
+#         self.modelParameters.modelName = model_choice
+#
+#     def onRuntimeOverlapClicked(self, state):
+#         # nodes = slicer.util.getNodes('TestLabel')
+#         # if len(nodes) == 0:
+#         #     node = slicer.vtkMRMLLabelMapVolumeNode()
+#         #     node.SetName('TestLabel')
+#         #     slicer.mrmlScene.AddNode(node)
+#         #     node.CreateDefaultDisplayNodes()
+#         #     imageData = vtk.vtkImageData()
+#         #     imageData.SetDimensions((150, 150, 150))
+#         #     imageData.AllocateScalars(vtk.VTK_SHORT, 1)
+#         #     node.SetAndObserveImageData(imageData)
+#         # else:
+#         #     node = nodes['TestLabel']
+#         #
+#         # slicer_node = slicer.util.getNode('TestLabel')
+#         # array = slicer.util.arrayFromVolume(slicer_node)
+#         # array = numpy.zeros((200, 200, 200))
+#         # slicer.util.arrayFromVolumeModified(slicer_node)
+#
+#         if state == qt.Qt.Checked:
+#             self.logic.user_configuration['Predictions']['non_overlapping'] = 'False'
+#         elif state == qt.Qt.Unchecked:
+#             self.logic.user_configuration['Predictions']['non_overlapping'] = 'True'
+#
+#     def onRuntimeUseGPUClicked(self, state):
+#         if state == qt.Qt.Checked:
+#             self.logic.use_gpu = True
+#         elif state == qt.Qt.Unchecked:
+#             self.logic.use_gpu = False
+#
+#     def onRuntimeSamplingOrderChanged(self, resampling_order):
+#         if resampling_order == 'First':
+#             self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+#         else:
+#             self.logic.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
+#
+#     def onRuntimePredictionsTypeChanged(self, prediction_type):
+#         if prediction_type == 'Binary':
+#             self.logic.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+#         else:
+#             self.logic.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
+#
+#     def onRuntimeThresholdClassChanged(self, selected_index):
+#         self.logic.current_threshold_class_index = selected_index
+#         self.runtimeParametersSlider.setValue(self.logic.current_class_thresholds[selected_index])
+#
+#     def onRuntimeThresholdSliderMoved(self, value):
+#         current_class = self.runtimeParametersThresholdClassCombobox.currentText  # 'OutputLabel'
+#         value = float(value)
+#         original_data = deepcopy(self.logic.output_raw_values[current_class])
+#         volume_node = slicer.util.getNode(self.modelParameters.outputs[current_class].GetName())
+#         arr = slicer.util.arrayFromVolume(volume_node)
+#         # Increase image contrast
+#         #arr[:] = original_data
+#         arr[original_data < (value/100)] = 0
+#         arr[original_data >= (value/100)] = 1
+#         slicer.util.arrayFromVolumeModified(volume_node)
+#         self.logic.current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
+#         self.runtimeParametersCurrentThresholdValueLabel.setText(str(value))
+
+
+# class DeepSintefLogic:
+#     """This class should implement all the actual
+#     computation done by your module.  The interface
+#     should be such that other python code can import
+#     this class and make use of the functionality without
+#     requiring an instance of the Widget
+#     """
+#
+#     def __init__(self):
+#         self.main_queue = Queue.Queue()
+#         self.main_queue_running = False
+#         self.thread = threading.Thread()
+#         self.abort = False
+#         modules = slicer.modules
+#         if hasattr(modules, 'DeepSintefWidget'):
+#             self.dockerPath = slicer.modules.DeepSintefWidget.dockerPath.currentPath
+#         else:
+#             if platform.system() == 'Darwin':
+#                 defualt_path = '/usr/local/bin/docker'
+#                 self.setDockerPath(defualt_path)
+#             elif platform.system() == 'Linux':
+#                 defualt_path = '/usr/bin/docker'
+#                 self.setDockerPath(defualt_path)
+#             elif platform.system() == 'Windows':
+#                 defualt_path = "C:/Program Files/Docker/Docker/resources/bin/docker.exe"
+#                 self.setDockerPath(defualt_path)
+#             else:
+#                 print('could not determine system type')
+#         self.file_extension_docker = '.nii.gz'
+#         self.user_configuration = configparser.ConfigParser()
+#         self.user_configuration['Predictions'] = {}
+#         self.user_configuration['Predictions']['non_overlapping'] = 'true'
+#         self.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+#         self.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
+#
+#         self.use_gpu = False
+#         self.current_threshold_class_index = None
+#         self.current_class_thresholds = None
+#
+#     def __del__(self):
+#         if self.main_queue_running:
+#             self.main_queue_stop()
+#         if self.thread.is_alive():
+#             self.thread.join()
+#
+#     def setDockerPath(self, path):
+#         self.dockerPath = path
+#
+#     def yieldPythonGIL(self, seconds=0):
+#         sleep(seconds)
+#
+#     def cmdCheckAbort(self, p):
+#         if self.abort:
+#             p.kill()
+#             self.cmdAbortEvent()
+#
+#     def cmdStartEvent(self):
+#         if hasattr(slicer.modules, 'DeepSintefWidget'):
+#             widget = slicer.modules.DeepSintefWidget
+#             widget.onLogicEventStart()
+#         self.yieldPythonGIL()
+#
+#     def cmdProgressEvent(self, progress):
+#         if hasattr(slicer.modules, 'DeepSintefWidget'):
+#             widget = slicer.modules.DeepSintefWidget
+#             widget.onLogicEventProgress(progress)
+#         self.yieldPythonGIL()
+#
+#     def cmdAbortEvent(self):
+#         if hasattr(slicer.modules, 'DeepSintefWidget'):
+#             widget = slicer.modules.DeepSintefWidget
+#             widget.onLogicEventAbort()
+#         self.yieldPythonGIL()
+#
+#     def cmdEndEvent(self):
+#         if hasattr(slicer.modules, 'DeepSintefWidget'):
+#             widget = slicer.modules.DeepSintefWidget
+#             widget.onLogicEventEnd()
+#         self.yieldPythonGIL()
+#
+#     def checkDockerDaemon(self):
+#         cmd = list()
+#         cmd.append(self.dockerPath)
+#         cmd.append('ps')
+#         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#         slicer.app.processEvents()
+#         line = p.stdout.readline()
+#         if line[:9] == 'CONTAINER':
+#             return True
+#         return False
+#
+#     def notifyChangedFileExtensionForDocker(self, new_extension):
+#         self.file_extension_docker = new_extension
+#
+#     def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params):
+#         try:
+#             assert self.checkDockerDaemon(), "Docker Daemon is not running"
+#         except Exception as e:
+#             print(e.message)
+#             self.abort = True
+#
+#         modules = slicer.modules
+#         if hasattr(modules, 'DeepSintefWidget'):
+#             widgetPresent = True
+#         else:
+#             widgetPresent = False
+#
+#         if widgetPresent:
+#             self.cmdStartEvent()
+#         inputDict = dict()
+#         outputDict = dict()
+#         paramDict = dict()
+#         for item in iodict:
+#             if iodict[item]["iotype"] == "input":
+#                 if iodict[item]["type"] == "volume":
+#                     # print(inputs[item])
+#                     input_node_name = inputs[item].GetName()
+#                     #try:
+#                     img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
+#                     fileName = item + self.file_extension_docker
+#                     inputDict[item] = fileName
+#                     sitk.WriteImage(img, str(os.path.join(TMP_PATH, fileName)))
+#                     #except Exception as e:
+#                     #    print(e.message)
+#                 elif iodict[item]["type"] == "configuration":
+#                     with open(USER_CONFIG, 'w') as configfile:
+#                         self.user_configuration.write(configfile)
+#                     #inputDict[item] = configfile
+#             elif iodict[item]["iotype"] == "output":
+#                 if iodict[item]["type"] == "volume":
+#                       outputDict[item] = item
+#                       nodes = slicer.util.getNodes(outputDict[item])
+#                       if len(nodes) == 0:
+#                           node = slicer.vtkMRMLLabelMapVolumeNode()
+#                           node.SetName(outputDict[item])
+#                           slicer.mrmlScene.AddNode(node)
+#                           node.CreateDefaultDisplayNodes()
+#                           imageData = vtk.vtkImageData()
+#                           imageData.SetDimensions((150, 150, 150))
+#                           imageData.AllocateScalars(vtk.VTK_SHORT, 1)
+#                           node.SetAndObserveImageData(imageData)
+#                           outputs[item] = node
+#                 elif iodict[item]["type"] == "point_vec":
+#                     outputDict[item] = item + '.fcsv'
+#                 else:
+#                     paramDict[item] = str(params[item])
+#             elif iodict[item]["iotype"] == "parameter":
+#                 paramDict[item] = str(params[item])
+#
+#         if not dataPath:
+#             dataPath = '/home/deepsintef/resources'
+#
+#         print('docker run command:')
+#         cmd = list()
+#         cmd.append(self.dockerPath)
+#         cmd.extend(('run', '-t', '-v'))
+#         # if self.use_gpu:
+#         #     cmd.append(' --runtime=nvidia ')
+#         #cmd.append(TMP_PATH + ':' + dataPath)
+#         cmd.append(RESOURCES_PATH + ':' + dataPath)
+#         cmd.append(dockerName)
+#         if not self.use_gpu:
+#             cmd.append('--' + 'Task')
+#             cmd.append('segmentation')
+#         else:
+#             cmd.append('--' + 'Task')
+#             cmd.append('database')
+#         arguments = []
+#         for key in inputDict.keys():
+#             arguments.append(key + ' ' + dataPath + '/data/' + inputDict[key])
+#         # for key in outputDict.keys():
+#         #     arguments.append(key + ' ' + dataPath + '/' + outputDict[key])
+#         arguments.append('OutputPrefix' + ' ' + dataPath + '/data/' + 'DeepSintefOutput')
+#         # arguments.append(dataPath + '/' + inputDict['InputVolume'])
+#         # arguments.append(dataPath + '/' + outputDict['OutputLabel'])
+#         if modelName:
+#             arguments.append('ModelName ' + modelName)
+#         for key in paramDict.keys():
+#             if iodict[key]["type"] == "bool":
+#                 if paramDict[key]:
+#                     cmd.append(key)
+#             else:
+#                 arguments.append(key + ' ' + paramDict[key])
+#         # print('-'*100)
+#         cmd.append('--' + 'Arguments')
+#         cmd.append(','.join(arguments))
+#         print(cmd)
+#
+#         # TODO: add a line to check wether the docker image is present or not. If not ask user to download it.
+#         # try:
+#         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#         progress = 0
+#         # print('executing')
+#         while True:
+#             progress += 0.15
+#             slicer.app.processEvents()
+#             self.cmdCheckAbort(p)
+#             if widgetPresent:
+#                 self.cmdProgressEvent(progress)
+#             line = p.stdout.readline()
+#             if not line:
+#                     break
+#             print(line)
+#
+#     def thread_doit(self, modelParameters):
+#         iodict = modelParameters.iodict
+#         inputs = modelParameters.inputs
+#         params = modelParameters.params
+#         outputs = modelParameters.outputs
+#         dockerName = modelParameters.dockerImageName
+#         modelName = modelParameters.modelName
+#         dataPath = modelParameters.dataPath
+#         #try:
+#         self.main_queue_start()
+#         self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params)
+#         if not self.abort:
+#             self.updateOutput(iodict, outputs)
+#             self.main_queue_stop()
+#             self.cmdEndEvent()
+#
+#         '''
+#         except Exception as e:
+#             msg = e.message
+#             qt.QMessageBox.critical(slicer.util.mainWindow(), "Exception during execution of ", msg)
+#             slicer.modules.DeepSintefWidget.applyButton.enabled = True
+#             slicer.modules.DeepSintefWidget.progress.hide = True
+#             self.abort = True
+#             self.yieldPythonGIL()
+#         '''
+#     def main_queue_start(self):
+#         """Begins monitoring of main_queue for callables"""
+#         self.main_queue_running = True
+#         slicer.modules.DeepSintefWidget.onLogicRunStart()
+#         qt.QTimer.singleShot(0, self.main_queue_process)
+#
+#     def main_queue_stop(self):
+#         """End monitoring of main_queue for callables"""
+#         self.main_queue_running = False
+#         if self.thread.is_alive():
+#             self.thread.join()
+#         slicer.modules.DeepSintefWidget.onLogicRunStop()
+#
+#     def main_queue_process(self):
+#         """processes the main_queue of callables"""
+#         try:
+#             while not self.main_queue.empty():
+#                 f = self.main_queue.get_nowait()
+#                 if callable(f):
+#                     f()
+#
+#             if self.main_queue_running:
+#                 # Yield the GIL to allow other thread to do some python work.
+#                 # This is needed since pyQt doesn't yield the python GIL
+#                 self.yieldPythonGIL(.01)
+#                 qt.QTimer.singleShot(0, self.main_queue_process)
+#
+#         except Exception as e:
+#             import sys
+#             sys.stderr.write("ModelLogic error in main_queue: \"{0}\"".format(e))
+#
+#             # if there was an error try to resume
+#             if not self.main_queue.empty() or self.main_queue_running:
+#                 qt.QTimer.singleShot(0, self.main_queue_process)
+#
+#     def updateOutput(self, iodict, outputs):
+#         # print('updateOutput method')
+#         output_volume_files = dict()
+#         output_fiduciallist_files = dict()
+#         self.output_raw_values = dict()
+#         created_files = []
+#         for _, _, files in os.walk(TMP_PATH):
+#             for f, file in enumerate(files):
+#                 if 'Output' in file:
+#                     created_files.append(file)
+#             break
+#
+#         nb_class = 0
+#         for item in iodict:
+#             if iodict[item]["iotype"] == "output":
+#                 if iodict[item]["type"] == "volume":
+#                     #fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
+#                     fileName = str(os.path.join(TMP_PATH, created_files[[item in x for x in created_files].index(True)]))
+#                     output_volume_files[item] = fileName
+#                     nb_class = nb_class + 1
+#                 if iodict[item]["type"] == "point_vec":
+#                     fileName = str(os.path.join(TMP_PATH, item + '.fcsv'))
+#                     output_fiduciallist_files[item] = fileName
+#
+#         self.current_threshold_class_index = 0
+#         self.current_class_thresholds = [0.55] * nb_class
+#
+#         for output_volume in output_volume_files.keys():
+#             result = sitk.ReadImage(output_volume_files[output_volume])
+#             #print(result.GetPixelIDTypeAsString())
+#             self.output_raw_values[output_volume] = deepcopy(sitk.GetArrayFromImage(result))
+#             output_node = outputs[output_volume]
+#             output_node_name = output_node.GetName()
+#             nodeWriteAddress = sitkUtils.GetSlicerITKReadWriteAddress(output_node_name)
+#             self.display_port = nodeWriteAddress
+#             sitk.WriteImage(result, nodeWriteAddress)
+#             applicationLogic = slicer.app.applicationLogic()
+#             selectionNode = applicationLogic.GetSelectionNode()
+#
+#             outputLabelMap = True
+#             if outputLabelMap:
+#                 selectionNode.SetReferenceActiveLabelVolumeID(output_node.GetID())
+#             else:
+#                 selectionNode.SetReferenceActiveVolumeID(output_node.GetID())
+#
+#             applicationLogic.PropagateVolumeSelection(0)
+#             applicationLogic.FitSliceToAll()
+#         for fiduciallist in output_fiduciallist_files.keys():
+#             # information about loading markups: https://www.slicer.org/wiki/Documentation/Nightly/Modules/Markups
+#             output_node = outputs[fiduciallist]
+#             _, node = slicer.util.loadMarkupsFiducialList(output_fiduciallist_files[fiduciallist], True)
+#             output_node.Copy(node)
+#             scene = slicer.mrmlScene
+#             # todo: currently due to a bug in markups module removing the node will create some unexpected behaviors
+#             # reported bug reference: https://issues.slicer.org/view.php?id=4414
+#             # scene.RemoveNode(node)
+#
+#     def run(self, modelParamters):
+#         """
+#         Run the actual algorithm
+#         """
+#         if self.thread.is_alive():
+#             import sys
+#             sys.stderr.write("ModelLogic is already executing!")
+#             return
+#         self.abort = False
+#         self.thread = threading.Thread(target=self.thread_doit(modelParameters=modelParamters))
+#
+#     def locate(self, modelParameters):
+#         """
+#         Search the local .deepsintef folder to list all models that can be used.
+#         :param modelParameters:
+#         :return:
+#         """
+#         iodict = modelParameters.iodict
+#         inputs = modelParameters.inputs
+#         params = modelParameters.params
+#         outputs = modelParameters.outputs
+#         dockerName = modelParameters.dockerImageName
+#         modelName = modelParameters.modelName
+#         dataPath = modelParameters.dataPath
+#
+#         try:
+#             assert self.checkDockerDaemon(), "Docker Daemon is not running"
+#         except Exception as e:
+#             print(e.message)
+#             self.abort = True
+#
+#         if not dataPath:
+#             #dataPath = '/home/DeepSintef/data'
+#             dataPath = '/home/deepsintef/resources'
+#
+#         print('docker run command:')
+#         cmd = list()
+#         cmd.append(self.dockerPath)
+#         cmd.extend(('run', '-t', '-v'))
+#         #cmd.append(TMP_PATH + ':' + dataPath)
+#         cmd.append(RESOURCES_PATH + ':' + dataPath)
+#         cmd.append(dockerName)
+#         cmd.append('--' + 'Task')
+#         cmd.append('parsing')
+#         print(cmd)
+#
+#         # TODO: add a line to check wether the docker image is present or not. If not ask user to download it.
+#         # try:
+#         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+#         out, err = p.communicate()
+#         print(out)
+#
+#         #slicer.modules.DeepSintefWidget.populateSubModelFromDocker(out)
+#         slicer.modules.DeepSintefWidget.populate_models_list_from_docker(out)
+#
+#         # progress = 0
+#         # # print('executing')
+#         # while True:
+#         #     progress += 0.15
+#         #     slicer.app.processEvents()
+#         #     self.cmdCheckAbort(p)
+#         #     line = p.stdout.readline()
+#         #     if not line:
+#         #         break
+#         #     print(line)
+#         #    slicer.modules.DeepSintefWidget.populateSubModelFromDocker(line)
 
 
 #
