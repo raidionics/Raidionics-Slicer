@@ -20,6 +20,7 @@ class ModelParameters(object):
         # self.model = None
         self.inputs = []
         self.outputs = []
+        self.segmentations = dict()
         self.prerun_callbacks = []
         self.outputLabelMap = False
         self.iodict = dict()
@@ -50,6 +51,9 @@ class ModelParameters(object):
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                                             "value": member["default"]}
 
+                elif t in ["volume"]:
+                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
+                                              "voltype": member["voltype"]}
                 else:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
         return iodict
@@ -228,7 +232,7 @@ class ModelParameters(object):
             elif t == "configuration":
                 pass
             elif t == "text":
-                pass
+                w = self.createTextWidget(member["name"], default=member["default"])
             elif t in ["uint8_t", "int8_t",
                        "uint16_t", "int16_t",
                        "uint32_t", "int32_t",
@@ -250,6 +254,8 @@ class ModelParameters(object):
             volumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode", ]
         elif voltype == 'LabelMap':
             volumeSelector.nodeTypes = ["vtkMRMLLabelMapVolumeNode", ]
+        elif voltype == 'Segmentation':
+            volumeSelector.nodeTypes = ["vtkMRMLSegmentationNode", ]
         else:
             print('Voltype must be either ScalarVolume or LabelMap!')
         volumeSelector.selectNodeUponCreation = True
@@ -257,6 +263,7 @@ class ModelParameters(object):
             volumeSelector.addEnabled = False
         elif iotype == "output":
             volumeSelector.addEnabled = True
+            volumeSelector.accessibleName = name + '_combobox'
         volumeSelector.renameEnabled = True
         volumeSelector.removeEnabled = True
         volumeSelector.noneEnabled = noneEnabled
@@ -382,6 +389,22 @@ class ModelParameters(object):
         if default is not None:
             w.setValue(default)
         w.connect("valueChanged(double)", lambda val, name=name: self.onScalarChanged(name, val))
+
+        return w
+
+    def createTextWidget(self, name, default=None):
+        # print('create String widget')
+        w = qt.QTextEdit()
+        self.widgets.append(w)
+        w.setAccessibleName(name)
+        self.params[name] = w.plainText
+        # w.connect("currentTextChanged(const QString &)", lambda val, name=name: self.onStringChanged(name, val))
+        w.setReadOnly(True)
+        if default is not None:
+            w.setPlainText(default)
+        #
+        # elif iotype == "output":
+        #     self.outputs[name] = volumeSelector.currentNode()
 
         return w
 

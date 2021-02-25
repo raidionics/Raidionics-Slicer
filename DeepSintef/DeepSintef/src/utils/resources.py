@@ -44,11 +44,17 @@ class SharedResources:
 
         self.resources_path = os.path.join(self.deepsintef_dir, 'resources')
 
-        self.tmp_path = os.path.join(self.resources_path, 'data')
-        if os.path.isdir(self.tmp_path):
-            shutil.rmtree(self.tmp_path)
-        os.makedirs(self.tmp_path)
+        self.data_path = os.path.join(self.resources_path, 'data')
+        if os.path.isdir(self.data_path):
+            shutil.rmtree(self.data_path)
+        os.makedirs(self.data_path)
 
-        self.user_config = os.path.join(self.tmp_path, 'runtime_config.ini')
+        self.user_config = os.path.join(self.data_path, 'runtime_config.ini')
+        self.diagnosis_config = os.path.join(self.data_path, 'diagnosis_config.ini')
+
+        self.output_path = os.path.join(self.resources_path, 'output')
+        if os.path.isdir(self.output_path):
+            shutil.rmtree(self.output_path)
+        os.makedirs(self.output_path)
 
         self.docker_path = None

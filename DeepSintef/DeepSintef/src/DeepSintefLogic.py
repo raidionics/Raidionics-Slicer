@@ -11,6 +11,7 @@ import re
 import subprocess
 import shutil
 import threading
+import csv
 from collections import OrderedDict
 from glob import glob
 from time import sleep
@@ -48,16 +49,21 @@ class DeepSintefLogic:
         self.abort = False
         self.dockerPath = SharedResources.getInstance().docker_path
         self.file_extension_docker = '.nii.gz'
+        self.logic_task = 'segmentation'  # segmentation or diagnosis for now
 
         # Following variables will be user choices from the GUI
         self.user_configuration = configparser.ConfigParser()
         self.user_configuration['Predictions'] = {}
         self.user_configuration['Predictions']['non_overlapping'] = 'true'
         self.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
-        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
+        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
         self.use_gpu = False
-        self.current_threshold_class_index = None
-        self.current_class_thresholds = None
+
+        self.user_diagnosis_configuration = configparser.ConfigParser()
+        self.user_diagnosis_configuration['Default'] = {}
+        self.user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
+        self.user_diagnosis_configuration['Default']['trace'] = 'false'
+        self.user_diagnosis_configuration['Default']['from_slicer'] = 'true'
 
     def yieldPythonGIL(self, seconds=0):
         sleep(seconds)
@@ -110,11 +116,11 @@ class DeepSintefLogic:
             if not self.main_queue.empty() or self.main_queue_running:
                 qt.QTimer.singleShot(0, self.main_queue_process)
 
-    def run_segmentation(self, model_parameters):
+    def run(self, model_parameters):
         """
         Run the actual algorithm
         """
-        print('Going to run the segmentation model!')
+        print('Starting the task.')
         self.start_logic()
         if self.thread.is_alive():
             import sys
@@ -135,11 +141,12 @@ class DeepSintefLogic:
         dockerName = model_parameters.dockerImageName
         modelName = model_parameters.modelName
         dataPath = model_parameters.dataPath
+        widgets = model_parameters.widgets
         #try:
         self.main_queue_start()
-        self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params)
+        self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
         if not self.abort:
-            self.updateOutput(iodict, outputs)
+            self.updateOutput(iodict, outputs, widgets)
             # self.main_queue_stop()
             self.stop_logic()
             # self.cmdEndEvent()
@@ -157,12 +164,12 @@ class DeepSintefLogic:
     def cmdStartLogic(self):
         if hasattr(slicer.modules, 'DeepSintefWidget'):
             widget = slicer.modules.DeepSintefWidget
-            widget.base_segmentation_widget.model_execution_widget.on_logic_event_start()
+            widget.on_logic_event_start(self.logic_task)
 
     def cmdStopLogic(self):
         if hasattr(slicer.modules, 'DeepSintefWidget'):
             widget = slicer.modules.DeepSintefWidget
-            widget.base_segmentation_widget.model_execution_widget.on_logic_event_end()
+            widget.on_logic_event_end(self.logic_task)
 
     def cmdProgressEvent(self, progress):
         if hasattr(slicer.modules, 'DeepSintefWidget'):
@@ -186,7 +193,7 @@ class DeepSintefLogic:
             return True
         return False
 
-    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params):
+    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets):
         try:
             assert self.checkDockerDaemon(), "Docker Daemon is not running"
         except Exception as e:
@@ -213,35 +220,55 @@ class DeepSintefLogic:
                     img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
                     fileName = item + self.file_extension_docker
                     inputDict[item] = fileName
-                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().tmp_path, fileName)))
+                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
                     #except Exception as e:
                     #    print(e.message)
                 elif iodict[item]["type"] == "configuration":
                     with open(SharedResources.getInstance().user_config, 'w') as configfile:
                         self.user_configuration.write(configfile)
+                    with open(SharedResources.getInstance().diagnosis_config, 'w') as configfile:
+                        self.user_diagnosis_configuration.write(configfile)
                     #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
-                      outputDict[item] = item
-                      nodes = slicer.util.getNodes(outputDict[item])
-                      if len(nodes) == 0:
-                          node = slicer.vtkMRMLLabelMapVolumeNode()
-                          node.SetName(outputDict[item])
-                          slicer.mrmlScene.AddNode(node)
-                          node.CreateDefaultDisplayNodes()
-                          imageData = vtk.vtkImageData()
-                          imageData.SetDimensions((150, 150, 150))
-                          imageData.AllocateScalars(vtk.VTK_SHORT, 1)
-                          node.SetAndObserveImageData(imageData)
-                          outputs[item] = node
+                    outputDict[item] = item
+                    nodes = slicer.util.getNodes(outputDict[item])
+                    if len(nodes) == 0:
+                        # if iodict[item]["voltype"] == "Segmentation":
+                        #     node = slicer.vtkMRMLSegmentationNode()
+                        # else:
+                        #     node = slicer.vtkMRMLLabelMapVolumeNode()
+                        node = slicer.vtkMRMLLabelMapVolumeNode()
+                        node.SetName(outputDict[item])
+                        slicer.mrmlScene.AddNode(node)
+                        node.CreateDefaultDisplayNodes()
+                        if iodict[item]["voltype"] == "LabelMap":
+                            imageData = vtk.vtkImageData()
+                            imageData.SetDimensions((150, 150, 150))
+                            imageData.AllocateScalars(vtk.VTK_SHORT, 1)
+                            node.SetAndObserveImageData(imageData)
+                        # elif iodict[item]["voltype"] == "Segmentation":
+                        #     segmentData = vtk.vtkSegmentation()
+                        #     segmentData.AddEmptySegment()
+                        #     node.SetAndObserveSegmentation(segmentData)
+                        outputs[item] = node
+
+                        # @TODO. select the correct item in the combobox upon creation
+                        # combobox_widget = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)]
+                        # combobox_widget.setCurrentText(item)
+
                 elif iodict[item]["type"] == "point_vec":
                     outputDict[item] = item + '.fcsv'
+                elif iodict[item]["type"] == "text":
+                    outputDict[item] = item + '.txt'
                 else:
                     paramDict[item] = str(params[item])
             elif iodict[item]["iotype"] == "parameter":
                 paramDict[item] = str(params[item])
 
-        dataPath = '/home/deepsintef/resources'
+        dataPath = '/home/ubuntu/resources'
+        if self.logic_task == 'diagnosis':
+            dataPath = '/home/ubuntu/sintef-segmenter/resources'
 
         print('docker run command:')
         cmd = list()
@@ -252,8 +279,9 @@ class DeepSintefLogic:
         #cmd.append(TMP_PATH + ':' + dataPath)
         cmd.append(SharedResources.getInstance().resources_path + ':' + dataPath)
         cmd.append(dockerName)
-        cmd.append('--' + 'Task')
-        cmd.append('segmentation')  #@TODO. Should consider including that in model_parameters, might be diagnosis in the future
+        if self.logic_task == 'segmentation':
+            cmd.append('--' + 'Task')
+            cmd.append('segmentation')  #@TODO. Should consider including that in model_parameters, might be diagnosis in the future
 
         arguments = []
         for key in inputDict.keys():
@@ -263,7 +291,11 @@ class DeepSintefLogic:
         # for key in outputDict.keys():
         #     arguments.append(key + ' ' + dataPath + '/' + outputDict[key])
         cmd.append('--' + 'Output')
-        cmd.append(dataPath + '/data/' + 'DeepSintefOutput')
+        cmd.append(dataPath + '/output/')
+        # if self.logic_task == 'diagnosis':
+        #     cmd.append(dataPath + '/output/')
+        # else:
+        #     cmd.append(dataPath + '/data/' + 'DeepSintefOutput')
         # arguments.append(' --Output' + ' ' + dataPath + '/data/' + 'DeepSintefOutput')
         # arguments.append(dataPath + '/' + inputDict['InputVolume'])
         # arguments.append(dataPath + '/' + outputDict['OutputLabel'])
@@ -274,9 +306,13 @@ class DeepSintefLogic:
         else:
             pass # Should break?
 
-        if self.use_gpu: # Should maybe let the user choose which GPU, if multiple on a machine?
+        if self.use_gpu:  # Should maybe let the user choose which GPU, if multiple on a machine?
             cmd.append('--' + 'GPU')
             cmd.append('0')
+
+        if self.logic_task == 'diagnosis':
+            cmd.append('--' + 'Config')
+            cmd.append(dataPath + '/data/' + 'diagnosis_config.ini')
         # for key in paramDict.keys():
         #     if iodict[key]["type"] == "bool":
         #         if paramDict[key]:
@@ -304,16 +340,16 @@ class DeepSintefLogic:
                     break
             print(line)
 
-    def updateOutput(self, iodict, outputs):
+    def updateOutput(self, iodict, outputs, widgets):
         # print('updateOutput method')
         output_volume_files = dict()
         output_fiduciallist_files = dict()
+        output_text_files = dict()
         self.output_raw_values = dict()
         created_files = []
-        for _, _, files in os.walk(SharedResources.getInstance().tmp_path):
+        for _, _, files in os.walk(SharedResources.getInstance().output_path):
             for f, file in enumerate(files):
-                if 'Output' in file:
-                    created_files.append(file)
+                created_files.append(file)
             break
 
         nb_class = 0
@@ -321,22 +357,26 @@ class DeepSintefLogic:
             if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
                     #fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
-                    fileName = str(os.path.join(SharedResources.getInstance().tmp_path, created_files[[item in x for x in created_files].index(True)]))
+                    fileName = str(os.path.join(SharedResources.getInstance().output_path, created_files[[item in x for x in created_files].index(True)]))
                     output_volume_files[item] = fileName
                     nb_class = nb_class + 1
                 if iodict[item]["type"] == "point_vec":
-                    fileName = str(os.path.join(SharedResources.getInstance().tmp_path, item + '.fcsv'))
+                    fileName = str(os.path.join(SharedResources.getInstance().output_path, item + '.fcsv'))
                     output_fiduciallist_files[item] = fileName
+                if iodict[item]["type"] == "text":
+                    fileName = str(os.path.join(SharedResources.getInstance().output_path, item + '.txt'))
+                    output_text_files[item] = fileName
 
         self.current_threshold_class_index = 0
         self.current_class_thresholds = [0.55] * nb_class
 
         for output_volume in output_volume_files.keys():
             result = sitk.ReadImage(output_volume_files[output_volume])
-            #print(result.GetPixelIDTypeAsString())
+            # print(result.GetPixelIDTypeAsString())
             self.output_raw_values[output_volume] = deepcopy(sitk.GetArrayFromImage(result))
             output_node = outputs[output_volume]
             output_node_name = output_node.GetName()
+            # if iodict[output_volume]["voltype"] == 'LabelMap':
             nodeWriteAddress = sitkUtils.GetSlicerITKReadWriteAddress(output_node_name)
             self.display_port = nodeWriteAddress
             sitk.WriteImage(result, nodeWriteAddress)
@@ -351,6 +391,11 @@ class DeepSintefLogic:
 
             applicationLogic.PropagateVolumeSelection(0)
             applicationLogic.FitSliceToAll()
+            # if iodict[output_volume]["voltype"] == 'Segmentation':
+            #     seg = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
+            #     slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(output_node, seg)
+            #     seg.CreateClosedSurfaceRepresentation()
+
         for fiduciallist in output_fiduciallist_files.keys():
             # information about loading markups: https://www.slicer.org/wiki/Documentation/Nightly/Modules/Markups
             output_node = outputs[fiduciallist]
@@ -360,7 +405,42 @@ class DeepSintefLogic:
             # todo: currently due to a bug in markups module removing the node will create some unexpected behaviors
             # reported bug reference: https://issues.slicer.org/view.php?id=4414
             # scene.RemoveNode(node)
-#
+        for text_key in output_text_files.keys():
+            text_file = output_text_files[text_key]
+            f = open(text_file, 'r')
+            current_text = f.read()
+            current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
+            current_widget.setPlainText(current_text)
+            f.close()
+
+    def generate_segmentations_from_labelmaps(self, model_parameters):
+        iodict = model_parameters.iodict
+        outputs = model_parameters.outputs
+
+        # If segments were created before, erase them and recompute
+        # model_parameters.segmentations = dict()
+
+        for output in outputs.keys():
+            output_node = outputs[output]
+            seg_node = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode')
+            slicer.modules.segmentations.logic().ImportLabelmapToSegmentationNode(output_node, seg_node)
+            seg_node.CreateClosedSurfaceRepresentation()
+            seg_node.SetName(output)
+
+            if output == 'Lobes':
+                lobes_info = []
+                csv_filename = str(os.path.join(SharedResources.getInstance().output_path, 'Lobes_description.csv'))
+                file = open(csv_filename, 'r')
+                csvfile = csv.DictReader(file)
+                for row in csvfile:
+                    lobes_info.append(dict(row))
+                file.close()
+
+                for l in lobes_info:
+                    seg_node.GetSegmentation().GetNthSegment(int(l['label'])).SetName(l['text'])
+                # seg_node.GetSegmentation().GetNthSegment(0).SetName('Plopi0')
+            # model_parameters.segmentations[output] = seg
+
 # class DeepSintefLogic:
 #     """This class should implement all the actual
 #     computation done by your module.  The interface

@@ -55,16 +55,23 @@ class ModelsExecutionWidget(qt.QWidget):
         self.interactive_options_groupbox.setCheckable(False)
         tmp_layout = qt.QGridLayout()
 
+        self.interactive_thresholding_combobox = qt.QComboBox()
         self.interactive_thresholding_slider = qt.QSlider(qt.Qt.Horizontal)
         self.interactive_thresholding_slider.setMaximum(100)
-        self.interactive_thresholding_slider.setMinimum(0)
+        self.interactive_thresholding_slider.setMinimum(1)
         self.interactive_thresholding_slider.setSingleStep(5)
-        tmp_layout.addWidget(self.interactive_thresholding_slider, 0, 0)
+        tmp_layout.addWidget(self.interactive_thresholding_combobox, 0, 0)
+        tmp_layout.addWidget(self.interactive_thresholding_slider, 0, 1)
         self.interactive_current_threshold_label = qt.QLabel('Threshold')
-        self.interactive_current_threshold_lineedit = qt.QLineEdit()
-        self.interactive_current_threshold_lineedit.setValidator(qt.QIntValidator())
+        self.interactive_current_threshold_spinbox = qt.QSpinBox()
+        self.interactive_current_threshold_spinbox.setSingleStep(1)
+        self.interactive_current_threshold_spinbox.setMinimum(1)
+        self.interactive_current_threshold_spinbox.setMaximum(100)
+        self.interactive_current_threshold_spinbox.setEnabled(False)
+        self.interactive_optimal_thr_pushbutton = qt.QPushButton('Recommended')
         tmp_layout.addWidget(self.interactive_current_threshold_label, 1, 0)
-        tmp_layout.addWidget(self.interactive_current_threshold_lineedit, 1, 1)
+        tmp_layout.addWidget(self.interactive_current_threshold_spinbox, 1, 1)
+        tmp_layout.addWidget(self.interactive_optimal_thr_pushbutton, 1, 2)
 
         self.interactive_options_groupbox.setLayout(tmp_layout)
         self.base_layout.addWidget(self.interactive_options_groupbox)
@@ -76,7 +83,7 @@ class ModelsExecutionWidget(qt.QWidget):
         self.advanced_resampling_combobox.connect("currentIndexChanged(QString)", self.on_sampling_strategy_change)
         self.advanced_predictions_type_combobox.connect("currentIndexChanged(QString)", self.on_predictions_type_change)
 
-        self.interactive_thresholding_slider.valueChanged.connect(self.on_interactive_slider_moved)
+        # self.interactive_thresholding_slider.valueChanged.connect(self.on_interactive_slider_moved)
 
     def set_default_execution_area(self):
         self.run_model_pushbutton.setEnabled(True)
@@ -122,18 +129,19 @@ class ModelsExecutionWidget(qt.QWidget):
     #@TODO. to finish
     def populate_interactive_label_classes(self, classes):
         for c, class_name in enumerate(classes): #self.modelParameters.outputs.keys()
-            self.runtimeParametersThresholdClassCombobox.addItem(class_name)
+            self.interactive_thresholding_combobox.addItem(class_name)
 
-    def on_interactive_slider_moved(self, value):
-        current_class = self.runtimeParametersThresholdClassCombobox.currentText  # 'OutputLabel'
+    def on_interactive_slider_moved(self, value, model_parameters):
+        current_class = self.interactive_thresholding_combobox.currentText  # 'OutputLabel'
         value = float(value)
         original_data = deepcopy(DeepSintefLogic.getInstance().output_raw_values[current_class])
-        volume_node = slicer.util.getNode(self.modelParameters.outputs[current_class].GetName())
+        volume_node = slicer.util.getNode(model_parameters.outputs[current_class].GetName())
         arr = slicer.util.arrayFromVolume(volume_node)
         # Increase image contrast
         #arr[:] = original_data
         arr[original_data < (value/100)] = 0
         arr[original_data >= (value/100)] = 1
         slicer.util.arrayFromVolumeModified(volume_node)
-        DeepSintefLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
-        self.interactive_current_threshold_lineedit.setText(str(value))
+        self.interactive_current_threshold_spinbox.setValue(value)
+        # DeepSintefLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
+        # self.interactive_current_threshold_lineedit.setText(str(value))

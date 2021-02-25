@@ -62,9 +62,21 @@ class BaseSegmentationWidget(qt.QWidget):
     def setup_connections(self):
         self.model_execution_widget.run_model_pushbutton.connect("clicked()", self.on_run_model)
         self.model_execution_widget.cancel_model_run_pushbutton.connect("clicked()", self.on_cancel_model_run)
+        self.model_execution_widget.interactive_thresholding_slider.valueChanged.connect(self.on_interactive_slider_moved)
 
     def on_run_model(self):
-        DeepSintefLogic.getInstance().run_segmentation(self.model_interface_widget.model_parameters)
+        DeepSintefLogic.getInstance().logic_task = 'segmentation'
+        DeepSintefLogic.getInstance().run(self.model_interface_widget.model_parameters)
+        self.model_execution_widget.populate_interactive_label_classes(self.model_interface_widget.model_parameters.outputs.keys())
 
     def on_cancel_model_run(self):
         DeepSintefLogic.getInstance().cancel_run()
+
+    def on_logic_event_start(self):
+        self.model_execution_widget.on_logic_event_start()
+
+    def on_logic_event_end(self):
+        self.model_execution_widget.on_logic_event_end()
+
+    def on_interactive_slider_moved(self, value):
+        self.model_execution_widget.on_interactive_slider_moved(value, self.model_interface_widget.model_parameters)

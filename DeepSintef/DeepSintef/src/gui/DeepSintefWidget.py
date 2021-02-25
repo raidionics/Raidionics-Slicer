@@ -136,6 +136,18 @@ class DeepSintefWidget():
     def on_task_tabwidget_tabchanged(self):
         self.tasks_tabwidget.currentWidget().reload()
 
+    def on_logic_event_start(self, task):
+        if task == 'segmentation':
+            self.base_segmentation_widget.on_logic_event_start()
+        elif task == 'diagnosis':
+            self.base_diagnosis_widget.on_logic_event_start()
+
+    def on_logic_event_end(self, task):
+        if task == 'segmentation':
+            self.base_segmentation_widget.on_logic_event_end()
+        elif task == 'diagnosis':
+            self.base_diagnosis_widget.on_logic_event_end()
+
     # def onReload(self, moduleName="DeepSintef"):
     #     """
     #     Generic reload method for any scripted module.
