@@ -55,13 +55,13 @@ class DeepSintefLogic:
         self.user_configuration = configparser.ConfigParser()
         self.user_configuration['Predictions'] = {}
         self.user_configuration['Predictions']['non_overlapping'] = 'true'
-        self.user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+        self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
         self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
         self.use_gpu = False
 
         self.user_diagnosis_configuration = configparser.ConfigParser()
         self.user_diagnosis_configuration['Default'] = {}
-        self.user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
+        self.user_diagnosis_configuration['Default']['task'] = 'mediastinum_diagnosis' #'neuro_diagnosis'
         self.user_diagnosis_configuration['Default']['trace'] = 'false'
         self.user_diagnosis_configuration['Default']['from_slicer'] = 'true'
 
@@ -120,7 +120,7 @@ class DeepSintefLogic:
         """
         Run the actual algorithm
         """
-        print('Starting the task.')
+        self.cmdLogEvent('Starting the task.')
         self.start_logic()
         if self.thread.is_alive():
             import sys
@@ -143,6 +143,12 @@ class DeepSintefLogic:
         dataPath = model_parameters.dataPath
         widgets = model_parameters.widgets
         #try:
+        go_flag = self.checkDockerImageLocalExistence(dockerName)
+        if not go_flag:
+            self.cmdLogEvent('The docker image does not exist, or could not be downloaded locally.\n'
+                             'The selected model cannot be run.')
+            return
+
         self.main_queue_start()
         self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
         if not self.abort:
@@ -171,11 +177,15 @@ class DeepSintefLogic:
             widget = slicer.modules.DeepSintefWidget
             widget.on_logic_event_end(self.logic_task)
 
-    def cmdProgressEvent(self, progress):
+    def cmdProgressEvent(self, progress, line):
         if hasattr(slicer.modules, 'DeepSintefWidget'):
             widget = slicer.modules.DeepSintefWidget
-            # widget.base_segmentation_widget.model_execution_widget.onLogicEventEnd()
-            # widget.onLogicEventProgress(progress)
+            widget.on_logic_event_progress(self.logic_task, progress, line)
+
+    def cmdLogEvent(self, line):
+        if hasattr(slicer.modules, 'DeepSintefWidget'):
+            widget = slicer.modules.DeepSintefWidget
+            widget.on_logic_log_event(line)
 
     def cmdCheckAbort(self, p):
         if self.abort:
@@ -192,6 +202,38 @@ class DeepSintefLogic:
         if line[:9] == 'CONTAINER':
             return True
         return False
+
+    def checkDockerImageLocalExistence(self, docker_image_name):
+        # Verify if the docker image exists on disk, or ask to download it
+        cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
+        p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
+        res_lines = ""
+        while True:
+            slicer.app.processEvents()
+            line = p.stdout.readline()
+            if not line:
+                break
+            res_lines = res_lines + '/n' + line
+
+        # If the image has not been found, attempt to download it
+        if 'Error: No such image' in res_lines:
+            cmd_docker = ['docker', 'image', 'pull', docker_image_name]
+            p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
+            cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
+            p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
+            res_lines = ""
+            while True:
+                slicer.app.processEvents()
+                line = p.stdout.readline()
+                if not line:
+                    break
+                res_lines = res_lines + '/n' + line
+
+            # If the image could not be downloaded -- abort
+            if 'Error: No such image' in res_lines:
+                return False
+
+        return True
 
     def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets):
         try:
@@ -270,7 +312,8 @@ class DeepSintefLogic:
         if self.logic_task == 'diagnosis':
             dataPath = '/home/ubuntu/sintef-segmenter/resources'
 
-        print('docker run command:')
+        self.cmdLogEvent('Docker run command:')
+
         cmd = list()
         cmd.append(self.dockerPath)
         cmd.extend(('run', '-t', '-v'))
@@ -313,16 +356,8 @@ class DeepSintefLogic:
         if self.logic_task == 'diagnosis':
             cmd.append('--' + 'Config')
             cmd.append(dataPath + '/data/' + 'diagnosis_config.ini')
-        # for key in paramDict.keys():
-        #     if iodict[key]["type"] == "bool":
-        #         if paramDict[key]:
-        #             cmd.append(key)
-        #     else:
-        #         arguments.append(key + ' ' + paramDict[key])
-        # print('-'*100)
-        # cmd.append('--' + 'Arguments')
-        # cmd.append(' '.join(arguments))
-        print(cmd)
+
+        self.cmdLogEvent(cmd)
 
         # TODO: add a line to check wether the docker image is present or not. If not ask user to download it.
         # try:
@@ -333,12 +368,14 @@ class DeepSintefLogic:
             progress += 0.15
             slicer.app.processEvents()
             self.cmdCheckAbort(p)
-            if widgetPresent:
-                self.cmdProgressEvent(progress)
             line = p.stdout.readline()
             if not line:
-                    break
-            print(line)
+                break
+
+            if widgetPresent:
+                self.cmdLogEvent(line)
+                self.cmdProgressEvent(progress, line)
+            # print(line)
 
     def updateOutput(self, iodict, outputs, widgets):
         # print('updateOutput method')
@@ -352,23 +389,18 @@ class DeepSintefLogic:
                 created_files.append(file)
             break
 
-        nb_class = 0
         for item in iodict:
             if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
                     #fileName = str(os.path.join(TMP_PATH, created_files[nb_class]))
                     fileName = str(os.path.join(SharedResources.getInstance().output_path, created_files[[item in x for x in created_files].index(True)]))
                     output_volume_files[item] = fileName
-                    nb_class = nb_class + 1
                 if iodict[item]["type"] == "point_vec":
                     fileName = str(os.path.join(SharedResources.getInstance().output_path, item + '.fcsv'))
                     output_fiduciallist_files[item] = fileName
                 if iodict[item]["type"] == "text":
                     fileName = str(os.path.join(SharedResources.getInstance().output_path, item + '.txt'))
                     output_text_files[item] = fileName
-
-        self.current_threshold_class_index = 0
-        self.current_class_thresholds = [0.55] * nb_class
 
         for output_volume in output_volume_files.keys():
             result = sitk.ReadImage(output_volume_files[output_volume])
@@ -417,7 +449,7 @@ class DeepSintefLogic:
         iodict = model_parameters.iodict
         outputs = model_parameters.outputs
 
-        # If segments were created before, erase them and recompute
+        # If segments were created before, erase them and recompute?
         # model_parameters.segmentations = dict()
 
         for output in outputs.keys():
@@ -427,6 +459,7 @@ class DeepSintefLogic:
             seg_node.CreateClosedSurfaceRepresentation()
             seg_node.SetName(output)
 
+            # @TODO. Hard-coded for now, should be improved! Add a description param in the .json for each output
             if output == 'Lobes':
                 lobes_info = []
                 csv_filename = str(os.path.join(SharedResources.getInstance().output_path, 'Lobes_description.csv'))
@@ -438,7 +471,6 @@ class DeepSintefLogic:
 
                 for l in lobes_info:
                     seg_node.GetSegmentation().GetNthSegment(int(l['label'])).SetName(l['text'])
-                # seg_node.GetSegmentation().GetNthSegment(0).SetName('Plopi0')
             # model_parameters.segmentations[output] = seg
 
 # class DeepSintefLogic:

@@ -63,11 +63,13 @@ class BaseSegmentationWidget(qt.QWidget):
         self.model_execution_widget.run_model_pushbutton.connect("clicked()", self.on_run_model)
         self.model_execution_widget.cancel_model_run_pushbutton.connect("clicked()", self.on_cancel_model_run)
         self.model_execution_widget.interactive_thresholding_slider.valueChanged.connect(self.on_interactive_slider_moved)
+        self.model_execution_widget.interactive_optimal_thr_pushbutton.connect("clicked()", self.on_interactive_best_threshold_clicked)
 
     def on_run_model(self):
         DeepSintefLogic.getInstance().logic_task = 'segmentation'
         DeepSintefLogic.getInstance().run(self.model_interface_widget.model_parameters)
         self.model_execution_widget.populate_interactive_label_classes(self.model_interface_widget.model_parameters.outputs.keys())
+        self.on_interactive_best_threshold_clicked()
 
     def on_cancel_model_run(self):
         DeepSintefLogic.getInstance().cancel_run()
@@ -78,5 +80,11 @@ class BaseSegmentationWidget(qt.QWidget):
     def on_logic_event_end(self):
         self.model_execution_widget.on_logic_event_end()
 
+    def on_logic_event_progress(self, progress, log):
+        self.model_execution_widget.on_logic_event_progress(progress, log)
+
     def on_interactive_slider_moved(self, value):
         self.model_execution_widget.on_interactive_slider_moved(value, self.model_interface_widget.model_parameters)
+
+    def on_interactive_best_threshold_clicked(self):
+        self.model_execution_widget.on_interactive_best_threshold_clicked(self.model_interface_widget.model_parameters)

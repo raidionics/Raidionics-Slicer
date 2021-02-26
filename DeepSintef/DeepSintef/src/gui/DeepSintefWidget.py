@@ -84,6 +84,10 @@ class DeepSintefWidget():
         self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
         self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
         self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Diagnosis')
+        self.logging_textedit = qt.QTextEdit()
+        #self.logging_textedit.setEnabled(False)
+        self.logging_textedit.setReadOnly(True)
+        self.tasks_tabwidget.addTab(self.logging_textedit, 'Logging')
         self.layout.addWidget(self.tasks_tabwidget)
         # self.tasks_stacked_widget.addWidget(self.base_segmentation_widget)
         # self.layout.addWidget(self.tasks_stacked_widget)
@@ -134,7 +138,8 @@ class DeepSintefWidget():
                                                            'be run by non-root user.')
 
     def on_task_tabwidget_tabchanged(self):
-        self.tasks_tabwidget.currentWidget().reload()
+        # self.tasks_tabwidget.currentWidget().reload()
+        pass
 
     def on_logic_event_start(self, task):
         if task == 'segmentation':
@@ -147,6 +152,15 @@ class DeepSintefWidget():
             self.base_segmentation_widget.on_logic_event_end()
         elif task == 'diagnosis':
             self.base_diagnosis_widget.on_logic_event_end()
+
+    def on_logic_log_event(self, log):
+        self.logging_textedit.append(log)
+
+    def on_logic_event_progress(self, task, progress, log):
+        if task == 'segmentation':
+            self.base_segmentation_widget.on_logic_event_progress(progress, log)
+        elif task == 'diagnosis':
+            self.base_diagnosis_widget.on_logic_event_progress(progress, log)
 
     # def onReload(self, moduleName="DeepSintef"):
     #     """

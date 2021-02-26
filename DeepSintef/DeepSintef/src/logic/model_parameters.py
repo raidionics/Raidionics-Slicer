@@ -50,7 +50,9 @@ class ModelParameters(object):
                            "double", "float"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                                             "value": member["default"]}
-
+                elif t in ["volume"] and 'threshold' in member:
+                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
+                                              "voltype": member["voltype"], "threshold": member["threshold"]}
                 elif t in ["volume"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                               "voltype": member["voltype"]}
@@ -72,6 +74,7 @@ class ModelParameters(object):
         # You can't use exec in a function that has a subfunction, unless you specify a context.
         # exec ('self.model = sitk.{0}()'.format(json["name"])) in globals(), locals()
 
+        self.json_dict = json_dict
         self.iodict = self.create_iodict(json_dict)
         self.dockerImageName, self.modelName, self.dataPath = self.create_model_info(json_dict)
 

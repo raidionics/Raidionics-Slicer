@@ -22,14 +22,32 @@ class DiagnosisExecutionWidget(qt.QWidget):
         self.setup_connections()
 
     def setup_execution_area(self):
+        self.execution_area_groupbox = ctk.ctkCollapsibleGroupBox()
+        self.execution_area_groupbox.setTitle("Diagnosis execution")
+        self.base_layout.addWidget(self.execution_area_groupbox)
+        self.execution_area_layout = qt.QGridLayout(self.execution_area_groupbox)
         self.run_model_pushbutton = qt.QPushButton('Run diagnosis')
-        self.base_layout.addWidget(self.run_model_pushbutton)
+        self.execution_area_layout.addWidget(self.run_model_pushbutton, 0, 0)
         self.cancel_model_run_pushbutton = qt.QPushButton('Cancel...')
-        self.base_layout.addWidget(self.cancel_model_run_pushbutton)
+        self.execution_area_layout.addWidget(self.cancel_model_run_pushbutton, 0, 1)
 
+        self.execution_progress_label = qt.QLabel('Progress:')
+        self.execution_area_layout.addWidget(self.execution_progress_label, 1, 0)
+        self.execution_progress_textedit = qt.QTextEdit()
+        self.execution_progress_textedit.setReadOnly(True)
+        self.execution_area_layout.addWidget(self.execution_progress_textedit, 1, 1)
         self.generate_segments_pushbutton = qt.QPushButton('Generate segments')
-        self.base_layout.addWidget(self.generate_segments_pushbutton)
+        self.execution_area_layout.addWidget(self.generate_segments_pushbutton, 2, 0)
         self.generate_segments_pushbutton.setEnabled(False)
+
+        # self.run_model_pushbutton = qt.QPushButton('Run diagnosis')
+        # self.base_layout.addWidget(self.run_model_pushbutton)
+        # self.cancel_model_run_pushbutton = qt.QPushButton('Cancel...')
+        # self.base_layout.addWidget(self.cancel_model_run_pushbutton)
+        #
+        # self.generate_segments_pushbutton = qt.QPushButton('Generate segments')
+        # self.base_layout.addWidget(self.generate_segments_pushbutton)
+        # self.generate_segments_pushbutton.setEnabled(False)
 
         self.set_default_execution_area()
 
@@ -52,3 +70,20 @@ class DiagnosisExecutionWidget(qt.QWidget):
 
     def on_logic_event_end(self):
         self.set_default_execution_area()
+
+    def on_logic_event_progress(self, progress, log):
+        # Should the number of steps be known beforehand (in the json) to indicate 1/5, 2/5, etc...
+        # Should a timer be used to indicate elapsed time for each task?
+        # The QTextEdit should automatically scroll to bottom also to follow the latest status...
+        if 'SLICERLOG' in log:
+            task = log.split(':')[1].split('-')[0].strip()
+            status = log.split(':')[1].split('-')[1].strip()
+            log_text = self.execution_progress_textedit.plainText
+            new_log_text = ''
+            if status == 'Begin':
+                new_log_text = str(log_text) + task + ': ...'
+            elif status == 'End':
+                new_log_text = str(log_text)[:-3] + 'Done' + '\n'
+
+            self.execution_progress_textedit.setText(new_log_text)
+            # self.execution_progress_textedit.append(log)

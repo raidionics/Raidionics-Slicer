@@ -85,9 +85,10 @@ class ModelsInterfaceWidget(qt.QWidget):
         searchTextList = searchText.split()
         for idx, j in enumerate(self.jsonModels):
             lname = j["name"].lower()
-            # require all elements in list, to add to select. case insensitive
-            if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
-                self.local_model_selector_combobox.addItem(j["name"], idx)
+            if 'task' in j and j['task'] == 'Segmentation':
+                # require all elements in list, to add to select. case insensitive
+                if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
+                    self.local_model_selector_combobox.addItem(j["name"], idx)
 
     def populate_local_models(self):
         digests = self.get_existing_digests()
@@ -106,7 +107,6 @@ class ModelsInterfaceWidget(qt.QWidget):
         # add all the models listed in the json files
         # print('JSON models: {}'.format(self.jsonModels))
         for idx, j in enumerate(self.jsonModels):
-            name = j["name"]
             name = j["name"]
             if 'task' in j and j['task'] == 'Segmentation':
                 self.local_model_selector_combobox.addItem(name, idx)
@@ -137,7 +137,8 @@ class ModelsInterfaceWidget(qt.QWidget):
 
     def on_model_details_selected(self):
         index = self.local_model_selector_combobox.currentIndex
-        model_json = self.jsonModels[index]
+        #model_json = self.jsonModels[index]
+        model_json = self.jsonModels[[x['name'] == self.local_model_selector_combobox.currentText for x in self.jsonModels].index(True)]
 
         tip = ''
         exhaustive_list = ['owner', 'task', 'organ', 'target', 'modality', 'sequence', 'dataset_description']

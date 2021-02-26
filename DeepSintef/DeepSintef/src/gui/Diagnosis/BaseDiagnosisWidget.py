@@ -31,12 +31,15 @@ class BaseDiagnosisWidget(qt.QTabWidget):
     def on_run_diagnosis(self):
         DeepSintefLogic.getInstance().logic_task = 'diagnosis'
         DeepSintefLogic.getInstance().run(self.diagnosis_interface_widget.diagnosis_model_parameters)
+        self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(True)
 
     def on_cancel_diagnosis_run(self):
         DeepSintefLogic.getInstance().cancel_run()
+        self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(False)
 
     def on_generate_segments(self):
         DeepSintefLogic.getInstance().generate_segmentations_from_labelmaps(self.diagnosis_interface_widget.diagnosis_model_parameters)
+        self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(False)
 
     def on_checked(self, val):
         print('something for {}'.format(val))
@@ -46,3 +49,6 @@ class BaseDiagnosisWidget(qt.QTabWidget):
 
     def on_logic_event_end(self):
         self.diagnosis_execution_widget.on_logic_event_end()
+
+    def on_logic_event_progress(self, progress, log):
+        self.diagnosis_execution_widget.on_logic_event_progress(progress, log)

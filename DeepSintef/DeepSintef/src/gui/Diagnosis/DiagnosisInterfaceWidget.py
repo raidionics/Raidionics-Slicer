@@ -21,7 +21,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.setup_diagnosis_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
-        self.on_model_selection(0)
+        self.on_diagnosis_selection(0)
 
     def setup_local_diagnosis_area(self):
         self.local_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -53,7 +53,9 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.diagnosis_model_parameters = ModelParameters(parametersCollapsibleButton)
 
     def setup_connections(self):
-        pass
+        self.local_diagnosis_area_searchbox.connect("textChanged(QString)", self.on_local_diagnosis_search)
+        self.local_diagnosis_selector_combobox.connect('currentIndexChanged(int)', self.on_diagnosis_selection)
+        self.local_diagnosis_moreinfo_pushbutton.connect('clicked()', self.on_diagnosis_details_selected)
 
     def get_existing_digests(self):
         cmd = []
@@ -100,8 +102,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
             if 'task' in j and j['task'] == 'Diagnosis':
                 self.local_diagnosis_selector_combobox.addItem(name, idx)
 
-    def on_model_selection(self, index):
-        # print("on model select")
+    def on_diagnosis_selection(self, index):
         self.diagnosis_model_parameters.destroy()
         if index < 0 or self.local_diagnosis_selector_combobox.count == 0:
             return
@@ -119,3 +120,29 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         # self.enable_user_interface(True)
         #self.onLocateButton()
         DeepSintefLogic.getInstance().selected_model = self.local_diagnosis_selector_combobox
+
+    def on_local_diagnosis_search(self, search_text):
+        self.local_diagnosis_selector_combobox.clear()
+        # split text on whitespace of and string search
+        searchTextList = search_text.split()
+        for idx, j in enumerate(self.jsonModels):
+            lname = j["name"].lower()
+            if 'task' in j and j['task'] == 'Diagnosis':
+                # require all elements in list, to add to select. case insensitive
+                if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
+                    self.local_diagnosis_selector_combobox.addItem(j["name"], idx)
+
+    def on_diagnosis_details_selected(self):
+        index = self.local_diagnosis_selector_combobox.currentIndex
+        model_json = self.jsonModels[[x['name'] == self.local_diagnosis_selector_combobox.currentText for x in self.jsonModels].index(True)]
+
+        tip = ''
+        exhaustive_list = ['owner', 'task', 'organ', 'target', 'modality', 'sequence', 'dataset_description']
+        for a in exhaustive_list:
+            if a in model_json:
+                tip = tip + '\n' + a + ':' + model_json[a]
+
+        popup = qt.QMessageBox()
+        popup.setWindowTitle('Exhaustive description for {}'.format(self.local_diagnosis_selector_combobox.currentText))
+        popup.setText(tip)
+        x = popup.exec_()
