@@ -4,13 +4,8 @@
     <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/DeepSintefWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/DeepSintefWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisExecutionWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/BaseSegmentationWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/BaseSegmentationWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/model_parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/model_parameters.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -94,7 +89,7 @@
       <workItem from="1608384857481" duration="6103000" />
       <workItem from="1609765603817" duration="719000" />
       <workItem from="1611410639649" duration="45014000" />
-      <workItem from="1614172151378" duration="47546000" />
+      <workItem from="1614172151378" duration="60782000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -173,7 +168,14 @@
       <option name="project" value="LOCAL" />
       <updated>1614271236955</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Improving functionalities for seg and diag.">
+      <created>1614359141458</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1614359141458</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,7 +206,8 @@
     <MESSAGE value="In progress: how to properly use a GPU for inference?" />
     <MESSAGE value="Working on the overhaul for the new version of the plugin." />
     <MESSAGE value="New version working for segmentation and diagnosis.&#10;Need to clean and adjust for consecutive runs." />
-    <option name="LAST_COMMIT_MESSAGE" value="New version working for segmentation and diagnosis.&#10;Need to clean and adjust for consecutive runs." />
+    <MESSAGE value="Improving functionalities for seg and diag." />
+    <option name="LAST_COMMIT_MESSAGE" value="Improving functionalities for seg and diag." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -301,43 +304,33 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>426</line>
+          <line>437</line>
           <option name="timeStamp" value="127" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>466</line>
-          <option name="timeStamp" value="140" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>465</line>
-          <option name="timeStamp" value="141" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>469</line>
-          <option name="timeStamp" value="142" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>299</line>
+          <line>310</line>
           <option name="timeStamp" value="146" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>151</line>
-          <option name="timeStamp" value="162" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>219</line>
+          <line>230</line>
           <option name="timeStamp" value="163" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
           <line>142</line>
           <option name="timeStamp" value="166" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
+          <line>465</line>
+          <option name="timeStamp" value="171" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
+          <line>478</line>
+          <option name="timeStamp" value="172" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

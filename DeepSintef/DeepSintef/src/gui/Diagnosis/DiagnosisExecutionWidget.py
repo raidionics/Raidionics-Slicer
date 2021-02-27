@@ -66,15 +66,16 @@ class DiagnosisExecutionWidget(qt.QWidget):
         self.run_model_pushbutton.setEnabled(False)
         self.run_model_pushbutton.setText('Diagnosing...')
         self.cancel_model_run_pushbutton.setEnabled(True)
+
+        #@TODO. Should only be enabled if the logic finishes properly and not when it begins...
         self.generate_segments_pushbutton.setEnabled(True)
 
     def on_logic_event_end(self):
         self.set_default_execution_area()
 
     def on_logic_event_progress(self, progress, log):
-        # Should the number of steps be known beforehand (in the json) to indicate 1/5, 2/5, etc...
-        # Should a timer be used to indicate elapsed time for each task?
-        # The QTextEdit should automatically scroll to bottom also to follow the latest status...
+        # @TODO. Should the number of steps be known beforehand (in the json) to indicate 1/5, 2/5, etc...
+        # @TODO. Should a timer be used to indicate elapsed time for each task?
         if 'SLICERLOG' in log:
             task = log.split(':')[1].split('-')[0].strip()
             status = log.split(':')[1].split('-')[1].strip()
@@ -86,4 +87,5 @@ class DiagnosisExecutionWidget(qt.QWidget):
                 new_log_text = str(log_text)[:-3] + 'Done' + '\n'
 
             self.execution_progress_textedit.setText(new_log_text)
+            self.execution_progress_textedit.moveCursor(qt.QTextCursor.End)
             # self.execution_progress_textedit.append(log)

@@ -43,11 +43,19 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.modelsFormLayout.addRow("Details:", self.local_diagnosis_moreinfo_pushbutton)
 
     def setup_diagnosis_parameters_area(self):
-        # Parameters Area
+        # The ctk collapsible group box is the overall container, within which a scrollable area is set.
+        # Ctk => Layout => scroll area => dummy widget => form layout => Content from ModelParameters
         parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
         parametersCollapsibleButton.setTitle("Diagnosis Parameters")
         self.base_layout.addWidget(parametersCollapsibleButton)
+        # self.parameters_groupbox_scrollarea = qt.QScrollArea()
+        # self.parameters_groupbox_scrollarea.setWidget(parametersCollapsibleButton)
+        # self.base_layout.addWidget(self.parameters_groupbox_scrollarea)
+        # self.parameters_formlayout = qt.QFormLayout()
+        # self.parameters_dummy_widget = qt.QWidget()
+        # self.parameters_dummy_widget.setLayout(self.parameters_formlayout)
 
+        # @TODO. the form layout should be sent to the ModelParameters class for later use.
         # Layout within the dummy collapsible button
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
         self.diagnosis_model_parameters = ModelParameters(parametersCollapsibleButton)

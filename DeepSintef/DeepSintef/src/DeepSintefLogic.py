@@ -51,17 +51,22 @@ class DeepSintefLogic:
         self.file_extension_docker = '.nii.gz'
         self.logic_task = 'segmentation'  # segmentation or diagnosis for now
 
-        # Following variables will be user choices from the GUI
+        # Following variables are sent to the docker images as runtime config (some options can be manually chosen by the user)
+        # @TODO. Might need another singletion resources for holding that, not really relevant for the logic part of the Slicer plugin
         self.user_configuration = configparser.ConfigParser()
         self.user_configuration['Predictions'] = {}
         self.user_configuration['Predictions']['non_overlapping'] = 'true'
         self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
         self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+        self.user_configuration['Neuro'] = {}
+        self.user_configuration['Neuro']['brain_segmentation_filename'] = ''
+        self.user_configuration['Mediastinum'] = {}
+        self.user_configuration['Mediastinum']['lungs_segmentation_filename'] = ''
         self.use_gpu = False
 
         self.user_diagnosis_configuration = configparser.ConfigParser()
         self.user_diagnosis_configuration['Default'] = {}
-        self.user_diagnosis_configuration['Default']['task'] = 'mediastinum_diagnosis' #'neuro_diagnosis'
+        self.user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
         self.user_diagnosis_configuration['Default']['trace'] = 'false'
         self.user_diagnosis_configuration['Default']['from_slicer'] = 'true'
 
@@ -150,6 +155,12 @@ class DeepSintefLogic:
             return
 
         self.main_queue_start()
+        if model_parameters.json_dict['task'] == 'Diagnosis':
+            if model_parameters.json_dict['organ'] == 'Brain':
+                self.user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
+            elif model_parameters.json_dict['organ'] == 'Mediastinum':
+                self.user_diagnosis_configuration['Default']['task'] = 'mediastinum_diagnosis'
+
         self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
         if not self.abort:
             self.updateOutput(iodict, outputs, widgets)
@@ -459,10 +470,15 @@ class DeepSintefLogic:
             seg_node.CreateClosedSurfaceRepresentation()
             seg_node.SetName(output)
 
-            # @TODO. Hard-coded for now, should be improved! Add a description param in the .json for each output
-            if output == 'Lobes':
+            if 'color' in iodict[output]:
+                detailed_color = [int(x) for x in iodict[output]['color'].split(',')]
+                detailed_color = [x / 255. for x in detailed_color]
+                #seg_node.SetColor(detailed_color[0], detailed_color[1], detailed_color[2])
+                seg_node.GetSegmentation().GetNthSegment(0).SetColor(detailed_color[0], detailed_color[1], detailed_color[2])
+
+            if 'description' in iodict[output] and iodict[output]['description'] == 'True':
                 lobes_info = []
-                csv_filename = str(os.path.join(SharedResources.getInstance().output_path, 'Lobes_description.csv'))
+                csv_filename = str(os.path.join(SharedResources.getInstance().output_path, output + '_description.csv'))
                 file = open(csv_filename, 'r')
                 csvfile = csv.DictReader(file)
                 for row in csvfile:

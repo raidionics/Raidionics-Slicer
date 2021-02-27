@@ -50,12 +50,15 @@ class ModelParameters(object):
                            "double", "float"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                                             "value": member["default"]}
-                elif t in ["volume"] and 'threshold' in member:
-                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
-                                              "voltype": member["voltype"], "threshold": member["threshold"]}
                 elif t in ["volume"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                               "voltype": member["voltype"]}
+                    if 'description' in member:
+                        iodict[member["name"]]['description'] = member['description']
+                    if 'threshold' in member:
+                        iodict[member["name"]]['threshold'] = member['threshold']
+                    if 'color' in member:
+                        iodict[member["name"]]['color'] = member['color']
                 else:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
         return iodict
@@ -257,8 +260,8 @@ class ModelParameters(object):
             volumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode", ]
         elif voltype == 'LabelMap':
             volumeSelector.nodeTypes = ["vtkMRMLLabelMapVolumeNode", ]
-        elif voltype == 'Segmentation':
-            volumeSelector.nodeTypes = ["vtkMRMLSegmentationNode", ]
+        # elif voltype == 'Segmentation':
+        #     volumeSelector.nodeTypes = ["vtkMRMLSegmentationNode", ]
         else:
             print('Voltype must be either ScalarVolume or LabelMap!')
         volumeSelector.selectNodeUponCreation = True
