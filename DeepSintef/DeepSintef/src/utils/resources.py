@@ -1,6 +1,7 @@
 import os
 from os.path import expanduser
 import shutil
+import configparser
 
 
 class SharedResources:
@@ -49,8 +50,8 @@ class SharedResources:
             shutil.rmtree(self.data_path)
         os.makedirs(self.data_path)
 
-        self.user_config = os.path.join(self.data_path, 'runtime_config.ini')
-        self.diagnosis_config = os.path.join(self.data_path, 'diagnosis_config.ini')
+        self.user_config_filename = os.path.join(self.data_path, 'runtime_config.ini')
+        self.diagnosis_config_filename = os.path.join(self.data_path, 'diagnosis_config.ini')
 
         self.output_path = os.path.join(self.resources_path, 'output')
         if os.path.isdir(self.output_path):
@@ -58,3 +59,23 @@ class SharedResources:
         os.makedirs(self.output_path)
 
         self.docker_path = None
+        self.__set_runtime_parameters()
+
+    def __set_runtime_parameters(self):
+        # Set of variables sent to the docker images as runtime config, manually chosen by the user.
+        self.user_configuration = configparser.ConfigParser()
+        self.user_configuration['Predictions'] = {}
+        self.user_configuration['Predictions']['non_overlapping'] = 'true'
+        self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
+        self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+        self.user_configuration['Neuro'] = {}
+        self.user_configuration['Neuro']['brain_segmentation_filename'] = ''
+        self.user_configuration['Mediastinum'] = {}
+        self.user_configuration['Mediastinum']['lungs_segmentation_filename'] = ''
+        self.use_gpu = False
+
+        self.user_diagnosis_configuration = configparser.ConfigParser()
+        self.user_diagnosis_configuration['Default'] = {}
+        self.user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
+        self.user_diagnosis_configuration['Default']['trace'] = 'false'
+        self.user_diagnosis_configuration['Default']['from_slicer'] = 'true'

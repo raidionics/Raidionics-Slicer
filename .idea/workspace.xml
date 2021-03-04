@@ -2,11 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_result_parameters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisExecutionWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/model_parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/model_parameters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/resources.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/resources.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +31,14 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="JupyterTrust" id="82788dc6-68b4-4d26-923d-3478291d4033" />
   <component name="ProjectId" id="1QHQACPq7TqyScPY4SYgfOvNX6v" />
@@ -89,7 +101,7 @@
       <workItem from="1608384857481" duration="6103000" />
       <workItem from="1609765603817" duration="719000" />
       <workItem from="1611410639649" duration="45014000" />
-      <workItem from="1614172151378" duration="60782000" />
+      <workItem from="1614172151378" duration="95479000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -175,7 +187,14 @@
       <option name="project" value="LOCAL" />
       <updated>1614359141458</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Display edits.">
+      <created>1614445225154</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1614445225154</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -207,7 +226,8 @@
     <MESSAGE value="Working on the overhaul for the new version of the plugin." />
     <MESSAGE value="New version working for segmentation and diagnosis.&#10;Need to clean and adjust for consecutive runs." />
     <MESSAGE value="Improving functionalities for seg and diag." />
-    <option name="LAST_COMMIT_MESSAGE" value="Improving functionalities for seg and diag." />
+    <MESSAGE value="Display edits." />
+    <option name="LAST_COMMIT_MESSAGE" value="Display edits." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -304,17 +324,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>437</line>
+          <line>418</line>
           <option name="timeStamp" value="127" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>310</line>
+          <line>291</line>
           <option name="timeStamp" value="146" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>230</line>
+          <line>211</line>
           <option name="timeStamp" value="163" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -323,14 +343,14 @@
           <option name="timeStamp" value="166" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>465</line>
-          <option name="timeStamp" value="171" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
+          <line>50</line>
+          <option name="timeStamp" value="180" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>478</line>
-          <option name="timeStamp" value="172" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="186" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

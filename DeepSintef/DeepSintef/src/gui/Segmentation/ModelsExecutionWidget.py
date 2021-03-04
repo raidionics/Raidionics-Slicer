@@ -121,21 +121,21 @@ class ModelsExecutionWidget(qt.QWidget):
 
     def on_use_gpu_change(self, state):
         if state == qt.Qt.Checked:
-            DeepSintefLogic.getInstance().use_gpu = True
+            SharedResources.getInstance().use_gpu = True
         elif state == qt.Qt.Unchecked:
-            DeepSintefLogic.getInstance().use_gpu = False
+            SharedResources.getInstance().use_gpu = False
 
     def on_sampling_strategy_change(self, order):
         if order == 'First':
-            DeepSintefLogic.getInstance().user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+            SharedResources.getInstance().user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
         else:
-            DeepSintefLogic.getInstance().user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
+            SharedResources.getInstance().user_configuration['Predictions']['reconstruction_order'] = 'resample_second'
 
     def on_predictions_type_change(self, type):
         if type == 'Binary':
-            DeepSintefLogic.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+            SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
         else:
-            DeepSintefLogic.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
+            SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
 
     def on_logic_event_start(self):
         self.run_model_pushbutton.setEnabled(False)

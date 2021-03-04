@@ -48,17 +48,18 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
         parametersCollapsibleButton.setTitle("Diagnosis Parameters")
         self.base_layout.addWidget(parametersCollapsibleButton)
-        # self.parameters_groupbox_scrollarea = qt.QScrollArea()
-        # self.parameters_groupbox_scrollarea.setWidget(parametersCollapsibleButton)
-        # self.base_layout.addWidget(self.parameters_groupbox_scrollarea)
-        # self.parameters_formlayout = qt.QFormLayout()
-        # self.parameters_dummy_widget = qt.QWidget()
-        # self.parameters_dummy_widget.setLayout(self.parameters_formlayout)
 
-        # @TODO. the form layout should be sent to the ModelParameters class for later use.
-        # Layout within the dummy collapsible button
-        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-        self.diagnosis_model_parameters = ModelParameters(parametersCollapsibleButton)
+        self.parameters_scrollarea_layout = qt.QHBoxLayout(parametersCollapsibleButton)
+        self.parameters_groupbox_scrollarea = qt.QScrollArea()
+        self.parameters_groupbox_scrollarea.setVerticalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOn)
+        self.parameters_groupbox_scrollarea.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
+        self.parameters_groupbox_scrollarea.setWidgetResizable(True)
+        self.parameters_scrollarea_layout.addWidget(self.parameters_groupbox_scrollarea)
+        dummy_widget = qt.QWidget()
+        self.parameters_groupbox_scrollarea.setWidget(dummy_widget)
+        parametersFormLayout = qt.QFormLayout()
+        dummy_widget.setLayout(parametersFormLayout)
+        self.diagnosis_model_parameters = ModelParameters(dummy_widget)
 
     def setup_connections(self):
         self.local_diagnosis_area_searchbox.connect("textChanged(QString)", self.on_local_diagnosis_search)

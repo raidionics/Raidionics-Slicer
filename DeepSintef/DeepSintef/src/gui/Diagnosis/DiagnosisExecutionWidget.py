@@ -39,6 +39,7 @@ class DiagnosisExecutionWidget(qt.QWidget):
         self.generate_segments_pushbutton = qt.QPushButton('Generate segments')
         self.execution_area_layout.addWidget(self.generate_segments_pushbutton, 2, 0)
         self.generate_segments_pushbutton.setEnabled(False)
+        #@TODO. Should also include a clear button? Or run clear by default when the run diagnosis button is pressed.
 
         # self.run_model_pushbutton = qt.QPushButton('Run diagnosis')
         # self.base_layout.addWidget(self.run_model_pushbutton)
