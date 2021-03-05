@@ -240,38 +240,24 @@ class DeepSintefLogic:
         else:
             widgetPresent = False
 
+        dataPath = '/home/ubuntu/resources'
+        if self.logic_task == 'diagnosis':
+            dataPath = '/home/ubuntu/sintef-segmenter/resources'
+
         # if widgetPresent:
         #     self.cmdStartEvent()
         inputDict = dict()
         outputDict = dict()
         paramDict = dict()
         for item in iodict:
-            if iodict[item]["iotype"] == "input":
-                if iodict[item]["type"] == "volume":
-                    # print(inputs[item])
-                    input_node_name = inputs[item].GetName()
-                    #try:
-                    img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
-                    fileName = item + self.file_extension_docker
-                    inputDict[item] = fileName
-                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
-                    #except Exception as e:
-                    #    print(e.message)
-                elif iodict[item]["type"] == "configuration":
-                    with open(SharedResources.getInstance().user_config_filename, 'w') as configfile:
-                        SharedResources.getInstance().user_configuration.write(configfile)
-                    with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
-                        SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
-                    #inputDict[item] = configfile
-            elif iodict[item]["iotype"] == "output":
+            if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
                     outputDict[item] = item
+                    # curr_output = outputs[item]
                     nodes = slicer.util.getNodes(outputDict[item])
-                    if len(nodes) == 0:
-                        # if iodict[item]["voltype"] == "Segmentation":
-                        #     node = slicer.vtkMRMLSegmentationNode()
-                        # else:
-                        #     node = slicer.vtkMRMLLabelMapVolumeNode()
+                    manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].currentNode()
+                    if len(nodes) == 0 and manual_node is None:
+                        # If the output volume is not set, a new one is created
                         node = slicer.vtkMRMLLabelMapVolumeNode()
                         node.SetName(outputDict[item])
                         slicer.mrmlScene.AddNode(node)
@@ -290,19 +276,41 @@ class DeepSintefLogic:
                         # @TODO. select the correct item in the combobox upon creation
                         # combobox_widget = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)]
                         # combobox_widget.setCurrentText(item)
-
+                    elif not manual_node is None:
+                        # If the node links to an existing volume, it should be used as input (e.g., for faster diagnosis)
+                        outputs[item] = manual_node
+                        output_node_name = outputs[item].GetName()
+                        img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(output_node_name))
+                        fileName = item + self.file_extension_docker
+                        # inputDict[item] = fileName
+                        SharedResources.getInstance().user_diagnosis_configuration['Neuro'][item.lower() + '_segmentation_filename'] = os.path.join(dataPath, 'data', fileName)
+                        sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
                 elif iodict[item]["type"] == "point_vec":
                     outputDict[item] = item + '.fcsv'
                 elif iodict[item]["type"] == "text":
                     outputDict[item] = item + '.txt'
                 else:
                     paramDict[item] = str(params[item])
+        for item in iodict:
+            if iodict[item]["iotype"] == "input":
+                if iodict[item]["type"] == "volume":
+                    # print(inputs[item])
+                    input_node_name = inputs[item].GetName()
+                    #try:
+                    img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
+                    fileName = item + self.file_extension_docker
+                    inputDict[item] = fileName
+                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
+                    #except Exception as e:
+                    #    print(e.message)
+                elif iodict[item]["type"] == "configuration":
+                    with open(SharedResources.getInstance().user_config_filename, 'w') as configfile:
+                        SharedResources.getInstance().user_configuration.write(configfile)
+                    with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
+                        SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
+                    #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "parameter":
                 paramDict[item] = str(params[item])
-
-        dataPath = '/home/ubuntu/resources'
-        if self.logic_task == 'diagnosis':
-            dataPath = '/home/ubuntu/sintef-segmenter/resources'
 
         self.cmdLogEvent('Docker run command:')
 
