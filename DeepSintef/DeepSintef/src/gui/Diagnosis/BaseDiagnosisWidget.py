@@ -5,11 +5,12 @@ from src.utils.resources import SharedResources
 from src.gui.Diagnosis.DiagnosisInterfaceWidget import *
 from src.gui.Diagnosis.DiagnosisExecutionWidget import *
 from src.gui.Diagnosis.DiagnosisNeuroResultsWidget import *
+from src.logic.neuro_diagnosis_slicer_interface import *
 
 
 class BaseDiagnosisWidget(qt.QTabWidget):
     """
-    Main GUI object, similar to a QMainWindow, where all widgets and user interactions are defined.
+    Main GUI object, for the diagnosis task.
     """
     def __init__(self, parent=None):
         super(BaseDiagnosisWidget, self).__init__(parent)
@@ -29,15 +30,16 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.setup_connections()
 
     def reload(self):
-        print('Reloading the widget diagnosis!!!!!')
+        # @TODO. Which clean-up/reload here?
+        pass
 
     def setup_connections(self):
         self.diagnosis_execution_widget.run_model_pushbutton.connect("clicked()", self.on_run_diagnosis)
         self.diagnosis_execution_widget.cancel_model_run_pushbutton.connect("clicked()", self.on_cancel_diagnosis_run)
         self.diagnosis_execution_widget.generate_segments_pushbutton.connect("clicked()", self.on_generate_segments)
+        self.diagnosis_execution_widget.optimal_display_pushbutton.connect("clicked()", self.on_optimal_display)
 
     def update_results_area(self):
-        # self.diagnosis_results_widget.deleteLater()
         if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
             #@TODO. Should collapse everything except the results box, for better viewing?
             self.diagnosis_results_stackedwidget.setCurrentWidget(self.diagnosis_results_neuro_widget)
@@ -47,15 +49,19 @@ class BaseDiagnosisWidget(qt.QTabWidget):
     def on_run_diagnosis(self):
         DeepSintefLogic.getInstance().logic_task = 'diagnosis'
         DeepSintefLogic.getInstance().run(self.diagnosis_interface_widget.diagnosis_model_parameters)
-        self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(True)
 
     def on_cancel_diagnosis_run(self):
         DeepSintefLogic.getInstance().cancel_run()
         self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(False)
 
     def on_generate_segments(self):
-        DeepSintefLogic.getInstance().generate_segmentations_from_labelmaps(self.diagnosis_interface_widget.diagnosis_model_parameters)
+        # @TODO. Indication that the generation is ongoing, can take 30sec...
         self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(False)
+        if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
+            NeuroDiagnosisSlicerInterface.getInstance().generate_segmentations_from_labelmaps(self.diagnosis_interface_widget.diagnosis_model_parameters)
+        else:
+            pass
+        self.diagnosis_execution_widget.optimal_display_pushbutton.setEnabled(True)
 
     def on_checked(self, val):
         print('something for {}'.format(val))
@@ -70,3 +76,13 @@ class BaseDiagnosisWidget(qt.QTabWidget):
 
     def on_logic_event_progress(self, progress, log):
         self.diagnosis_execution_widget.on_logic_event_progress(progress, log)
+
+    def on_optimal_display(self):
+        """
+        """
+        if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
+            NeuroDiagnosisSlicerInterface.getInstance().on_optimal_display(
+                self.diagnosis_interface_widget.diagnosis_model_parameters)
+        else:
+            pass
+        return

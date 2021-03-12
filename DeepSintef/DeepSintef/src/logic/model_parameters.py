@@ -21,6 +21,7 @@ class ModelParameters(object):
         self.inputs = []
         self.outputs = []
         self.segmentations = dict()
+        self.segmentations_descriptions = dict()
         self.prerun_callbacks = []
         self.outputLabelMap = False
         self.iodict = dict()
@@ -86,7 +87,6 @@ class ModelParameters(object):
         self.outputs = dict()
         self.params = dict()
         self.outputLabelMap = False
-
         #
         # Iterate over the members in the JSON to generate a GUI
         #

@@ -39,16 +39,10 @@ class DiagnosisExecutionWidget(qt.QWidget):
         self.generate_segments_pushbutton = qt.QPushButton('Generate segments')
         self.execution_area_layout.addWidget(self.generate_segments_pushbutton, 2, 0)
         self.generate_segments_pushbutton.setEnabled(False)
+        self.optimal_display_pushbutton = qt.QPushButton('Optimal display')
+        self.execution_area_layout.addWidget(self.optimal_display_pushbutton, 2, 1)
+        self.optimal_display_pushbutton.setEnabled(False)
         #@TODO. Should also include a clear button? Or run clear by default when the run diagnosis button is pressed.
-
-        # self.run_model_pushbutton = qt.QPushButton('Run diagnosis')
-        # self.base_layout.addWidget(self.run_model_pushbutton)
-        # self.cancel_model_run_pushbutton = qt.QPushButton('Cancel...')
-        # self.base_layout.addWidget(self.cancel_model_run_pushbutton)
-        #
-        # self.generate_segments_pushbutton = qt.QPushButton('Generate segments')
-        # self.base_layout.addWidget(self.generate_segments_pushbutton)
-        # self.generate_segments_pushbutton.setEnabled(False)
 
         self.set_default_execution_area()
 
@@ -73,6 +67,7 @@ class DiagnosisExecutionWidget(qt.QWidget):
 
     def on_logic_event_end(self):
         self.set_default_execution_area()
+        self.generate_segments_pushbutton.setEnabled(True)
 
     def on_logic_event_progress(self, progress, log):
         # @TODO. Should the number of steps be known beforehand (in the json) to indicate 1/5, 2/5, etc...
