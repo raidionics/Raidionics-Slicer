@@ -5,7 +5,9 @@ from src.utils.resources import SharedResources
 from src.gui.Diagnosis.DiagnosisInterfaceWidget import *
 from src.gui.Diagnosis.DiagnosisExecutionWidget import *
 from src.gui.Diagnosis.DiagnosisNeuroResultsWidget import *
+from src.gui.Diagnosis.DiagnosisMediastinumResultsWidget import *
 from src.logic.neuro_diagnosis_slicer_interface import *
+from src.logic.mediastinum_diagnosis_slicer_interface import *
 
 
 class BaseDiagnosisWidget(qt.QTabWidget):
@@ -24,10 +26,18 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.diagnosis_results_stackedwidget.setVisible(True)
         self.diagnosis_results_neuro_widget = DiagnosisNeuroResultsWidget(parent=self)
         self.diagnosis_results_stackedwidget.addWidget(self.diagnosis_results_neuro_widget)
+        self.diagnosis_results_mediastinum_widget = DiagnosisMediastinumResultsWidget(parent=self)
+        self.diagnosis_results_stackedwidget.addWidget(self.diagnosis_results_mediastinum_widget)
         self.base_layout.addWidget(self.diagnosis_results_stackedwidget)
 
         self.setLayout(self.base_layout)
         self.setup_connections()
+
+    def set_default(self):
+        if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
+            NeuroDiagnosisSlicerInterface.getInstance().set_default()
+        elif SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'mediastinum_diagnosis':
+            MediastinumDiagnosisSlicerInterface.getInstance().set_default()
 
     def reload(self):
         # @TODO. Which clean-up/reload here?
@@ -44,6 +54,9 @@ class BaseDiagnosisWidget(qt.QTabWidget):
             #@TODO. Should collapse everything except the results box, for better viewing?
             self.diagnosis_results_stackedwidget.setCurrentWidget(self.diagnosis_results_neuro_widget)
             self.diagnosis_results_neuro_widget.update_results()
+        elif SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'mediastinum_diagnosis':
+            self.diagnosis_results_stackedwidget.setCurrentWidget(self.diagnosis_results_mediastinum_widget)
+            self.diagnosis_results_mediastinum_widget.update_results()
         self.diagnosis_results_stackedwidget.setVisible(True)
 
     def on_run_diagnosis(self):
@@ -59,6 +72,8 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(False)
         if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
             NeuroDiagnosisSlicerInterface.getInstance().generate_segmentations_from_labelmaps(self.diagnosis_interface_widget.diagnosis_model_parameters)
+        elif SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'mediastinum_diagnosis':
+            MediastinumDiagnosisSlicerInterface.getInstance().generate_segmentations_from_labelmaps(self.diagnosis_interface_widget.diagnosis_model_parameters)
         else:
             pass
         self.diagnosis_execution_widget.optimal_display_pushbutton.setEnabled(True)

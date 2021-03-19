@@ -165,4 +165,3 @@ class DeepSintefWidget():
     def set_default(self):
         self.base_segmentation_widget.set_default()
         self.base_diagnosis_widget.set_default()
-        NeuroDiagnosisSlicerInterface.getInstance().set_default()

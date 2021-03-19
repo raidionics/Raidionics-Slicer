@@ -2,6 +2,7 @@ import json
 import collections
 import operator
 
+
 class NeuroDiagnosisParameters:
     """
     Singleton class to have access from anywhere in the code at the various parameters linked to a neuro diagnosis.
@@ -52,6 +53,7 @@ class NeuroDiagnosisParameters:
         self.statistics['Main']['Overall'].laterality = self.json_content['Main']['Total']['Laterality']
         self.statistics['Main']['Overall'].laterality_percentage = self.json_content['Main']['Total']['Laterality_perc']
         self.statistics['Main']['Overall'].mni_space_tumor_volume = self.json_content['Main']['Total']['Volume']
+        self.statistics['Main']['Overall'].mni_space_resectability_score = self.json_content['Main']['Total']['Resectability']
 
         lobes_overlap = {item[0]: item[1] for item in self.json_content['Main']['Total']['Lobe']}
         lobes_overlap_o = collections.OrderedDict(sorted(lobes_overlap.items(), key=operator.itemgetter(1), reverse=True))
@@ -75,6 +77,7 @@ class NeuroDiagnosisParameters:
                 self.statistics[pname]['Overall'].laterality = self.json_content[pname]['Total']['Laterality']
                 self.statistics[pname]['Overall'].laterality_percentage = self.json_content[pname]['Total']['Laterality_perc']
                 self.statistics[pname]['Overall'].mni_space_tumor_volume = self.json_content[pname]['Total']['Volume']
+                self.statistics[pname]['Overall'].mni_space_resectability_score = self.json_content[pname]['Total']['Resectability']
 
                 lobes_overlap = {item[0]: item[1] for item in self.json_content[pname]['Total']['Lobe']}
                 lobes_overlap_o = collections.OrderedDict(
@@ -96,6 +99,7 @@ class TumorStatistics():
     def __init__(self):
         self.laterality = None
         self.laterality_percentage = None
+        self.mni_space_resectability_score = None
         self.mni_space_tumor_volume = None
         self.mni_space_lobes_overlap = {}
         self.mni_space_tracts_overlap = {}

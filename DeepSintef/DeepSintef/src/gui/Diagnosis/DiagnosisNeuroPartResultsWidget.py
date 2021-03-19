@@ -53,6 +53,7 @@ class DiagnosisNeuroPartResultsWidget(qt.QWidget):
     def update_results(self, values):
         self.volume_lineedit.setText(str(values['Overall'].mni_space_tumor_volume) + 'ml')
         self.laterality_lineedit.setText(values['Overall'].laterality + ' with ' + str(values['Overall'].laterality_percentage) + '%')
+        self.resectability_index_lineedit.setText(str(values['Overall'].mni_space_resectability_score) + '%')
 
         main_lobes = values['Overall'].mni_space_lobes_overlap
         self.lobes_tablewidget.setRowCount(len(main_lobes.keys()))
