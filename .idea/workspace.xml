@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisMediastinumResultsWidget.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/mediastinum_diagnosis_result_parameters.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/mediastinum_diagnosis_slicer_interface.py" afterDir="false" />
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Adding the diagnosis support for mediastinum.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/DeepSintefWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/DeepSintefWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_result_parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_result_parameters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/DeepSintef.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,10 +41,11 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../sintef-segmenter" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -100,7 +96,8 @@
       <workItem from="1608384857481" duration="6103000" />
       <workItem from="1609765603817" duration="719000" />
       <workItem from="1611410639649" duration="45014000" />
-      <workItem from="1614172151378" duration="194851000" />
+      <workItem from="1614172151378" duration="199830000" />
+      <workItem from="1616852857958" duration="645000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -214,7 +211,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615567185135</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="Adding the diagnosis support for mediastinum.">
+      <created>1616170548455</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1616170548455</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -250,7 +254,8 @@
     <MESSAGE value="Better handling of diagnosis results, and the use of diagnosis.json files." />
     <MESSAGE value="Still working with diagnosis results." />
     <MESSAGE value="Stable diagnosis and segmentation running and display.&#10;Need to add clean-up methods." />
-    <option name="LAST_COMMIT_MESSAGE" value="Stable diagnosis and segmentation running and display.&#10;Need to add clean-up methods." />
+    <MESSAGE value="Adding the diagnosis support for mediastinum." />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding the diagnosis support for mediastinum." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
