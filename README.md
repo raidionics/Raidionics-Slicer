@@ -8,6 +8,7 @@
 • Install DeepSintef Module:  
 ∘ Download locally the module from github.  
 ∘ All Modules > Extension Wizard.  
+∘ (Slicer v4.11) Developer Tools > Extension Wizard.
 ∘ Select Extension > point to the folder and add it to the path (tick the small box at the bottom).  
 Install python package inside 3D Slicer
 

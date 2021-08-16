@@ -1,8 +1,6 @@
 from slicer.ScriptedLoadableModule import *
 import logging
 
-import configparser
-import Queue
 import json
 import platform
 import os

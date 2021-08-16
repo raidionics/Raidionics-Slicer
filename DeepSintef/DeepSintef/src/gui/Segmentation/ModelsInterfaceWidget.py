@@ -18,11 +18,31 @@ class ModelsInterfaceWidget(qt.QWidget):
     def __init__(self, parent=None):
         super(ModelsInterfaceWidget, self).__init__(parent)
         self.base_layout = qt.QVBoxLayout()
+        self.setup_cloud_models_area()
         self.setup_local_models_area()
         self.setup_model_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
         self.on_model_selection(0)
+
+    def setup_cloud_models_area(self):
+        self.cloud_models_area_groupbox = ctk.ctkCollapsibleGroupBox()
+        self.cloud_models_area_groupbox.setTitle("Local Models")
+        self.base_layout.addWidget(self.cloud_models_area_groupbox)
+        # Layout within the dummy collapsible button
+        self.cloudmodelsFormLayout = qt.QFormLayout(self.cloud_models_area_groupbox)
+
+        # model search
+        self.cloud_models_area_searchbox = ctk.ctkSearchBox()
+        self.cloudmodelsFormLayout.addRow("Search:", self.cloud_models_area_searchbox)
+
+        # model selector
+        self.cloud_model_selector_combobox = qt.QComboBox()
+        self.cloudmodelsFormLayout.addRow("Model:", self.cloud_model_selector_combobox)
+        self.populate_cloud_models()
+
+        self.cloud_model_download_pushbutton = qt.QPushButton('Press to download')
+        self.cloudmodelsFormLayout.addRow("Download:", self.cloud_model_download_pushbutton)
 
     def setup_local_models_area(self):
         self.local_models_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -54,9 +74,22 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.model_parameters = ModelParameters(parametersCollapsibleButton)
 
     def setup_connections(self):
+        self.cloud_models_area_searchbox.connect("textChanged(QString)", self.on_cloud_model_search)
+        self.cloud_model_selector_combobox.connect('currentIndexChanged(int)', self.on_cloud_model_selection)
+        self.cloud_model_download_pushbutton.connect('clicked()', self.on_cloud_model_download_selected)
+
         self.local_models_area_searchbox.connect("textChanged(QString)", self.on_local_model_search)
         self.local_model_selector_combobox.connect('currentIndexChanged(int)', self.on_model_selection)
         self.local_model_moreinfo_pushbutton.connect('clicked()', self.on_model_details_selected)
+
+    def on_model_selection(self, index):
+        pass
+
+    def on_local_model_search(self, searchText):
+        pass
+
+    def populate_cloud_models(self):
+        pass
 
     def on_model_selection(self, index):
         # print("on model select")
@@ -89,6 +122,7 @@ class ModelsInterfaceWidget(qt.QWidget):
                 # require all elements in list, to add to select. case insensitive
                 if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
                     self.local_model_selector_combobox.addItem(j["name"], idx)
+
 
     def populate_local_models(self):
         digests = self.get_existing_digests()

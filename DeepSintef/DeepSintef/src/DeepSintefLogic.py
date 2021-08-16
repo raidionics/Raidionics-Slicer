@@ -1,8 +1,13 @@
 from slicer.ScriptedLoadableModule import *
 import logging
+import sys
 
-import configparser
-import Queue
+try:
+    import configparser
+except:
+    slicer.util.pip_install('configparser')
+    import configparser
+
 import json
 import platform
 import os
