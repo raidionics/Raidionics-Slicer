@@ -2,11 +2,10 @@ from slicer.ScriptedLoadableModule import *
 import logging
 import sys
 
-try:
-    import configparser
-except:
-    slicer.util.pip_install('configparser')
-    import configparser
+if sys.version_info.major == 3:
+    from queue import Queue
+else:
+    import Queue
 
 import json
 import platform
@@ -213,7 +212,7 @@ class DeepSintefLogic:
         cmd.append('ps')
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         slicer.app.processEvents()
-        line = p.stdout.readline()
+        line = p.stdout.readline().decode("utf-8")
         if line[:9] == 'CONTAINER':
             return True
         return False
@@ -225,7 +224,7 @@ class DeepSintefLogic:
         res_lines = ""
         while True:
             slicer.app.processEvents()
-            line = p.stdout.readline()
+            line = p.stdout.readline().decode("utf-8")
             if not line:
                 break
             res_lines = res_lines + '/n' + line
@@ -239,7 +238,7 @@ class DeepSintefLogic:
             res_lines = ""
             while True:
                 slicer.app.processEvents()
-                line = p.stdout.readline()
+                line = p.stdout.readline().decode("utf-8")
                 if not line:
                     break
                 res_lines = res_lines + '/n' + line
@@ -382,7 +381,7 @@ class DeepSintefLogic:
             progress += 0.15
             slicer.app.processEvents()
             self.cmdCheckAbort(p)
-            line = p.stdout.readline()
+            line = p.stdout.readline().decode("utf-8")
             if not line:
                 break
 

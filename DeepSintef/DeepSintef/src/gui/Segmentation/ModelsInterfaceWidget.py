@@ -8,6 +8,7 @@ import subprocess
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.DeepSintefLogic import DeepSintefLogic
+from src.utils.io_utilities import get_available_cloud_models_list, download_cloud_model
 
 
 class ModelsInterfaceWidget(qt.QWidget):
@@ -20,6 +21,8 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.base_layout = qt.QVBoxLayout()
         self.setup_cloud_models_area()
         self.setup_local_models_area()
+        self.populate_local_models()
+        self.populate_cloud_models()
         self.setup_model_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
@@ -27,7 +30,7 @@ class ModelsInterfaceWidget(qt.QWidget):
 
     def setup_cloud_models_area(self):
         self.cloud_models_area_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.cloud_models_area_groupbox.setTitle("Local Models")
+        self.cloud_models_area_groupbox.setTitle("Available cloud Models")
         self.base_layout.addWidget(self.cloud_models_area_groupbox)
         # Layout within the dummy collapsible button
         self.cloudmodelsFormLayout = qt.QFormLayout(self.cloud_models_area_groupbox)
@@ -39,10 +42,10 @@ class ModelsInterfaceWidget(qt.QWidget):
         # model selector
         self.cloud_model_selector_combobox = qt.QComboBox()
         self.cloudmodelsFormLayout.addRow("Model:", self.cloud_model_selector_combobox)
-        self.populate_cloud_models()
 
         self.cloud_model_download_pushbutton = qt.QPushButton('Press to download')
         self.cloudmodelsFormLayout.addRow("Download:", self.cloud_model_download_pushbutton)
+        self.cloud_model_download_pushbutton.setEnabled(False)
 
     def setup_local_models_area(self):
         self.local_models_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -58,10 +61,10 @@ class ModelsInterfaceWidget(qt.QWidget):
         # model selector
         self.local_model_selector_combobox = qt.QComboBox()
         self.modelsFormLayout.addRow("Model:", self.local_model_selector_combobox)
-        self.populate_local_models()
 
         self.local_model_moreinfo_pushbutton = qt.QPushButton('Press to display')
         self.modelsFormLayout.addRow("Details:", self.local_model_moreinfo_pushbutton)
+        self.local_model_moreinfo_pushbutton.setEnabled(False)
 
     def setup_model_parameters_area(self):
         # Parameters Area
@@ -82,14 +85,41 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.local_model_selector_combobox.connect('currentIndexChanged(int)', self.on_model_selection)
         self.local_model_moreinfo_pushbutton.connect('clicked()', self.on_model_details_selected)
 
-    def on_model_selection(self, index):
+    def on_cloud_model_selection(self, index):
         pass
 
-    def on_local_model_search(self, searchText):
-        pass
+    def on_cloud_model_search(self, searchText):
+        # add all the models listed in the json files
+        self.cloud_model_selector_combobox.clear()
+        # split text on whitespace of and string search
+        searchTextList = searchText.split()
+        for item in self.cloud_models_list:
+            lname = item[0].lower()
+            if 'segmentation' in lname:
+                # require all elements in list, to add to select. case insensitive
+                if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
+                    self.cloud_model_selector_combobox.addItem(item[0])
+
+    def on_cloud_model_download_selected(self):
+        selected_model = self.cloud_model_selector_combobox.currentText
+        success = download_cloud_model(selected_model, self.jsonModels, self.cloud_models_list)
+        if success:
+            self.populate_local_models()
+            self.populate_cloud_models()
 
     def populate_cloud_models(self):
-        pass
+        self.cloud_models_list = []
+        cloud_models_list = get_available_cloud_models_list()
+        for idx, model in enumerate(cloud_models_list):
+            already_local = True if True in [x["name"] == model[0] for x in self.jsonModels] else False
+            if not already_local:
+                self.cloud_models_list.append(model)
+                self.cloud_model_selector_combobox.addItem(model[0], idx)
+
+        if len(self.cloud_models_list) >= 1:
+            self.cloud_model_download_pushbutton.setEnabled(True)
+        else:
+            self.cloud_model_download_pushbutton.setEnabled(False)
 
     def on_model_selection(self, index):
         # print("on model select")
@@ -123,7 +153,6 @@ class ModelsInterfaceWidget(qt.QWidget):
                 if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
                     self.local_model_selector_combobox.addItem(j["name"], idx)
 
-
     def populate_local_models(self):
         digests = self.get_existing_digests()
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
@@ -144,6 +173,11 @@ class ModelsInterfaceWidget(qt.QWidget):
             name = j["name"]
             if 'task' in j and j['task'] == 'Segmentation':
                 self.local_model_selector_combobox.addItem(name, idx)
+
+        if len(self.jsonModels) >= 1:
+            self.local_model_moreinfo_pushbutton.setEnabled(True)
+        else:
+            self.local_model_moreinfo_pushbutton.setEnabled(False)
 
     def get_existing_digests(self):
         cmd = []

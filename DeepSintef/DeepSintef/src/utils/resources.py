@@ -1,7 +1,12 @@
 import os
 from os.path import expanduser
 import shutil
-import configparser
+try:
+    import configparser
+except:
+    from __main__ import slicer
+    slicer.util.pip_install('configparser')
+    import configparser
 
 
 class SharedResources:
@@ -38,12 +43,17 @@ class SharedResources:
         if os.path.isdir(self.json_cloud_dir):
             shutil.rmtree(self.json_cloud_dir)
         os.makedirs(self.json_cloud_dir)
+        self.json_cloud_info_file = "https://drive.google.com/uc?id=13-Mx1Os9eXB_bJBcJt_o9MXQrRI1xONi"
 
         self.json_local_dir = os.path.join(self.deepsintef_dir, 'json', 'local')
         if not os.path.isdir(self.json_local_dir):
             os.makedirs(self.json_local_dir)
 
         self.resources_path = os.path.join(self.deepsintef_dir, 'resources')
+
+        self.model_path = os.path.join(self.resources_path, 'models')
+        if not os.path.isdir(self.model_path):
+            os.makedirs(self.model_path)
 
         self.data_path = os.path.join(self.resources_path, 'data')
         if os.path.isdir(self.data_path):
