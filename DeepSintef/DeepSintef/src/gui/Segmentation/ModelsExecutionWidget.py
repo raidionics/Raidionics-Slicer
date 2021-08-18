@@ -167,6 +167,7 @@ class ModelsExecutionWidget(qt.QWidget):
                 new_log_text = str(log_text)[:-3] + 'Done' + '\n'
 
             self.model_execution_progress_textedit.setText(new_log_text)
+            self.model_execution_progress_textedit.moveCursor(QTextCursor.End)
 
     #@TODO. to finish
     def populate_interactive_label_classes(self, classes):

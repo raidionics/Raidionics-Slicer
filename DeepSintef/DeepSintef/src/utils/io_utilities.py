@@ -3,7 +3,6 @@ import os
 import traceback
 import csv
 import threading
-
 try:
     import gdown
 except:
@@ -35,6 +34,18 @@ def get_available_cloud_models_list():
     return cloud_models_list
 
 
+def download_cloud_model_thread(selected_model, local_models, cloud_models):
+    download_cloud_model_thread = threading.Thread(target=download_cloud_model(selected_model, local_models, cloud_models))
+    download_cloud_model_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
+    download_cloud_model_thread.start()
+    # success = False
+    # import concurrent.futures
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     future = executor.submit(download_cloud_model, selected_model, local_models, cloud_models)
+    #     success = future.result()
+    # return success
+
+
 def download_cloud_model(selected_model, local_models, cloud_models):
     model_url = ''
     model_dependencies = []
@@ -43,7 +54,7 @@ def download_cloud_model(selected_model, local_models, cloud_models):
         for model in cloud_models:
             if model[0] == selected_model:
                 model_url = model[1]
-                model_dependencies = model[2].split(';') if model[2] != '' else []
+                model_dependencies = model[2].split(';') if model[2].strip() != '' else []
 
         model_dest_dir = SharedResources.getInstance().model_path
         json_local_dir = SharedResources.getInstance().json_local_dir
@@ -67,13 +78,15 @@ def download_cloud_model(selected_model, local_models, cloud_models):
         os.remove(archive_dl_dest)
 
         # Checking if dependencies are needed, and if they exist already locally
-        if len(model_dependencies) > 0:
-            for dep in model_dependencies:
-                already_local = True if True in [x["name"] == dep for x in self.jsonModels] else False
-                if not already_local:
-                    success_dep = download_cloud_model(dep, local_models, cloud_models)
-                    success = success & success_dep
+        # if len(model_dependencies) > 0:
+        #     for dep in model_dependencies:
+        #         already_local = True if True in [x["name"] == dep for x in local_models] else False
+        #         if not already_local:
+        #             success_dep = download_cloud_model(dep, local_models, cloud_models)
+        #             success = success & success_dep
     except Exception as e:
+        print('Impossible to download the selected cloud model.\n')
+        print('{}'.format(traceback.format_exc()))
         success = False
 
     return success

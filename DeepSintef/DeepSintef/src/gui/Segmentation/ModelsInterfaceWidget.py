@@ -8,7 +8,7 @@ import subprocess
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.DeepSintefLogic import DeepSintefLogic
-from src.utils.io_utilities import get_available_cloud_models_list, download_cloud_model
+from src.utils.io_utilities import get_available_cloud_models_list, download_cloud_model, download_cloud_model_thread
 
 
 class ModelsInterfaceWidget(qt.QWidget):
@@ -80,6 +80,7 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.cloud_models_area_searchbox.connect("textChanged(QString)", self.on_cloud_model_search)
         self.cloud_model_selector_combobox.connect('currentIndexChanged(int)', self.on_cloud_model_selection)
         self.cloud_model_download_pushbutton.connect('clicked()', self.on_cloud_model_download_selected)
+        # self.cloud_model_download_pushbutton.connect('clicked()', self.on_cloud_model_download_selected2)
 
         self.local_models_area_searchbox.connect("textChanged(QString)", self.on_local_model_search)
         self.local_model_selector_combobox.connect('currentIndexChanged(int)', self.on_model_selection)
@@ -100,8 +101,45 @@ class ModelsInterfaceWidget(qt.QWidget):
                 if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
                     self.cloud_model_selector_combobox.addItem(item[0])
 
+    def on_cloud_model_download_selected2(self):
+        popup = qt.QMessageBox()
+        popup.setWindowTitle('Downloading\n')
+        popup.setText('plop')
+        x = popup.exec_()
+
     def on_cloud_model_download_selected(self):
+        # mainWindow = slicer.util.mainWindow()
+        # downloadWidget = qt.QWidget()
+        # layout = qt.QVBoxLayout()
+        # downloadWidget.setLayout(layout)
+        # popupGeometry = qt.QRect()
+        # if mainWindow:
+        #     width = 400
+        #     height = 200
+        #     popupGeometry.setWidth(width)
+        #     popupGeometry.setHeight(height)
+        #     downloadWidget.setGeometry(popupGeometry)
+        #
+        # pos = mainWindow.pos
+        # downloadWidget.move(pos.x() + (mainWindow.width - downloadWidget.width) / 2,
+        #                     pos.y() + (mainWindow.height - downloadWidget.height) / 2)
+        #
+        # titleLabel = qt.QLabel('Download box')
+        # layout.addWidget(titleLabel)
+        # te = qt.QTextEdit('plop')
+        # te.readOnly = True
+        # layout.addWidget(te)
+        # closeButton = qt.QPushButton('Close')
+        # layout.addWidget(closeButton)
+        # downloadWidget.show()
+
+        # popup = qt.QMessageBox()
+        # popup.setWindowTitle('Downloading\n')
+        # popup.setText('plop')
+        # x = popup.exec_()
+
         selected_model = self.cloud_model_selector_combobox.currentText
+        # success = download_cloud_model_thread(selected_model, self.jsonModels, self.cloud_models_list)
         success = download_cloud_model(selected_model, self.jsonModels, self.cloud_models_list)
         if success:
             self.populate_local_models()
@@ -109,6 +147,7 @@ class ModelsInterfaceWidget(qt.QWidget):
 
     def populate_cloud_models(self):
         self.cloud_models_list = []
+        self.cloud_model_selector_combobox.clear()
         cloud_models_list = get_available_cloud_models_list()
         for idx, model in enumerate(cloud_models_list):
             already_local = True if True in [x["name"] == model[0] for x in self.jsonModels] else False
@@ -158,6 +197,7 @@ class ModelsInterfaceWidget(qt.QWidget):
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
         jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
         self.jsonModels = []
+        self.local_model_selector_combobox.clear()
         for fname in jsonFiles:
             with open(fname, "r") as fp:
                 j = json.load(fp, object_pairs_hook=OrderedDict)
@@ -209,7 +249,8 @@ class ModelsInterfaceWidget(qt.QWidget):
         model_json = self.jsonModels[[x['name'] == self.local_model_selector_combobox.currentText for x in self.jsonModels].index(True)]
 
         tip = ''
-        exhaustive_list = ['owner', 'task', 'organ', 'target', 'modality', 'sequence', 'dataset_description']
+        exhaustive_list = ['owner', 'task', 'organ', 'target', 'modality', 'sequence', 'dataset_description',
+                           'briefdescription', 'detaileddescription']
         for a in exhaustive_list:
             if a in model_json:
                 tip = tip + '\n' + a + ':' + model_json[a]

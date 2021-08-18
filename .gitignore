@@ -14,3 +14,4 @@ numpy
 *.sqlite3
 *.user
 *.xml
+/cloud_resources

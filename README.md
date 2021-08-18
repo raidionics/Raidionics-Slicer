@@ -1,4 +1,4 @@
-# Custom 3D Slicer to perform segmentation and diagnosis using in-house models
+# Custom 3D Slicer plugin to perform segmentation and diagnosis using in-house models
 
 ## 1. Plugin installation
 
