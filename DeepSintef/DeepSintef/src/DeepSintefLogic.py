@@ -5,7 +5,7 @@ import sys
 if sys.version_info.major == 3:
     from queue import Queue
 else:
-    import Queue
+    from Queue import Queue
 
 import json
 import platform
@@ -58,7 +58,7 @@ class DeepSintefLogic:
         sleep(seconds)
 
     def start_logic(self):
-        self.main_queue = Queue.Queue()
+        self.main_queue = Queue()
         self.main_queue_running = False
         self.thread = threading.Thread()
         self.cmdStartLogic()

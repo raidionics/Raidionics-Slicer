@@ -4,6 +4,9 @@ import os
 import json
 from collections import OrderedDict
 import subprocess
+import sys
+if sys.version_info.major == 3:
+    from functools import reduce
 
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
@@ -195,7 +198,8 @@ class ModelsInterfaceWidget(qt.QWidget):
     def populate_local_models(self):
         digests = self.get_existing_digests()
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
-        jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
+        jsonFiles = sorted(jsonFiles)
+        #jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
         self.jsonModels = []
         self.local_model_selector_combobox.clear()
         for fname in jsonFiles:

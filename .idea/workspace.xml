@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Simple working solution for downloading models.">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Improving the downloading of our models.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -242,7 +241,14 @@
       <option name="project" value="LOCAL" />
       <updated>1629210579086</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Improving the downloading of our models.">
+      <created>1629280589546</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1629280589546</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -282,7 +288,8 @@
     <MESSAGE value="Trying to fix the configparser import issue." />
     <MESSAGE value="Proper configparser import. Starting on a clean remote download of the various models." />
     <MESSAGE value="Simple working solution for downloading models." />
-    <option name="LAST_COMMIT_MESSAGE" value="Simple working solution for downloading models." />
+    <MESSAGE value="Improving the downloading of our models." />
+    <option name="LAST_COMMIT_MESSAGE" value="Improving the downloading of our models." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

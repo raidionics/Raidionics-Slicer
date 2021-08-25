@@ -4,6 +4,9 @@ import os
 import json
 from collections import OrderedDict
 import subprocess
+import sys
+if sys.version_info.major == 3:
+    from functools import reduce
 
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
@@ -93,7 +96,8 @@ class DiagnosisInterfaceWidget(qt.QWidget):
     def populate_local_diagnosis(self):
         digests = self.get_existing_digests()
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
-        jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
+        # jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
+        jsonFiles = sorted(jsonFiles)
         self.jsonModels = []
         for fname in jsonFiles:
             with open(fname, "r") as fp:
