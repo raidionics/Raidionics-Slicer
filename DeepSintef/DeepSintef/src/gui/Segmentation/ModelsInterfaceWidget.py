@@ -182,6 +182,16 @@ class ModelsInterfaceWidget(qt.QWidget):
         # self.enable_user_interface(True)
         #self.onLocateButton()
         DeepSintefLogic.getInstance().selected_model = self.local_model_selector_combobox
+        docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
+        if not docker_status:
+            tip = 'Before being able to run the selected model, the following actions must be performed:\n'
+            tip += '   * Open the command line editor (On Windows, type \'cmd\' in the search bar.)\n'
+            tip += '   * Copy and execute: docker image pull {}\n'.format(self.model_parameters.dockerImageName)
+            tip += '   * Wait for the download to be complete, then exit the popup.\n'
+            popup = qt.QMessageBox()
+            popup.setWindowTitle('Warning')
+            popup.setText(tip)
+            x = popup.exec_()
 
     def on_local_model_search(self, searchText):
         # add all the models listed in the json files
