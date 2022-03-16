@@ -172,6 +172,7 @@ class ModelsExecutionWidget(qt.QWidget):
 
     #@TODO. to finish
     def populate_interactive_label_classes(self, classes):
+        self.interactive_thresholding_combobox.clear()
         for c, class_name in enumerate(classes): #self.modelParameters.outputs.keys()
             self.interactive_thresholding_combobox.addItem(class_name)
 

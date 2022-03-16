@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Cross-platform working solution?">
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Popup qdialog to ask the user to download the Docker image if necessary.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +36,9 @@
     </file-type-list>
   </component>
   <component name="JupyterTrust" id="82788dc6-68b4-4d26-923d-3478291d4033" />
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="1QHQACPq7TqyScPY4SYgfOvNX6v" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -99,6 +102,11 @@
       <workItem from="1611410639649" duration="45014000" />
       <workItem from="1614172151378" duration="199830000" />
       <workItem from="1616852857958" duration="645000" />
+      <workItem from="1630658552149" duration="6014000" />
+      <workItem from="1635148861176" duration="1919000" />
+      <workItem from="1642599931179" duration="2163000" />
+      <workItem from="1645202196820" duration="1211000" />
+      <workItem from="1646904292593" duration="18760000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -254,11 +262,18 @@
       <option name="project" value="LOCAL" />
       <updated>1629884985793</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Popup qdialog to ask the user to download the Docker image if necessary.">
+      <created>1630067182311</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1630067182311</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="2" />
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -270,7 +285,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
@@ -296,7 +310,8 @@
     <MESSAGE value="Simple working solution for downloading models." />
     <MESSAGE value="Improving the downloading of our models." />
     <MESSAGE value="Cross-platform working solution?" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cross-platform working solution?" />
+    <MESSAGE value="Popup qdialog to ask the user to download the Docker image if necessary." />
+    <option name="LAST_COMMIT_MESSAGE" value="Popup qdialog to ask the user to download the Docker image if necessary." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -342,9 +357,49 @@
           <option name="timeStamp" value="265" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
-          <line>191</line>
-          <option name="timeStamp" value="266" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
+          <line>172</line>
+          <option name="timeStamp" value="267" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
+          <line>200</line>
+          <option name="timeStamp" value="268" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
+          <line>177</line>
+          <option name="timeStamp" value="269" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>67</line>
+          <option name="timeStamp" value="274" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>106</line>
+          <option name="timeStamp" value="276" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>9</line>
+          <option name="timeStamp" value="277" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>135</line>
+          <option name="timeStamp" value="279" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>59</line>
+          <option name="timeStamp" value="285" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>92</line>
+          <option name="timeStamp" value="286" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

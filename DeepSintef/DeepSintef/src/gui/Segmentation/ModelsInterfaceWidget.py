@@ -142,8 +142,7 @@ class ModelsInterfaceWidget(qt.QWidget):
         # x = popup.exec_()
 
         selected_model = self.cloud_model_selector_combobox.currentText
-        # success = download_cloud_model_thread(selected_model, self.jsonModels, self.cloud_models_list)
-        success = download_cloud_model(selected_model, self.jsonModels, self.cloud_models_list)
+        success = download_cloud_model(selected_model)
         if success:
             self.populate_local_models()
             self.populate_cloud_models()
@@ -164,10 +163,14 @@ class ModelsInterfaceWidget(qt.QWidget):
             self.cloud_model_download_pushbutton.setEnabled(False)
 
     def on_model_selection(self, index):
-        # print("on model select")
-        self.model_parameters.destroy()
+        # @TODO. Maybe should have a global option(e.g., tickbox) to prevent from checking models update at runtime?
+        # @TODO. Maybe also a flush method to remove old models, in case the users don't know how to do it themselves?
         if index < 0 or self.local_model_selector_combobox.count == 0:
             return
+
+        selected_model = self.local_model_selector_combobox.currentText
+        success = download_cloud_model(selected_model)
+        self.model_parameters.destroy()
         jsonIndex = self.local_model_selector_combobox.itemData(index)
         json_model = self.jsonModels[jsonIndex]
         self.model_parameters.create(json_model)
