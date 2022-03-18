@@ -10,6 +10,35 @@ from src.logic.neuro_diagnosis_slicer_interface import *
 from src.logic.mediastinum_diagnosis_slicer_interface import *
 
 
+class MyDialog(qt.QDialog):
+
+    def __init__(self, parent=None):
+        super(qt.QDialog, self).__init__(parent)
+        self.base_layout = qt.QGridLayout()
+        self.select_tumor_type_label = qt.QLabel('Tumor type')
+        self.base_layout.addWidget(self.select_tumor_type_label, 0, 0)
+        self.select_tumor_type_combobox = qt.QComboBox()
+        self.select_tumor_type_combobox.addItems(["High-Grade Glioma", "Low-Grade Glioma", "Meningioma", "Metastasis"])
+        SharedResources.getInstance().user_diagnosis_configuration['Neuro']['tumor_type'] = "High-Grade Glioma"
+        self.base_layout.addWidget(self.select_tumor_type_combobox, 0, 1)
+        self.exit_accept_pushbutton = qt.QDialogButtonBox(qt.QDialogButtonBox.Ok)
+        self.base_layout.addWidget(self.exit_accept_pushbutton, 1, 0)
+        self.exit_cancel_pushbutton = qt.QDialogButtonBox(qt.QDialogButtonBox.Cancel)
+        self.base_layout.addWidget(self.exit_cancel_pushbutton, 1, 1)
+        # self.base_layout = qt.QVBoxLayout()
+        # self.exit_pushbutton = qt.QDialogButtonBox(qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel)
+        # self.exit_pushbutton = qt.QDialogButtonBox(qt.QDialogButtonBox.Ok)
+        # self.base_layout.addWidget(self.exit_pushbutton)
+        self.setLayout(self.base_layout)
+
+        self.select_tumor_type_combobox.currentTextChanged.connect(self.on_type_selected)
+        self.exit_accept_pushbutton.accepted.connect(self.accept)
+        self.exit_cancel_pushbutton.rejected.connect(self.reject)
+
+    def on_type_selected(self, text):
+        SharedResources.getInstance().user_diagnosis_configuration['Neuro']['tumor_type'] = text
+
+
 class BaseDiagnosisWidget(qt.QTabWidget):
     """
     Main GUI object, for the diagnosis task.
@@ -61,6 +90,11 @@ class BaseDiagnosisWidget(qt.QTabWidget):
 
     def on_run_diagnosis(self):
         DeepSintefLogic.getInstance().logic_task = 'diagnosis'
+        if self.diagnosis_interface_widget.diagnosis_model_parameters.json_dict['organ'] == 'Brain':
+            # @FIXME. Hack to specify brain tumor type in order to use the correct model
+            # SharedResources.getInstance().user_diagnosis_configuration['Neuro']['tumor_type'] = tumor_type
+            diag = MyDialog(self)
+            diag.exec()
         DeepSintefLogic.getInstance().run(self.diagnosis_interface_widget.diagnosis_model_parameters)
 
     def on_cancel_diagnosis_run(self):

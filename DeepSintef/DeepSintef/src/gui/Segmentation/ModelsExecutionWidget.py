@@ -134,8 +134,10 @@ class ModelsExecutionWidget(qt.QWidget):
     def on_predictions_type_change(self, type):
         if type == 'Binary':
             SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
+            self.interactive_options_area_groupbox.setVisible(False)
         else:
             SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
+            self.interactive_options_area_groupbox.setVisible(True)
 
     def on_logic_event_start(self):
         self.run_model_pushbutton.setEnabled(False)

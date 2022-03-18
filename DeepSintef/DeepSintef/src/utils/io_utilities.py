@@ -143,3 +143,11 @@ def check_for_local_model_update(selected_model, local_models):
                                        '.cache', model_name + '.zip')
     os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
     gdown.cached_download(url=url, path=models_archive_path, md5=md5)
+
+
+def get_available_cloud_diagnosis_list():
+    return []
+
+
+def download_cloud_diagnosis(selected_diagnosis):
+    pass

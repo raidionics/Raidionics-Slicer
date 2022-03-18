@@ -11,6 +11,7 @@ if sys.version_info.major == 3:
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.DeepSintefLogic import DeepSintefLogic
+from src.utils.io_utilities import get_available_cloud_diagnosis_list, download_cloud_diagnosis
 
 
 class DiagnosisInterfaceWidget(qt.QWidget):
@@ -20,15 +21,36 @@ class DiagnosisInterfaceWidget(qt.QWidget):
     def __init__(self, parent=None):
         super(DiagnosisInterfaceWidget, self).__init__(parent)
         self.base_layout = qt.QVBoxLayout()
+        self.setup_cloud_diagnosis_area()
         self.setup_local_diagnosis_area()
         self.setup_diagnosis_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
         self.on_diagnosis_selection(0)
 
+    def setup_cloud_diagnosis_area(self):
+        self.cloud_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
+        self.cloud_diagnosis_area_groupbox.setTitle("Available cloud diagnosis")
+        self.base_layout.addWidget(self.cloud_diagnosis_area_groupbox)
+        # Layout within the dummy collapsible button
+        self.cloud_diagnosis_area_groupbox_layout = qt.QFormLayout(self.cloud_diagnosis_area_groupbox)
+
+        # model search
+        self.cloud_diagnosis_area_searchbox = ctk.ctkSearchBox()
+        self.cloud_diagnosis_area_groupbox_layout.addRow("Search:", self.cloud_diagnosis_area_searchbox)
+
+        # model selector
+        self.cloud_diagnosis_selector_combobox = qt.QComboBox()
+        self.cloud_diagnosis_area_groupbox_layout.addRow("Diagnosis:", self.cloud_diagnosis_selector_combobox)
+
+        self.cloud_diagnosis_download_pushbutton = qt.QPushButton('Press to download')
+        self.cloud_diagnosis_area_groupbox_layout.addRow("Details:", self.cloud_diagnosis_download_pushbutton)
+        self.cloud_diagnosis_download_pushbutton.setEnabled(False)
+        self.populate_cloud_diagnosis()
+
     def setup_local_diagnosis_area(self):
         self.local_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.local_diagnosis_area_groupbox.setTitle("Available diagnosis")
+        self.local_diagnosis_area_groupbox.setTitle("Local diagnosis")
         self.base_layout.addWidget(self.local_diagnosis_area_groupbox)
         # Layout within the dummy collapsible button
         self.modelsFormLayout = qt.QFormLayout(self.local_diagnosis_area_groupbox)
@@ -92,6 +114,21 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         except Exception as e:
             print("Exception: {}".format(e))
         return digests
+
+    def populate_cloud_diagnosis(self):
+        self.cloud_diagnosis_list = []
+        self.cloud_diagnosis_selector_combobox.clear()
+        cloud_diagnosis_list = get_available_cloud_diagnosis_list()
+        for idx, model in enumerate(cloud_diagnosis_list):
+            already_local = True if True in [x["name"] == model[0] for x in self.jsonModels] else False
+            if not already_local:
+                self.cloud_diagnosis_list.append(model)
+                self.cloud_diagnosis_selector_combobox.addItem(model[0], idx)
+
+        if len(self.cloud_diagnosis_list) >= 1:
+            self.cloud_diagnosis_download_pushbutton.setEnabled(True)
+        else:
+            self.cloud_diagnosis_download_pushbutton.setEnabled(False)
 
     def populate_local_diagnosis(self):
         digests = self.get_existing_digests()

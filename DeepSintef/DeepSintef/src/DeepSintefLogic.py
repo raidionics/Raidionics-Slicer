@@ -381,7 +381,8 @@ class DeepSintefLogic:
             cmd.append(dataPath + '/data/' + inputDict[key])
         cmd.append('--' + 'Output')
         cmd.append(dataPath + '/output/')
-        if modelName:
+        # @TODO. Have to find a better way to handle diagnosis cases, can't specify a unique model (most likely multiple are needed)
+        if modelName: # and self.logic_task == 'segmentation':
             cmd.append('--' + 'Model')
             cmd.append(modelName)
         else:

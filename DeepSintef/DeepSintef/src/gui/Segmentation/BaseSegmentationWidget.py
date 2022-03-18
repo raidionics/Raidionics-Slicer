@@ -33,8 +33,9 @@ class BaseSegmentationWidget(qt.QWidget):
     def on_run_model(self):
         DeepSintefLogic.getInstance().logic_task = 'segmentation'
         DeepSintefLogic.getInstance().run(self.model_interface_widget.model_parameters)
-        self.model_execution_widget.populate_interactive_label_classes(self.model_interface_widget.model_parameters.outputs.keys())
-        self.on_interactive_best_threshold_clicked()
+        if SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] == 'probabilities':
+            self.model_execution_widget.populate_interactive_label_classes(self.model_interface_widget.model_parameters.outputs.keys())
+            self.on_interactive_best_threshold_clicked()
 
     def on_cancel_model_run(self):
         DeepSintefLogic.getInstance().cancel_run()

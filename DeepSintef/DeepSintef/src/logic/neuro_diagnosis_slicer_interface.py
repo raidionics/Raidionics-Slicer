@@ -81,6 +81,7 @@ class NeuroDiagnosisSlicerInterface:
                         detailed_color = [x / 255. for x in detailed_color]
                         #seg_node.SetColor(detailed_color[0], detailed_color[1], detailed_color[2])
                         seg_node.GetSegmentation().GetNthSegment(0).SetColor(detailed_color[0], detailed_color[1], detailed_color[2])
+                        seg_node.GetSegmentation().GetNthSegment(0).SetName(iodict[output]['name'])
 
                     if 'description' in iodict[output] and iodict[output]['description'] == 'True':
                         desc_info = []
@@ -93,10 +94,18 @@ class NeuroDiagnosisSlicerInterface:
 
                         self.segmentation_nodes_descriptions[output] = desc_info
 
-                        for l in desc_info:
-                            segm = seg_node.GetSegmentation().GetNthSegment(int(l['label']))
-                            if segm is not None:
-                                segm.SetName(l['text'])
+                        for ls in range(0, seg_node.GetSegmentation().GetNumberOfSegments()):
+                            segm = seg_node.GetSegmentation().GetNthSegment(ls)
+                            segm_label = segm.GetLabelValue()
+                            segm_desc = next((item for item in desc_info if int(float(item["label"])) == segm_label), None)
+                            if segm_desc is not None:
+                                segm.SetName(segm_desc['text'])
+                        # # @FIXME. Integer values for labels should be enforced during description file creation.
+                        # for l in desc_info:
+                        #     # segm = seg_node.GetSegmentation().GetNthSegment(int(float(l['label'])))
+                        #     segm = seg_node.GetSegmentation().GetNthSegment(int(l['']))
+                        #     if segm is not None:
+                        #         segm.SetName(l['text'])
                 else:
                     desc_info = []
                     csv_filename = str(
@@ -167,48 +176,76 @@ class NeuroDiagnosisSlicerInterface:
         """
 
         """
+        cortical_atlases_names = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys()
+        subcortical_atlases_names = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys()
         for output in model_parameters.outputs.keys():
-            if output == 'Brain':
+            if output == 'Tumor':
+                node = self.segmentation_nodes[output]
+                display_node = node.GetDisplayNode()
+                display_node.SetAllSegmentsVisibility(True)
+            elif output == 'Brain':
                 node = self.segmentation_nodes[output]
                 display_node = node.GetDisplayNode()
                 display_node.SetAllSegmentsVisibility(False)
-            elif output == 'Lobes':
+            else:
+                # @TODO. Might need to store the info about cortical/subcortical in the config.json file
+                struct_overlap_info = None
+                if output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
+                    struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap[output]
+                elif output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
+                    struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[output]
+
                 node = self.segmentation_nodes[output]
                 display_node = node.GetDisplayNode()
+                display_node.SetAllSegmentsVisibility(False)
                 segmentation = node.GetSegmentation()
-                # descriptions = model_parameters.segmentations_descriptions[output]
-                display_node.SetAllSegmentsVisibility(False)
-                laterality = 'left'
-                if 'right' in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].laterality.lower():
-                    laterality = 'right'
-                for lobe in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
-                    sname = segmentation.GetSegmentIdBySegmentName(lobe + '_' + laterality)
-                    if sname is not None:
+                # @TODO. Must clean diagnosis.json name and have them match the atlas_description.csv names for retrieval convenience
+                for ind, overlap in enumerate(struct_overlap_info.values()):
+                    if ind == 3:
+                        break
+                    description_name = '_'.join(list(struct_overlap_info.keys())[ind].split('_')[1:-1])
+                    sname = segmentation.GetSegmentIdBySegmentName(description_name)
+                    if sname != '':
                         display_node.SetSegmentVisibility(sname, True)
                         display_node.SetSegmentOpacity(sname, 0.5)
-            elif output == 'Tracts':
-                #@TODO. The tracts laterality should be reversed to match the MNI/Lobes laterality...
-                descriptions = self.segmentation_nodes_descriptions[output]
-                for d in descriptions:
-                    item_name = d['text']
-                    node = self.segmentation_nodes[item_name]
-                    display_node = node.GetDisplayNode()
-                    display_node.SetAllSegmentsVisibility(False)
 
-                laterality = 'Right'
-                if 'right' in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].laterality.lower():
-                    laterality = 'Left'
-                for tract in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_tracts_overlap.keys():
-                    split_tract = tract.split('_')
-                    # if split_tract[-1] == 'Right' or split_tract[-1] == 'Left':
-                    #     split_tract[-1] = 'Right' if split_tract[-1] == 'Left' else 'Left'
-                    correct_tract_name = ' '.join(split_tract)
-                    if correct_tract_name in self.segmentation_nodes.keys():
-                        node = self.segmentation_nodes[correct_tract_name]
-                        display_node = node.GetDisplayNode()
-                        display_node.SetSegmentVisibility(correct_tract_name, True)
-                        display_node.SetSegmentOpacity(correct_tract_name, 0.5)
-                    # sname = segmentation.GetSegmentIdBySegmentName(correct_tract_name)
-                    # if sname is not None:
-                    #     display_node.SetSegmentVisibility(sname, True)
-                    #     # display_node.SetSegmentOpacity(sname, 0.5)
+            # elif output == 'Lobes':
+            #     node = self.segmentation_nodes[output]
+            #     display_node = node.GetDisplayNode()
+            #     segmentation = node.GetSegmentation()
+            #     # descriptions = model_parameters.segmentations_descriptions[output]
+            #     display_node.SetAllSegmentsVisibility(False)
+            #     laterality = 'left'
+            #     if 'right' in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].laterality.lower():
+            #         laterality = 'right'
+            #     for lobe in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
+            #         sname = segmentation.GetSegmentIdBySegmentName(lobe + '_' + laterality)
+            #         if sname is not None:
+            #             display_node.SetSegmentVisibility(sname, True)
+            #             display_node.SetSegmentOpacity(sname, 0.5)
+            # elif output == 'Tracts':
+            #     #@TODO. The tracts laterality should be reversed to match the MNI/Lobes laterality...
+            #     descriptions = self.segmentation_nodes_descriptions[output]
+            #     for d in descriptions:
+            #         item_name = d['text']
+            #         node = self.segmentation_nodes[item_name]
+            #         display_node = node.GetDisplayNode()
+            #         display_node.SetAllSegmentsVisibility(False)
+            #
+            #     laterality = 'Right'
+            #     if 'right' in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].laterality.lower():
+            #         laterality = 'Left'
+            #     for tract in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_tracts_overlap.keys():
+            #         split_tract = tract.split('_')
+            #         # if split_tract[-1] == 'Right' or split_tract[-1] == 'Left':
+            #         #     split_tract[-1] = 'Right' if split_tract[-1] == 'Left' else 'Left'
+            #         correct_tract_name = ' '.join(split_tract)
+            #         if correct_tract_name in self.segmentation_nodes.keys():
+            #             node = self.segmentation_nodes[correct_tract_name]
+            #             display_node = node.GetDisplayNode()
+            #             display_node.SetSegmentVisibility(correct_tract_name, True)
+            #             display_node.SetSegmentOpacity(correct_tract_name, 0.5)
+            #         # sname = segmentation.GetSegmentIdBySegmentName(correct_tract_name)
+            #         # if sname is not None:
+            #         #     display_node.SetSegmentVisibility(sname, True)
+            #         #     # display_node.SetSegmentOpacity(sname, 0.5)

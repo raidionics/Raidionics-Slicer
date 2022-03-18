@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Popup qdialog to ask the user to download the Docker image if necessary.">
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Automating and fixing models download.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/BaseSegmentationWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/BaseSegmentationWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_result_parameters.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_result_parameters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/resources.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/resources.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,7 +114,7 @@
       <workItem from="1635148861176" duration="1919000" />
       <workItem from="1642599931179" duration="2163000" />
       <workItem from="1645202196820" duration="1211000" />
-      <workItem from="1646904292593" duration="18760000" />
+      <workItem from="1646904292593" duration="73447000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -269,7 +277,14 @@
       <option name="project" value="LOCAL" />
       <updated>1630067182311</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Automating and fixing models download.">
+      <created>1647421131426</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1647421131426</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -311,7 +326,8 @@
     <MESSAGE value="Improving the downloading of our models." />
     <MESSAGE value="Cross-platform working solution?" />
     <MESSAGE value="Popup qdialog to ask the user to download the Docker image if necessary." />
-    <option name="LAST_COMMIT_MESSAGE" value="Popup qdialog to ask the user to download the Docker image if necessary." />
+    <MESSAGE value="Automating and fixing models download." />
+    <option name="LAST_COMMIT_MESSAGE" value="Automating and fixing models download." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -323,63 +339,28 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py</url>
-          <line>59</line>
+          <line>88</line>
           <option name="timeStamp" value="186" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
-          <line>83</line>
-          <option name="timeStamp" value="204" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py</url>
-          <line>100</line>
+          <line>109</line>
           <option name="timeStamp" value="256" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/BaseDiagnosisWidget.py</url>
-          <line>98</line>
+          <line>132</line>
           <option name="timeStamp" value="258" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_result_parameters.py</url>
-          <line>55</line>
-          <option name="timeStamp" value="263" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
-          <line>86</line>
+          <line>138</line>
           <option name="timeStamp" value="264" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py</url>
-          <line>53</line>
-          <option name="timeStamp" value="265" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
-          <line>172</line>
-          <option name="timeStamp" value="267" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
           <line>200</line>
           <option name="timeStamp" value="268" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
-          <line>177</line>
-          <option name="timeStamp" value="269" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
-          <line>67</line>
-          <option name="timeStamp" value="274" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
-          <line>106</line>
-          <option name="timeStamp" value="276" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
@@ -392,14 +373,94 @@
           <option name="timeStamp" value="279" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
-          <line>59</line>
-          <option name="timeStamp" value="285" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsExecutionWidget.py</url>
+          <line>176</line>
+          <option name="timeStamp" value="287" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
-          <line>92</line>
-          <option name="timeStamp" value="286" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
+          <line>142</line>
+          <option name="timeStamp" value="320" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
+          <line>158</line>
+          <option name="timeStamp" value="333" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/DeepSintefLogic.py</url>
+          <line>400</line>
+          <option name="timeStamp" value="340" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
+          <line>113</line>
+          <option name="timeStamp" value="351" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py</url>
+          <line>136</line>
+          <option name="timeStamp" value="352" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py</url>
+          <line>197</line>
+          <option name="timeStamp" value="353" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py</url>
+          <line>192</line>
+          <option name="timeStamp" value="354" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py</url>
+          <line>200</line>
+          <option name="timeStamp" value="355" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py</url>
+          <line>198</line>
+          <option name="timeStamp" value="356" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/logic/neuro_diagnosis_slicer_interface.py</url>
+          <line>199</line>
+          <option name="timeStamp" value="357" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py</url>
+          <line>93</line>
+          <option name="timeStamp" value="358" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py</url>
+          <line>95</line>
+          <option name="timeStamp" value="359" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py</url>
+          <line>90</line>
+          <option name="timeStamp" value="360" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
+          <line>121</line>
+          <option name="timeStamp" value="361" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroResultsWidget.py</url>
+          <line>123</line>
+          <option name="timeStamp" value="362" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py</url>
+          <line>45</line>
+          <option name="timeStamp" value="363" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py</url>
+          <line>91</line>
+          <option name="timeStamp" value="366" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

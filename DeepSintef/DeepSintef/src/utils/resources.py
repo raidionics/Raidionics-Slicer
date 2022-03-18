@@ -92,3 +92,7 @@ class SharedResources:
         self.user_diagnosis_configuration['Neuro'] = {}
         self.user_diagnosis_configuration['Neuro']['tumor_segmentation_filename'] = ''
         self.user_diagnosis_configuration['Neuro']['brain_segmentation_filename'] = ''
+        self.user_diagnosis_configuration['Neuro']['tumor_type'] = ''
+        # @TODO. Give the option to the user to decide what to include in the standardized report generation
+        self.user_diagnosis_configuration['Neuro']['compute_cortical_structures'] = 'True'
+        self.user_diagnosis_configuration['Neuro']['compute_subcortical_structures'] = 'True'
