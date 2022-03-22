@@ -70,6 +70,7 @@ class SharedResources:
 
         self.docker_path = None
         self.__set_runtime_parameters()
+        self.global_active_model_update = False
 
     def __set_runtime_parameters(self):
         # Set of variables sent to the docker images as runtime config, manually chosen by the user.

@@ -73,17 +73,9 @@ class DeepSintefWidget():
         # self.layout.addWidget(reloadCollapsibleButton)
         # self.layout.addWidget(self.base_segmentation_widget)
 
-        self.tasks_tabwidget = qt.QTabWidget()
-        self.base_segmentation_widget = BaseSegmentationWidget(self.parent)
-        self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
-        self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
-        self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Diagnosis')
-        self.logging_textedit = qt.QTextEdit()
-        #self.logging_textedit.setEnabled(False)
-        self.logging_textedit.setReadOnly(True)
-        self.tasks_tabwidget.addTab(self.logging_textedit, 'Logging')
-        self.layout.addWidget(self.tasks_tabwidget)
-
+        self.setup_global_options_widget()
+        self.setup_user_interactions_widget()
+        self.layout.addStretch(1)
         self.setup_connections()
 
     def setup_docker_widget(self):
@@ -112,16 +104,57 @@ class DeepSintefWidget():
 
         SharedResources.getInstance().docker_path = self.dockerPath.currentPath
 
+    def setup_global_options_widget(self):
+        self.global_options_groupbox = ctk.ctkCollapsibleGroupBox()
+        self.global_options_groupbox.collapsed = True
+        self.global_options_groupbox.setTitle("Global options")
+        self.layout.addWidget(self.global_options_groupbox)
+        # Layout within the dummy collapsible button
+        self.global_options_groupbox_layout = qt.QFormLayout(self.global_options_groupbox)
+        # option 1: actively updating local models
+        self.global_options_active_models_update_checkbox = ctk.ctkCheckBox()
+        self.global_options_groupbox_layout.addRow("Active model update:", self.global_options_active_models_update_checkbox)
+
+    def setup_user_interactions_widget(self):
+        self.user_interactions_groupbox = ctk.ctkCollapsibleGroupBox()
+        self.user_interactions_groupbox.collapsed = False
+        self.user_interactions_groupbox.setTitle("Interactive")
+        self.user_interactions_groupbox_layout = qt.QVBoxLayout()
+        self.tasks_tabwidget = qt.QTabWidget()
+        self.base_segmentation_widget = BaseSegmentationWidget(self.parent)
+        self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
+        self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
+        self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Diagnosis')
+        self.logging_textedit = qt.QTextEdit()
+        #self.logging_textedit.setEnabled(False)
+        self.logging_textedit.setReadOnly(True)
+        self.tasks_tabwidget.addTab(self.logging_textedit, 'Logging')
+        self.user_interactions_groupbox_layout.addWidget(self.tasks_tabwidget)
+        self.user_interactions_groupbox.setLayout(self.user_interactions_groupbox_layout)
+        self.layout.addWidget(self.user_interactions_groupbox)
+
+        # self.tasks_tabwidget = qt.QTabWidget()
+        # self.base_segmentation_widget = BaseSegmentationWidget(self.parent)
+        # self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
+        # self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
+        # self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Diagnosis')
+        # self.logging_textedit = qt.QTextEdit()
+        # #self.logging_textedit.setEnabled(False)
+        # self.logging_textedit.setReadOnly(True)
+        # self.tasks_tabwidget.addTab(self.logging_textedit, 'Logging')
+        # self.layout.addWidget(self.tasks_tabwidget)
+
     def setup_connections(self):
         self.docker_test_pushbutton.connect('clicked(bool)', self.on_test_docker_button_pressed)
         self.tasks_tabwidget.connect('currentChanged(int)', self.on_task_tabwidget_tabchanged)
+        self.global_options_active_models_update_checkbox.stateChanged.connect(self.on_models_active_update_options_state_changed)
 
     def on_test_docker_button_pressed(self):
         cmd = []
         cmd.append(self.dockerPath.currentPath)
         cmd.append('--version')
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        message = p.stdout.readline()
+        message = p.stdout.readline().decode("utf-8")
         if message.startswith('Docker version'):
             qt.QMessageBox.information(None, 'Docker Status', 'Docker is configured correctly'
                                                               ' ({}).'.format(message))
@@ -159,6 +192,9 @@ class DeepSintefWidget():
             self.base_segmentation_widget.on_logic_event_progress(progress, log)
         elif task == 'diagnosis':
             self.base_diagnosis_widget.on_logic_event_progress(progress, log)
+
+    def on_models_active_update_options_state_changed(self, state):
+        SharedResources.getInstance().global_active_model_update = False if state == 0 else True
 
     def set_default(self):
         self.base_segmentation_widget.set_default()

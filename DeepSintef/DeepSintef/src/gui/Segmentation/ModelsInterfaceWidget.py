@@ -24,12 +24,14 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.base_layout = qt.QVBoxLayout()
         self.setup_cloud_models_area()
         self.setup_local_models_area()
-        self.populate_local_models()
-        self.populate_cloud_models()
+        # self.populate_local_models()
+        # self.populate_cloud_models()
         self.setup_model_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
-        self.on_model_selection(0)
+        # self.on_model_selection(0)
+        self.populate_local_models()
+        self.populate_cloud_models()
 
     def setup_cloud_models_area(self):
         self.cloud_models_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -169,7 +171,8 @@ class ModelsInterfaceWidget(qt.QWidget):
             return
 
         selected_model = self.local_model_selector_combobox.currentText
-        success = download_cloud_model(selected_model)
+        if SharedResources.getInstance().global_active_model_update:
+            success = download_cloud_model(selected_model)
         self.model_parameters.destroy()
         jsonIndex = self.local_model_selector_combobox.itemData(index)
         json_model = self.jsonModels[jsonIndex]

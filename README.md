@@ -10,8 +10,9 @@
 	∘ All Modules > Extension Wizard.  
 	∘ (Slicer v4.11) Developer Tools > Extension Wizard.  
 	∘ Select Extension > point to the folder and add it to the path (tick the small box at the bottom).  
+A restart of 3DSlicer is necessary after the initial launch with the plugin to have the proper Python environment.  
+:warning: old  
 Install python package inside 3D Slicer
-
 Open 3D Slicer and open the python interaction window.
 import pip (if it doesn't work => from pip._internal import main as pipmain)
 pip.main(['install', 'package_name']) or pipmain(['install', 'package_name'])

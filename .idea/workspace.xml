@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Cleaning/improving neuro diagnosis handling/display, mostly stable except for resectability.">
+    <list default="true" id="3140f2cd-b4c9-4e99-bde6-45b9cd7e8b31" name="Default Changelist" comment="Automatic download/update for diagnoses.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/DeepSintefWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/DeepSintefWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisNeuroPartResultsWidget.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/resources.py" beforeDir="false" afterPath="$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/resources.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +109,7 @@
       <workItem from="1635148861176" duration="1919000" />
       <workItem from="1642599931179" duration="2163000" />
       <workItem from="1645202196820" duration="1211000" />
-      <workItem from="1646904292593" duration="84831000" />
+      <workItem from="1646904292593" duration="93200000" />
     </task>
     <task id="LOCAL-00001" summary="Cleaning stuff to prepare for a V1.">
       <created>1567599775763</created>
@@ -284,7 +286,14 @@
       <option name="project" value="LOCAL" />
       <updated>1647617981150</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Automatic download/update for diagnoses.">
+      <created>1647941336074</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1647941336074</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -303,7 +312,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Cleaning stuff to prepare for a V1." />
     <MESSAGE value="Removed the slider and other things 'under-construction' for the stable version." />
     <MESSAGE value="Starting a new GUI, clean from deepinfer. Will only keep the ModelParameters connecting the nifti images to 3DSlicer objects." />
     <MESSAGE value="New architecture running. Need of improvment for multi-class predictions, and user parameters editing." />
@@ -328,7 +336,8 @@
     <MESSAGE value="Popup qdialog to ask the user to download the Docker image if necessary." />
     <MESSAGE value="Automating and fixing models download." />
     <MESSAGE value="Cleaning/improving neuro diagnosis handling/display, mostly stable except for resectability." />
-    <option name="LAST_COMMIT_MESSAGE" value="Cleaning/improving neuro diagnosis handling/display, mostly stable except for resectability." />
+    <MESSAGE value="Automatic download/update for diagnoses." />
+    <option name="LAST_COMMIT_MESSAGE" value="Automatic download/update for diagnoses." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -360,7 +369,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Segmentation/ModelsInterfaceWidget.py</url>
-          <line>200</line>
+          <line>203</line>
           <option name="timeStamp" value="268" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -370,7 +379,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
-          <line>135</line>
+          <line>139</line>
           <option name="timeStamp" value="279" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -460,25 +469,35 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py</url>
-          <line>125</line>
+          <line>127</line>
           <option name="timeStamp" value="367" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
-          <line>157</line>
-          <option name="timeStamp" value="368" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py</url>
+          <line>137</line>
+          <option name="timeStamp" value="369" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/gui/Diagnosis/DiagnosisInterfaceWidget.py</url>
-          <line>134</line>
-          <option name="timeStamp" value="369" />
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>46</line>
+          <option name="timeStamp" value="370" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>47</line>
+          <option name="timeStamp" value="371" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="372" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/DeepSintef/DeepSintef/src/utils/io_utilities.py</url>
+          <line>169</line>
+          <option name="timeStamp" value="373" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PyRemoteDebugConfigurationType">
-        <watch expression="self.get_existing_digests()" language="Python" />
-      </configuration>
-    </watches-manager>
   </component>
 </project>

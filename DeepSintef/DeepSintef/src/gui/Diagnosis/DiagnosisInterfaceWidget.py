@@ -23,12 +23,14 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.base_layout = qt.QVBoxLayout()
         self.setup_cloud_diagnosis_area()
         self.setup_local_diagnosis_area()
-        self.populate_local_diagnosis()
-        self.populate_cloud_diagnosis()
+        # self.populate_local_diagnosis()
+        # self.populate_cloud_diagnosis()
         self.setup_diagnosis_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
-        self.on_diagnosis_selection(0)
+        # self.on_diagnosis_selection(0)
+        self.populate_local_diagnosis()
+        self.populate_cloud_diagnosis()
 
     def setup_cloud_diagnosis_area(self):
         self.cloud_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -132,6 +134,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
             self.cloud_diagnosis_download_pushbutton.setEnabled(False)
 
     def populate_local_diagnosis(self):
+        self.local_diagnosis_selector_combobox.clear()
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
         jsonFiles = sorted(jsonFiles)
         self.json_diagnoses = []
@@ -151,7 +154,8 @@ class DiagnosisInterfaceWidget(qt.QWidget):
             return
         jsonIndex = self.local_diagnosis_selector_combobox.itemData(index)
         selected_diagnosis = self.local_diagnosis_selector_combobox.currentText
-        success = download_cloud_diagnosis(selected_diagnosis)
+        if SharedResources.getInstance().global_active_model_update:
+            success = download_cloud_diagnosis(selected_diagnosis)
         self.diagnosis_model_parameters.destroy()
         json_model = self.json_diagnoses[jsonIndex]
         self.diagnosis_model_parameters.create(json_model)

@@ -39,10 +39,14 @@ def get_available_cloud_models_list():
     return cloud_models_list
 
 
-def download_cloud_model_thread(selected_model, local_models, cloud_models):
-    download_cloud_model_thread = threading.Thread(target=download_cloud_model(selected_model, local_models, cloud_models))
+def download_cloud_model_thread(selected_model):
+    download_cloud_model_thread = threading.Thread(target=download_cloud_model(selected_model))
     download_cloud_model_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
     download_cloud_model_thread.start()
+
+    # success = download_cloud_model_thread.join()
+    # return success
+
     # success = False
     # import concurrent.futures
     # with concurrent.futures.ThreadPoolExecutor() as executor:
