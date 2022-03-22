@@ -126,28 +126,76 @@ def download_cloud_model(selected_model):
     return success
 
 
-def check_for_local_model_update(selected_model, local_models):
-    """
+# def check_for_local_model_update(selected_model, local_models):
+#     """
+#
+#     :param selected_model:
+#     :param local_models:
+#     :return:
+#     """
+#     for model in local_models_models:
+#         if model[0] == selected_model:
+#             model_url = model[1]
+#             model_dependencies = model[2].split(';') if model[2].strip() != '' else []
+#             model_checksum = model[3]
+#
+#     models_archive_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models',
+#                                        '.cache', model_name + '.zip')
+#     os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
+#     gdown.cached_download(url=url, path=models_archive_path, md5=md5)
 
-    :param selected_model:
-    :param local_models:
-    :return:
-    """
-    for model in local_models_models:
-        if model[0] == selected_model:
-            model_url = model[1]
-            model_dependencies = model[2].split(';') if model[2].strip() != '' else []
-            model_checksum = model[3]
 
-    models_archive_path = os.path.join(expanduser('~'), '.neurorads', 'resources', 'models',
-                                       '.cache', model_name + '.zip')
-    os.makedirs(os.path.dirname(models_archive_path), exist_ok=True)
-    gdown.cached_download(url=url, path=models_archive_path, md5=md5)
+def get_available_cloud_diagnoses_list():
+    cloud_diagnoses_list = []
+    cloud_diagnoses_list_url = 'https://drive.google.com/uc?id=1FDleimGDdODufCaTqGdK4yTVA9JdOAHx'
+    try:
+        cloud_diagnoses_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_diagnoses_list.csv')
+        gdown.cached_download(url=cloud_diagnoses_list_url, path=cloud_diagnoses_list_filename)
+        line_count = 0
+        with open(cloud_diagnoses_list_filename) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            for row in csv_reader:
+                if line_count == 0:
+                    line_count += 1
+                else:
+                    cloud_diagnoses_list.append(row)
+    except Exception as e:
+        print('Impossible to access the cloud diagnoses list.\n')
+        print('{}'.format(traceback.format_exc()))
 
-
-def get_available_cloud_diagnosis_list():
-    return []
+    return cloud_diagnoses_list
 
 
 def download_cloud_diagnosis(selected_diagnosis):
-    pass
+    diagnosis_url = ''
+    diagnosis_dependencies = []
+    diagnosis_checksum = None
+    tmp_archive_dir = ''
+    success = True
+    cloud_diagnoses = get_available_cloud_diagnoses_list()
+    try:
+        for diagnosis in cloud_diagnoses:
+            if diagnosis[0] == selected_diagnosis:
+                diagnosis_url = diagnosis[1]
+                diagnosis_dependencies = diagnosis[2].split(';') if diagnosis[2].strip() != '' else []
+                diagnosis_checksum = diagnosis[3]
+
+        json_local_dir = SharedResources.getInstance().json_local_dir
+        dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+                                       str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
+                                       + '.json')
+        gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)
+        shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
+
+        # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
+        if len(diagnosis_dependencies) > 0:
+            for dep in diagnosis_dependencies:
+                success_dep = download_cloud_model(dep)
+                success = success & success_dep
+    except Exception as e:
+        print('Impossible to download the selected cloud model.\n')
+        print('{}'.format(traceback.format_exc()))
+        success = False
+        if os.path.exists(tmp_archive_dir):
+            shutil.rmtree(tmp_archive_dir)
+    return success

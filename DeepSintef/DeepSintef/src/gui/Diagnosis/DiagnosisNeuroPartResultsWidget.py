@@ -88,9 +88,9 @@ class DiagnosisNeuroPartResultsWidget(qt.QWidget):
         self.laterality_left_lineedit.setText(str(np.round(values['Overall'].left_laterality_percentage, 2)) + ' %')
         self.laterality_midline_lineedit.setText(values['Overall'].laterality_midline_crossing)
 
-        if NeuroDiagnosisParameters.getInstance().tumor_type == 'HGGlioma':
+        if NeuroDiagnosisParameters.getInstance().tumor_type == 'High-Grade Glioma':
             self.expected_residual_volume_lineedit.setText(str(np.round(values['Overall'].mni_space_expected_residual_tumor_volume, 3)) + ' ml')
-            self.resectability_index_lineedit.setText(str(values['Overall'].mni_space_resectability_score))
+            self.resectability_index_lineedit.setText(str(values['Overall'].mni_space_resectability_index))
             self.resectability_groupbox.setVisible(True)
         else:
             self.resectability_groupbox.setVisible(False)

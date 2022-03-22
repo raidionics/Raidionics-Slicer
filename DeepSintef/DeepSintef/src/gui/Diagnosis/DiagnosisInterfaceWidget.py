@@ -11,7 +11,7 @@ if sys.version_info.major == 3:
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.DeepSintefLogic import DeepSintefLogic
-from src.utils.io_utilities import get_available_cloud_diagnosis_list, download_cloud_diagnosis
+from src.utils.io_utilities import get_available_cloud_diagnoses_list, download_cloud_diagnosis
 
 
 class DiagnosisInterfaceWidget(qt.QWidget):
@@ -23,6 +23,8 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.base_layout = qt.QVBoxLayout()
         self.setup_cloud_diagnosis_area()
         self.setup_local_diagnosis_area()
+        self.populate_local_diagnosis()
+        self.populate_cloud_diagnosis()
         self.setup_diagnosis_parameters_area()
         self.setLayout(self.base_layout)
         self.setup_connections()
@@ -46,7 +48,6 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.cloud_diagnosis_download_pushbutton = qt.QPushButton('Press to download')
         self.cloud_diagnosis_area_groupbox_layout.addRow("Details:", self.cloud_diagnosis_download_pushbutton)
         self.cloud_diagnosis_download_pushbutton.setEnabled(False)
-        self.populate_cloud_diagnosis()
 
     def setup_local_diagnosis_area(self):
         self.local_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -62,7 +63,6 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         # model selector
         self.local_diagnosis_selector_combobox = qt.QComboBox()
         self.modelsFormLayout.addRow("Diagnosis:", self.local_diagnosis_selector_combobox)
-        self.populate_local_diagnosis()
 
         self.local_diagnosis_moreinfo_pushbutton = qt.QPushButton('Press to display')
         self.modelsFormLayout.addRow("Details:", self.local_diagnosis_moreinfo_pushbutton)
@@ -90,6 +90,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.local_diagnosis_area_searchbox.connect("textChanged(QString)", self.on_local_diagnosis_search)
         self.local_diagnosis_selector_combobox.connect('currentIndexChanged(int)', self.on_diagnosis_selection)
         self.local_diagnosis_moreinfo_pushbutton.connect('clicked()', self.on_diagnosis_details_selected)
+        self.cloud_diagnosis_download_pushbutton.clicked.connect(self.on_cloud_diagnosis_download_selected)
 
     def get_existing_digests(self):
         cmd = []
@@ -118,9 +119,9 @@ class DiagnosisInterfaceWidget(qt.QWidget):
     def populate_cloud_diagnosis(self):
         self.cloud_diagnosis_list = []
         self.cloud_diagnosis_selector_combobox.clear()
-        cloud_diagnosis_list = get_available_cloud_diagnosis_list()
+        cloud_diagnosis_list = get_available_cloud_diagnoses_list()
         for idx, model in enumerate(cloud_diagnosis_list):
-            already_local = True if True in [x["name"] == model[0] for x in self.jsonModels] else False
+            already_local = True if True in [x["name"] == model[0] for x in self.json_diagnoses] else False
             if not already_local:
                 self.cloud_diagnosis_list.append(model)
                 self.cloud_diagnosis_selector_combobox.addItem(model[0], idx)
@@ -131,37 +132,32 @@ class DiagnosisInterfaceWidget(qt.QWidget):
             self.cloud_diagnosis_download_pushbutton.setEnabled(False)
 
     def populate_local_diagnosis(self):
-        digests = self.get_existing_digests()
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
-        # jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
         jsonFiles = sorted(jsonFiles)
-        self.jsonModels = []
+        self.json_diagnoses = []
         for fname in jsonFiles:
-            with open(fname, "r") as fp:
-                j = json.load(fp, object_pairs_hook=OrderedDict)
+            if 'Diagnosis' in fname:
+                with open(fname, "r") as fp:
+                    j = json.load(fp, object_pairs_hook=OrderedDict)
 
-            self.jsonModels.append(j)
-            # if j['docker']['digest'] in digests:
-            #     self.jsonModels.append(j)
-            # else:
-            #     os.remove(fname)
-        # add all the models listed in the json files
-        # print('JSON models: {}'.format(self.jsonModels))
-        for idx, j in enumerate(self.jsonModels):
+                self.json_diagnoses.append(j)
+        for idx, j in enumerate(self.json_diagnoses):
             name = j["name"]
             if 'task' in j and j['task'] == 'Diagnosis':
                 self.local_diagnosis_selector_combobox.addItem(name, idx)
 
     def on_diagnosis_selection(self, index):
-        self.diagnosis_model_parameters.destroy()
         if index < 0 or self.local_diagnosis_selector_combobox.count == 0:
             return
         jsonIndex = self.local_diagnosis_selector_combobox.itemData(index)
-        json_model = self.jsonModels[jsonIndex]
+        selected_diagnosis = self.local_diagnosis_selector_combobox.currentText
+        success = download_cloud_diagnosis(selected_diagnosis)
+        self.diagnosis_model_parameters.destroy()
+        json_model = self.json_diagnoses[jsonIndex]
         self.diagnosis_model_parameters.create(json_model)
 
-        if "briefdescription" in self.jsonModels[jsonIndex]:
-            tip = self.jsonModels[jsonIndex]["briefdescription"]
+        if "briefdescription" in self.json_diagnoses[jsonIndex]:
+            tip = self.json_diagnoses[jsonIndex]["briefdescription"]
             tip = tip.rstrip()
             self.local_diagnosis_selector_combobox.setToolTip(tip)
         else:
@@ -185,7 +181,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.local_diagnosis_selector_combobox.clear()
         # split text on whitespace of and string search
         searchTextList = search_text.split()
-        for idx, j in enumerate(self.jsonModels):
+        for idx, j in enumerate(self.json_diagnoses):
             lname = j["name"].lower()
             if 'task' in j and j['task'] == 'Diagnosis':
                 # require all elements in list, to add to select. case insensitive
@@ -194,7 +190,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def on_diagnosis_details_selected(self):
         index = self.local_diagnosis_selector_combobox.currentIndex
-        model_json = self.jsonModels[[x['name'] == self.local_diagnosis_selector_combobox.currentText for x in self.jsonModels].index(True)]
+        model_json = self.json_diagnoses[[x['name'] == self.local_diagnosis_selector_combobox.currentText for x in self.json_diagnoses].index(True)]
 
         tip = ''
         exhaustive_list = ['owner', 'task', 'organ', 'target', 'modality', 'sequence', 'dataset_description']
@@ -206,3 +202,11 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         popup.setWindowTitle('Exhaustive description for {}'.format(self.local_diagnosis_selector_combobox.currentText))
         popup.setText(tip)
         x = popup.exec_()
+
+    def on_cloud_diagnosis_download_selected(self):
+        digests = self.get_existing_digests()
+        selected_diagnosis = self.cloud_diagnosis_selector_combobox.currentText
+        success = download_cloud_diagnosis(selected_diagnosis)
+        if success:
+            self.populate_local_diagnosis()
+            self.populate_cloud_diagnosis()

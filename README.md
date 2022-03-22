@@ -4,12 +4,12 @@
 
 • Download 3DSlicer.  
 • git clone --single-branch --branch full_update https://github.com/dbouget/Slicer-DeepSintef.git /path/to/folder/
-(or clone the base repository and then git checkout the branch.)
+(or clone the base repository and then git checkout the branch.)  
 • Install DeepSintef Module:  
-∘ Download locally the module from github.  
-∘ All Modules > Extension Wizard.  
-∘ (Slicer v4.11) Developer Tools > Extension Wizard.
-∘ Select Extension > point to the folder and add it to the path (tick the small box at the bottom).  
+	∘ Download locally the module from github.  
+	∘ All Modules > Extension Wizard.  
+	∘ (Slicer v4.11) Developer Tools > Extension Wizard.  
+	∘ Select Extension > point to the folder and add it to the path (tick the small box at the bottom).  
 Install python package inside 3D Slicer
 
 Open 3D Slicer and open the python interaction window.
