@@ -222,17 +222,21 @@ class DeepSintefLogic:
         result = False
         cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        res_lines = ""
-        while True:
-            slicer.app.processEvents()
-            line = p.stderr.readline().decode("utf-8")
-            if not line:
-                break
-            res_lines = res_lines + '/n' + line
+        stdout, stderr = p.communicate()
 
-        # If the image has not been found, attempt to download it
-        if 'Error: No such image' not in res_lines:
+        if 'Error: No such image' not in stderr.decode("utf-8"):
             result = True
+        # res_lines = ""
+        # while True:
+        #     slicer.app.processEvents()
+        #     line = p.stderr.readline().decode("utf-8")
+        #     if not line:
+        #         break
+        #     res_lines = res_lines + '/n' + line
+        #
+        # # If the image has not been found, attempt to download it
+        # if 'Error: No such image' not in res_lines:
+        #     result = True
 
         return result
 
@@ -241,33 +245,42 @@ class DeepSintefLogic:
         result = False
         cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        res_lines = ""
-        while True:
-            slicer.app.processEvents()
-            line = p.stderr.readline().decode("utf-8")
-            if not line:
-                break
-            res_lines = res_lines + '/n' + line
+        # res_lines = ""
+        # while True:
+        #     slicer.app.processEvents()
+        #     line = p.stderr.readline().decode("utf-8")
+        #     if not line:
+        #         break
+        #     res_lines = res_lines + '/n' + line
+
+        stdout, stderr = p.communicate()
 
         # If the image has not been found, attempt to download it
-        if 'Error: No such image' in res_lines:
+        if 'Error: No such image' not in stderr.decode("utf-8"):
+        # if 'Error: No such image' in res_lines:
             cmd_docker = ['docker', 'image', 'pull', docker_image_name]
-            p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
             cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
-            p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            res_lines = ""
-            while True:
-                slicer.app.processEvents()
-                line = p.stderr.readline().decode("utf-8")
-                if not line:
-                    break
-                res_lines = res_lines + '/n' + line
-
+            p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout2, stderr2 = p2.communicate()
             # If the image could not be downloaded -- abort
-            if 'Error: No such image' in res_lines:
+            if 'Error: No such image' in stderr2.decode("utf-8"):
                 result = False
             else:
                 result = True
+            # res_lines = ""
+            # while True:
+            #     slicer.app.processEvents()
+            #     line = p.stderr.readline().decode("utf-8")
+            #     if not line:
+            #         break
+            #     res_lines = res_lines + '/n' + line
+            #
+            # # If the image could not be downloaded -- abort
+            # if 'Error: No such image' in res_lines:
+            #     result = False
+            # else:
+            #     result = True
         else:
             result = True
 
