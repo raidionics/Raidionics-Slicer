@@ -78,6 +78,8 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.diagnosis_execution_widget.generate_segments_pushbutton.connect("clicked()", self.on_generate_segments)
         self.diagnosis_execution_widget.optimal_display_pushbutton.connect("clicked()", self.on_optimal_display)
 
+        self.diagnosis_interface_widget.diagnosis_available_signal.connect(self.diagnosis_execution_widget.on_diagnosis_available)
+
     def update_results_area(self):
         if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
             #@TODO. Should collapse everything except the results box, for better viewing?

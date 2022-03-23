@@ -11,13 +11,16 @@ if sys.version_info.major == 3:
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.DeepSintefLogic import DeepSintefLogic
-from src.utils.io_utilities import get_available_cloud_diagnoses_list, download_cloud_diagnosis
+from src.utils.io_utilities import get_available_cloud_diagnoses_list, download_cloud_diagnosis, check_local_diagnosis_for_update
+from src.gui.UtilsWidgets.DownloadDialog import DownloadDialog
 
 
 class DiagnosisInterfaceWidget(qt.QWidget):
     """
     GUI component displaying the selection of possible diagnosis available, very similar to the segmentation counter-part.
     """
+    diagnosis_available_signal = qt.Signal(bool)
+
     def __init__(self, parent=None):
         super(DiagnosisInterfaceWidget, self).__init__(parent)
         self.base_layout = qt.QVBoxLayout()
@@ -155,7 +158,12 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         jsonIndex = self.local_diagnosis_selector_combobox.itemData(index)
         selected_diagnosis = self.local_diagnosis_selector_combobox.currentText
         if SharedResources.getInstance().global_active_model_update:
-            success = download_cloud_diagnosis(selected_diagnosis)
+            dl_req = check_local_diagnosis_for_update(selected_diagnosis)
+            if dl_req:
+                diag = DownloadDialog(self)
+                diag.set_diagnosis_name(selected_diagnosis)
+                diag.exec()
+
         self.diagnosis_model_parameters.destroy()
         json_model = self.json_diagnoses[jsonIndex]
         self.diagnosis_model_parameters.create(json_model)
@@ -172,14 +180,24 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         DeepSintefLogic.getInstance().selected_model = self.local_diagnosis_selector_combobox
         docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
         if not docker_status:
-            tip = 'Before being able to run the selected model, the following actions must be performed:\n'
-            tip += '   * Open the command line editor (On Windows, type \'cmd\' in the search bar.)\n'
-            tip += '   * Copy and execute: docker image pull {}\n'.format(self.diagnosis_model_parameters.dockerImageName)
-            tip += '   * Wait for the download to be complete, then exit the popup.\n'
-            popup = qt.QMessageBox()
-            popup.setWindowTitle('Warning')
-            popup.setText(tip)
-            x = popup.exec_()
+            diag = DownloadDialog(self)
+            diag.set_docker_image_name(self.model_parameters.dockerImageName)
+            diag.exec()
+            new_docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
+            if new_docker_status:
+                self.diagnosis_available_signal.emit(True)
+            else:
+                tip = 'The required Docker image could not be downloaded, maybe because of read/write access rights or because the image is private:\n'
+                tip += '   * Open the command line editor (On Windows, type \'cmd\' in the search bar.)\n'
+                tip += '   * Copy and execute: docker image pull {}\n'.format(self.model_parameters.dockerImageName)
+                tip += '   * Wait for the download to be complete, then exit the popup.\n'
+                popup = qt.QMessageBox()
+                popup.setWindowTitle('Warning')
+                popup.setText(tip)
+                x = popup.exec_()
+                self.diagnosis_available_signal.emit(False)
+        else:
+            self.diagnosis_available_signal.emit(True)
 
     def on_local_diagnosis_search(self, search_text):
         self.local_diagnosis_selector_combobox.clear()

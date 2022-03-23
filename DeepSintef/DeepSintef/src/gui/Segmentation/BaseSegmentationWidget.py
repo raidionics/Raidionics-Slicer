@@ -30,6 +30,8 @@ class BaseSegmentationWidget(qt.QWidget):
         self.model_execution_widget.interactive_thresholding_slider.valueChanged.connect(self.on_interactive_slider_moved)
         self.model_execution_widget.interactive_optimal_thr_pushbutton.connect("clicked()", self.on_interactive_best_threshold_clicked)
 
+        self.model_interface_widget.segmentation_available_signal.connect(self.model_execution_widget.on_segmentation_available)
+
     def on_run_model(self):
         DeepSintefLogic.getInstance().logic_task = 'segmentation'
         DeepSintefLogic.getInstance().run(self.model_interface_widget.model_parameters)

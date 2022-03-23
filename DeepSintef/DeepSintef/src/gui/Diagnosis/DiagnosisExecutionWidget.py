@@ -50,12 +50,18 @@ class DiagnosisExecutionWidget(qt.QWidget):
         pass
 
     def set_default_execution_area(self):
-        self.run_model_pushbutton.setEnabled(True)
+        self.run_model_pushbutton.setEnabled(False)
         self.run_model_pushbutton.setText('Run diagnosis')
         self.cancel_model_run_pushbutton.setEnabled(False)
 
     def set_default_interactive_area(self):
         pass
+
+    def on_diagnosis_available(self, state):
+        if state:
+            self.run_model_pushbutton.setEnabled(True)
+        else:
+            self.run_model_pushbutton.setEnabled(False)
 
     def on_logic_event_start(self):
         self.run_model_pushbutton.setEnabled(False)

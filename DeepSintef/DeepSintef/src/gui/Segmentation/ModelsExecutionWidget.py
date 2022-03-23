@@ -108,7 +108,7 @@ class ModelsExecutionWidget(qt.QWidget):
         # self.interactive_thresholding_slider.valueChanged.connect(self.on_interactive_slider_moved)
 
     def set_default_execution_area(self):
-        self.run_model_pushbutton.setEnabled(True)
+        self.run_model_pushbutton.setEnabled(False)
         self.run_model_pushbutton.setText('Run segmentation')
         self.cancel_model_run_pushbutton.setEnabled(False)
 
@@ -118,6 +118,12 @@ class ModelsExecutionWidget(qt.QWidget):
 
     def set_default_interactive_area(self):
         pass
+
+    def on_segmentation_available(self, state):
+        if state:
+            self.run_model_pushbutton.setEnabled(True)
+        else:
+            self.run_model_pushbutton.setEnabled(False)
 
     def on_use_gpu_change(self, state):
         if state == qt.Qt.Checked:

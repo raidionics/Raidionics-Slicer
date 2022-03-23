@@ -256,7 +256,7 @@ class DeepSintefLogic:
         stdout, stderr = p.communicate()
 
         # If the image has not been found, attempt to download it
-        if 'Error: No such image' not in stderr.decode("utf-8"):
+        if 'Error: No such image' in stderr.decode("utf-8"):
         # if 'Error: No such image' in res_lines:
             cmd_docker = ['docker', 'image', 'pull', docker_image_name]
             p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)

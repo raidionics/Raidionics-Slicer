@@ -2,6 +2,7 @@ from __main__ import qt, ctk, slicer, vtk
 from glob import glob
 import os
 import json
+import threading
 from collections import OrderedDict
 import subprocess
 import sys
@@ -11,7 +12,8 @@ if sys.version_info.major == 3:
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.DeepSintefLogic import DeepSintefLogic
-from src.utils.io_utilities import get_available_cloud_models_list, download_cloud_model, download_cloud_model_thread
+from src.utils.io_utilities import get_available_cloud_models_list, download_cloud_model, download_cloud_model_thread, check_local_model_for_update
+from src.gui.UtilsWidgets.DownloadDialog import DownloadDialog
 
 
 class ModelsInterfaceWidget(qt.QWidget):
@@ -19,6 +21,9 @@ class ModelsInterfaceWidget(qt.QWidget):
     GUI component displaying the local and remote available models, together with a description.
     Initialize the selected model's parameters.
     """
+
+    segmentation_available_signal = qt.Signal(bool)
+
     def __init__(self, parent=None):
         super(ModelsInterfaceWidget, self).__init__(parent)
         self.base_layout = qt.QVBoxLayout()
@@ -165,14 +170,19 @@ class ModelsInterfaceWidget(qt.QWidget):
             self.cloud_model_download_pushbutton.setEnabled(False)
 
     def on_model_selection(self, index):
-        # @TODO. Maybe should have a global option(e.g., tickbox) to prevent from checking models update at runtime?
-        # @TODO. Maybe also a flush method to remove old models, in case the users don't know how to do it themselves?
-        if index < 0 or self.local_model_selector_combobox.count == 0:
+        # @TODO. Maybe need a flush method to remove old models, in case the users don't know how to do it themselves?
+        if index < 1 or self.local_model_selector_combobox.count == 1:
             return
 
         selected_model = self.local_model_selector_combobox.currentText
+        # @TODO. Should also check if the files are still on disk, before sending the OK signal?
+        # @TODO. Should also check for an update of the docker image by comparing sha numbers?
         if SharedResources.getInstance().global_active_model_update:
-            success = download_cloud_model(selected_model)
+            dl_req = check_local_model_for_update(selected_model)
+            if dl_req:
+                diag = DownloadDialog(self)
+                diag.set_model_name(selected_model)
+                diag.exec()
         self.model_parameters.destroy()
         jsonIndex = self.local_model_selector_combobox.itemData(index)
         json_model = self.jsonModels[jsonIndex]
@@ -190,14 +200,24 @@ class ModelsInterfaceWidget(qt.QWidget):
         DeepSintefLogic.getInstance().selected_model = self.local_model_selector_combobox
         docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
         if not docker_status:
-            tip = 'Before being able to run the selected model, the following actions must be performed:\n'
-            tip += '   * Open the command line editor (On Windows, type \'cmd\' in the search bar.)\n'
-            tip += '   * Copy and execute: docker image pull {}\n'.format(self.model_parameters.dockerImageName)
-            tip += '   * Wait for the download to be complete, then exit the popup.\n'
-            popup = qt.QMessageBox()
-            popup.setWindowTitle('Warning')
-            popup.setText(tip)
-            x = popup.exec_()
+            diag = DownloadDialog(self)
+            diag.set_docker_image_name(self.model_parameters.dockerImageName)
+            diag.exec()
+            new_docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
+            if new_docker_status:
+                self.segmentation_available_signal.emit(True)
+            else:
+                tip = 'The required Docker image could not be downloaded, maybe because of read/write access rights or because the image is private:\n'
+                tip += '   * Open the command line editor (On Windows, type \'cmd\' in the search bar.)\n'
+                tip += '   * Copy and execute: docker image pull {}\n'.format(self.model_parameters.dockerImageName)
+                tip += '   * Wait for the download to be complete, then exit the popup.\n'
+                popup = qt.QMessageBox()
+                popup.setWindowTitle('Warning')
+                popup.setText(tip)
+                x = popup.exec_()
+                self.segmentation_available_signal.emit(False)
+        else:
+            self.segmentation_available_signal.emit(True)
 
     def on_local_model_search(self, searchText):
         # add all the models listed in the json files
@@ -218,6 +238,7 @@ class ModelsInterfaceWidget(qt.QWidget):
         #jsonFiles.sort(cmp=lambda x, y: cmp(os.path.basename(x), os.path.basename(y)))
         self.jsonModels = []
         self.local_model_selector_combobox.clear()
+        self.local_model_selector_combobox.addItem("", 0)
         for fname in jsonFiles:
             with open(fname, "r") as fp:
                 j = json.load(fp, object_pairs_hook=OrderedDict)
@@ -232,9 +253,9 @@ class ModelsInterfaceWidget(qt.QWidget):
         for idx, j in enumerate(self.jsonModels):
             name = j["name"]
             if 'task' in j and j['task'] == 'Segmentation':
-                self.local_model_selector_combobox.addItem(name, idx)
+                self.local_model_selector_combobox.addItem(name, idx + 1)
 
-        if len(self.jsonModels) >= 1:
+        if len(self.jsonModels) > 1:
             self.local_model_moreinfo_pushbutton.setEnabled(True)
         else:
             self.local_model_moreinfo_pushbutton.setEnabled(False)
