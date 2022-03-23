@@ -138,6 +138,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def populate_local_diagnosis(self):
         self.local_diagnosis_selector_combobox.clear()
+        self.local_diagnosis_selector_combobox.addItem("", 0)
         jsonFiles = glob(SharedResources.getInstance().json_local_dir + "/*.json")
         jsonFiles = sorted(jsonFiles)
         self.json_diagnoses = []
@@ -150,7 +151,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         for idx, j in enumerate(self.json_diagnoses):
             name = j["name"]
             if 'task' in j and j['task'] == 'Diagnosis':
-                self.local_diagnosis_selector_combobox.addItem(name, idx)
+                self.local_diagnosis_selector_combobox.addItem(name, idx + 1)
 
     def on_diagnosis_selection(self, index):
         if index < 1 or self.local_diagnosis_selector_combobox.count == 1:
@@ -202,7 +203,6 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def on_local_diagnosis_search(self, search_text):
         self.local_diagnosis_selector_combobox.clear()
-        self.local_diagnosis_selector_combobox.addItem("", 0)
         # split text on whitespace of and string search
         searchTextList = search_text.split()
         for idx, j in enumerate(self.json_diagnoses):
@@ -210,7 +210,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
             if 'task' in j and j['task'] == 'Diagnosis':
                 # require all elements in list, to add to select. case insensitive
                 if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
-                    self.local_diagnosis_selector_combobox.addItem(j["name"], idx + 1)
+                    self.local_diagnosis_selector_combobox.addItem(j["name"], idx)
 
     def on_diagnosis_details_selected(self):
         index = self.local_diagnosis_selector_combobox.currentIndex
