@@ -269,18 +269,24 @@ class WorkerFinishedSignal(qt.QObject):
 
 
 class DownloadWorker(qt.QObject): #qt.QThread
+    finished_signal = qt.Signal(bool)
+
     def __init__(self):
-        self.finished_signal = WorkerFinishedSignal() #qt.Signal() #qt.Signal(name='workerFinished')
+        super(qt.QObject, self).__init__()
+        # self.finished_signal = qt.Signal(bool) #WorkerFinishedSignal() #qt.Signal() #qt.Signal(name='workerFinished')
 
     def onWorkerStart(self, model=None, diagnosis=None, docker_image=None):
-        if model is not None:
-            self.download_cloud_model2(model)
-        elif diagnosis is not None:
-            self.download_cloud_diagnosis2(diagnosis)
-        elif docker_image is not None:
-            self.download_docker_image(docker_image)
+        try:
+            if model is not None:
+                self.download_cloud_model(model)
+            elif diagnosis is not None:
+                self.download_cloud_diagnosis2(diagnosis)
+            elif docker_image is not None:
+                self.download_docker_image(docker_image)
+        except Exception:
+            self.finished_signal.emit(False)
 
-    def download_cloud_model2(self, selected_model):
+    def download_cloud_model(self, selected_model):
         model_url = ''
         model_dependencies = []
         model_checksum = None
@@ -357,7 +363,7 @@ class DownloadWorker(qt.QObject): #qt.QThread
             if os.path.exists(tmp_archive_dir):
                 shutil.rmtree(tmp_archive_dir)
 
-        self.finished_signal.finished_signal.emit()
+        self.finished_signal.emit(success)
         # return success
 
     def download_cloud_diagnosis2(self, selected_diagnosis):
@@ -392,10 +398,11 @@ class DownloadWorker(qt.QObject): #qt.QThread
             success = False
             if os.path.exists(tmp_archive_dir):
                 shutil.rmtree(tmp_archive_dir)
-        self.finished_signal.finished_signal.emit()
+        self.finished_signal.emit(success)
         # return success
 
     def download_docker_image(self, select_image):
+        # @TODO. If the download is slow, no info is printed on screen, might make the user wonder what is happening...
         cmd_docker = ['docker', 'image', 'pull', select_image]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
         res_lines = ""
@@ -428,4 +435,4 @@ class DownloadWorker(qt.QObject): #qt.QThread
         # else:
         #     result = True
 
-        self.finished_signal.finished_signal.emit()
+        self.finished_signal.emit(True)

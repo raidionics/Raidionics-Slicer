@@ -30,7 +30,7 @@ class DownloadDialog(qt.QDialog):
         self.setLayout(self.base_layout)
 
         self.worker = DownloadWorker()
-        self.worker.finished_signal.finished_signal.connect(self.on_worker_finished)
+        self.worker.finished_signal.connect(self.on_worker_finished)
 
         # self.start_download_pushbutton.clicked.connect(self.on_worker_started())
         self.start_download_pushbuttonbox.clicked.connect(self.on_button_pressed)
@@ -69,9 +69,13 @@ class DownloadDialog(qt.QDialog):
     def on_worker_started(self):
         if self.model_name is not None or self.diagnosis_name is not None or self.docker_image_name is not None:
             self.download_label.setText("Downloading, please wait ...")
+            self.start_download_pushbutton.setEnabled(False)
             slicer.app.processEvents()
             self.worker.onWorkerStart(model=self.model_name, diagnosis=self.diagnosis_name,
                                       docker_image=self.docker_image_name)
 
-    def on_worker_finished(self):
-        self.accept()
+    def on_worker_finished(self, success_state):
+        if success_state:
+            self.accept()
+        else:
+            self.download_label.setText("Downloading failed.")

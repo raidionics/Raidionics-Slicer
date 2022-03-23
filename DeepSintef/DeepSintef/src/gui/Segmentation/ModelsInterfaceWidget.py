@@ -149,10 +149,13 @@ class ModelsInterfaceWidget(qt.QWidget):
         # x = popup.exec_()
 
         selected_model = self.cloud_model_selector_combobox.currentText
-        success = download_cloud_model(selected_model)
-        if success:
-            self.populate_local_models()
-            self.populate_cloud_models()
+        diag = DownloadDialog(self)
+        diag.set_model_name(selected_model)
+        diag.exec()
+        # success = download_cloud_model(selected_model)
+        # if success:
+        self.populate_local_models()
+        self.populate_cloud_models()
 
     def populate_cloud_models(self):
         self.cloud_models_list = []

@@ -51,7 +51,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.cloud_diagnosis_area_groupbox_layout.addRow("Diagnosis:", self.cloud_diagnosis_selector_combobox)
 
         self.cloud_diagnosis_download_pushbutton = qt.QPushButton('Press to download')
-        self.cloud_diagnosis_area_groupbox_layout.addRow("Details:", self.cloud_diagnosis_download_pushbutton)
+        self.cloud_diagnosis_area_groupbox_layout.addRow("Download:", self.cloud_diagnosis_download_pushbutton)
         self.cloud_diagnosis_download_pushbutton.setEnabled(False)
 
     def setup_local_diagnosis_area(self):
@@ -181,9 +181,9 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
         if not docker_status:
             diag = DownloadDialog(self)
-            diag.set_docker_image_name(self.model_parameters.dockerImageName)
+            diag.set_docker_image_name(self.diagnosis_model_parameters.dockerImageName)
             diag.exec()
-            new_docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
+            new_docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
             if new_docker_status:
                 self.diagnosis_available_signal.emit(True)
             else:
@@ -226,9 +226,14 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         x = popup.exec_()
 
     def on_cloud_diagnosis_download_selected(self):
+        # @TODO. Not ideal as it requires to click twice on download, but at least it will hang
+        # during pop-up time, should be more understandable for the user.
         digests = self.get_existing_digests()
         selected_diagnosis = self.cloud_diagnosis_selector_combobox.currentText
-        success = download_cloud_diagnosis(selected_diagnosis)
-        if success:
-            self.populate_local_diagnosis()
-            self.populate_cloud_diagnosis()
+        diag = DownloadDialog(self)
+        diag.set_diagnosis_name(selected_diagnosis)
+        diag.exec()
+        # success = download_cloud_diagnosis(selected_diagnosis)
+        # if True: #success:
+        self.populate_local_diagnosis()
+        self.populate_cloud_diagnosis()
