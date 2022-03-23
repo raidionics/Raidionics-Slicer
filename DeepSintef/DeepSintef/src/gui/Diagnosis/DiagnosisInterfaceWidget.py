@@ -153,8 +153,9 @@ class DiagnosisInterfaceWidget(qt.QWidget):
                 self.local_diagnosis_selector_combobox.addItem(name, idx)
 
     def on_diagnosis_selection(self, index):
-        if index < 0 or self.local_diagnosis_selector_combobox.count == 0:
+        if index < 1 or self.local_diagnosis_selector_combobox.count == 1:
             return
+
         jsonIndex = self.local_diagnosis_selector_combobox.itemData(index)
         selected_diagnosis = self.local_diagnosis_selector_combobox.currentText
         if SharedResources.getInstance().global_active_model_update:
@@ -165,11 +166,11 @@ class DiagnosisInterfaceWidget(qt.QWidget):
                 diag.exec()
 
         self.diagnosis_model_parameters.destroy()
-        json_model = self.json_diagnoses[jsonIndex]
+        json_model = self.json_diagnoses[jsonIndex - 1]
         self.diagnosis_model_parameters.create(json_model)
 
-        if "briefdescription" in self.json_diagnoses[jsonIndex]:
-            tip = self.json_diagnoses[jsonIndex]["briefdescription"]
+        if "briefdescription" in self.json_diagnoses[jsonIndex - 1]:
+            tip = self.json_diagnoses[jsonIndex - 1]["briefdescription"]
             tip = tip.rstrip()
             self.local_diagnosis_selector_combobox.setToolTip(tip)
         else:
@@ -201,6 +202,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def on_local_diagnosis_search(self, search_text):
         self.local_diagnosis_selector_combobox.clear()
+        self.local_diagnosis_selector_combobox.addItem("", 0)
         # split text on whitespace of and string search
         searchTextList = search_text.split()
         for idx, j in enumerate(self.json_diagnoses):
@@ -208,7 +210,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
             if 'task' in j and j['task'] == 'Diagnosis':
                 # require all elements in list, to add to select. case insensitive
                 if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
-                    self.local_diagnosis_selector_combobox.addItem(j["name"], idx)
+                    self.local_diagnosis_selector_combobox.addItem(j["name"], idx + 1)
 
     def on_diagnosis_details_selected(self):
         index = self.local_diagnosis_selector_combobox.currentIndex
