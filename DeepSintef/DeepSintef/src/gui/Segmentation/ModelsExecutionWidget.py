@@ -156,6 +156,7 @@ class ModelsExecutionWidget(qt.QWidget):
 
     def on_logic_event_end(self):
         self.set_default_execution_area()
+        self.run_model_pushbutton.setEnabled(True)
         self.interactive_thresholding_slider.setEnabled(True)
         self.interactive_optimal_thr_pushbutton.setEnabled(True)
         self.interactive_options_area_groupbox.setChecked(True)

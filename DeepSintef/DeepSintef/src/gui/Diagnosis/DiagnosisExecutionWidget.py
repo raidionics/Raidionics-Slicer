@@ -73,6 +73,7 @@ class DiagnosisExecutionWidget(qt.QWidget):
 
     def on_logic_event_end(self):
         self.set_default_execution_area()
+        self.run_model_pushbutton.setEnabled(True)
         self.generate_segments_pushbutton.setEnabled(True)
 
     def on_logic_event_progress(self, progress, log):
