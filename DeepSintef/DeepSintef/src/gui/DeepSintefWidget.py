@@ -114,6 +114,8 @@ class DeepSintefWidget():
         # option 1: actively updating local models
         self.global_options_active_models_update_checkbox = ctk.ctkCheckBox()
         self.global_options_groupbox_layout.addRow("Active model update:", self.global_options_active_models_update_checkbox)
+        self.global_options_purge_docker_images_pushbutton = ctk.ctkPushButton()
+        self.global_options_groupbox_layout.addRow("Purge old Docker images:", self.global_options_purge_docker_images_pushbutton)
 
     def setup_user_interactions_widget(self):
         self.user_interactions_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -148,6 +150,7 @@ class DeepSintefWidget():
         self.docker_test_pushbutton.connect('clicked(bool)', self.on_test_docker_button_pressed)
         self.tasks_tabwidget.connect('currentChanged(int)', self.on_task_tabwidget_tabchanged)
         self.global_options_active_models_update_checkbox.stateChanged.connect(self.on_models_active_update_options_state_changed)
+        self.global_options_purge_docker_images_pushbutton.clicked.connect(self.on_purge_docker_images_options_clicked)
 
     def on_test_docker_button_pressed(self):
         cmd = []
@@ -195,6 +198,9 @@ class DeepSintefWidget():
 
     def on_models_active_update_options_state_changed(self, state):
         SharedResources.getInstance().global_active_model_update = False if state == 0 else True
+
+    def on_purge_docker_images_options_clicked(self):
+        pass
 
     def set_default(self):
         self.base_segmentation_widget.set_default()
