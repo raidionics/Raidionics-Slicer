@@ -185,11 +185,11 @@ class ModelsInterfaceWidget(qt.QWidget):
                 diag.exec()
         self.model_parameters.destroy()
         jsonIndex = self.local_model_selector_combobox.itemData(index)
-        json_model = self.jsonModels[jsonIndex]
+        json_model = self.jsonModels[jsonIndex - 1]
         self.model_parameters.create(json_model)
 
-        if "briefdescription" in self.jsonModels[jsonIndex]:
-            tip = self.jsonModels[jsonIndex]["briefdescription"]
+        if "briefdescription" in self.jsonModels[jsonIndex - 1]:
+            tip = self.jsonModels[jsonIndex - 1]["briefdescription"]
             tip = tip.rstrip()
             self.local_model_selector_combobox.setToolTip(tip)
         else:

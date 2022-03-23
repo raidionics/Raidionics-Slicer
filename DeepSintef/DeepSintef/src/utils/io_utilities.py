@@ -1,5 +1,6 @@
 from __main__ import qt, ctk, slicer, vtk
 
+import subprocess
 import shutil
 import os
 import traceback
@@ -397,13 +398,34 @@ class DownloadWorker(qt.QObject): #qt.QThread
     def download_docker_image(self, select_image):
         cmd_docker = ['docker', 'image', 'pull', select_image]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
-        cmd_docker = ['docker', 'image', 'inspect', select_image]
-        p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        # If the image could not be downloaded -- abort
-        if 'Error: No such image' in stderr.decode("utf-8"):
-            result = False
-        else:
-            result = True
+        res_lines = ""
+        while True:
+            slicer.app.processEvents()
+            line = p.stdout.readline().decode("utf-8")
+            if not line:
+                break
+            res_lines = res_lines + '/n' + line
+        # cmd_docker = ['docker', 'image', 'inspect', select_image]
+        # p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # # res_lines = ""
+        # # while True:
+        # #     slicer.app.processEvents()
+        # #     line = p.stderr.readline().decode("utf-8")
+        # #     if not line:
+        # #         break
+        # #     res_lines = res_lines + '/n' + line
+        # #
+        # # # If the image could not be downloaded -- abort
+        # # if 'Error: No such image' in res_lines:
+        # #     result = False
+        # # else:
+        # #     result = True
+        #
+        # stdout, stderr = p.communicate()
+        # # If the image could not be downloaded -- abort
+        # if 'Error: No such image' in stderr.decode("utf-8"):
+        #     result = False
+        # else:
+        #     result = True
 
         self.finished_signal.finished_signal.emit()
