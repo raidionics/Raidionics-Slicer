@@ -140,10 +140,12 @@ class ModelsExecutionWidget(qt.QWidget):
     def on_predictions_type_change(self, type):
         if type == 'Binary':
             SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'thresholding'
-            self.interactive_options_area_groupbox.setVisible(False)
+            self.interactive_thresholding_slider.setEnabled(False)
         else:
             SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
             self.interactive_options_area_groupbox.setVisible(True)
+        self.interactive_optimal_thr_pushbutton.setEnabled(False)
+        self.interactive_options_area_groupbox.setVisible(False)
 
     def on_logic_event_start(self):
         self.run_model_pushbutton.setEnabled(False)
@@ -176,7 +178,7 @@ class ModelsExecutionWidget(qt.QWidget):
                 new_log_text = str(log_text)[:-3] + 'Done' + '\n'
 
             self.model_execution_progress_textedit.setText(new_log_text)
-            # self.model_execution_progress_textedit.moveCursor(QTextCursor.End)
+            self.model_execution_progress_textedit.moveCursor(qt.QTextCursor.End)
             # self.model_execution_progress_textedit.verticalScrollBar().setValue(self.model_execution_progress_textedit.verticalScrollBar().maximum())
 
     #@TODO. to finish

@@ -108,6 +108,12 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
     def __setup_connections(self):
         self.results_export_pushbutton.clicked.connect(self.__on_export_clicked)
 
+    def on_logic_event_start(self):
+        self.__clean_results_area()
+
+    def on_logic_event_end(self):
+        pass
+
     def __on_export_clicked(self):
         filepath = qt.QFileDialog.getSaveFileName(self, self.tr("Save standardized report"),
                                                   os.path.expanduser('~'), self.tr("Report files (*.txt *.csv *.json)"))

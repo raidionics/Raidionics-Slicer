@@ -29,7 +29,7 @@ from src.utils.resources import SharedResources
 
 class DeepSintefLogic:
     """
-    Singleton logic class
+    Singleton logic class, interfacing the backend where the processing happens.
     """
     __instance = None
 
@@ -137,7 +137,8 @@ class DeepSintefLogic:
         modelName = model_parameters.modelName
         dataPath = model_parameters.dataPath
         widgets = model_parameters.widgets
-        go_flag = self.checkDockerImageLocalExistence(dockerName)
+        # The Docker image existence should have been checked when the model was selected.
+        go_flag = self.check_docker_image_local_existence(docker_image_name=dockerName)
         if not go_flag:
             self.cmdLogEvent('The docker image does not exist, or could not be downloaded locally.\n'
                              'The selected model cannot be run.')
@@ -240,6 +241,7 @@ class DeepSintefLogic:
 
         return result
 
+    # @TODO. Deprecated, to remove.
     def checkDockerImageLocalExistence(self, docker_image_name):
         # Verify if the docker image exists on disk, or ask to download it
         result = False
@@ -394,12 +396,11 @@ class DeepSintefLogic:
             cmd.append(dataPath + '/data/' + inputDict[key])
         cmd.append('--' + 'Output')
         cmd.append(dataPath + '/output/')
-        # @TODO. Have to find a better way to handle diagnosis cases, can't specify a unique model (most likely multiple are needed)
-        if modelName: # and self.logic_task == 'segmentation':
+        if modelName:
             cmd.append('--' + 'Model')
             cmd.append(modelName)
         else:
-            pass  # Should break?
+            pass  # Should break? Most likely impossible to occur.
 
         if SharedResources.getInstance().use_gpu:  # Should maybe let the user choose which GPU, if multiple on a machine?
             cmd.append('--' + 'GPU')

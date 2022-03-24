@@ -42,7 +42,6 @@ class DiagnosisExecutionWidget(qt.QWidget):
         self.optimal_display_pushbutton = qt.QPushButton('Optimal display')
         self.execution_area_layout.addWidget(self.optimal_display_pushbutton, 2, 1)
         self.optimal_display_pushbutton.setEnabled(False)
-        #@TODO. Should also include a clear button? Or run clear by default when the run diagnosis button is pressed.
 
         self.set_default_execution_area()
 
@@ -67,9 +66,7 @@ class DiagnosisExecutionWidget(qt.QWidget):
         self.run_model_pushbutton.setEnabled(False)
         self.run_model_pushbutton.setText('Diagnosing...')
         self.cancel_model_run_pushbutton.setEnabled(True)
-
-        #@TODO. Should only be enabled if the logic finishes properly and not when it begins...
-        self.generate_segments_pushbutton.setEnabled(True)
+        self.generate_segments_pushbutton.setEnabled(False)
 
     def on_logic_event_end(self):
         self.set_default_execution_area()

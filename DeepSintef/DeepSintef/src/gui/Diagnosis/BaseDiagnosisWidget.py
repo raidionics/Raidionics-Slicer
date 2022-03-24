@@ -58,6 +58,7 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.diagnosis_results_mediastinum_widget = DiagnosisMediastinumResultsWidget(parent=self)
         self.diagnosis_results_stackedwidget.addWidget(self.diagnosis_results_mediastinum_widget)
         self.base_layout.addWidget(self.diagnosis_results_stackedwidget)
+        self.base_layout.addStretch(1)
 
         self.setLayout(self.base_layout)
         self.setup_connections()
@@ -93,8 +94,7 @@ class BaseDiagnosisWidget(qt.QTabWidget):
     def on_run_diagnosis(self):
         DeepSintefLogic.getInstance().logic_task = 'diagnosis'
         if self.diagnosis_interface_widget.diagnosis_model_parameters.json_dict['organ'] == 'Brain':
-            # @FIXME. Hack to specify brain tumor type in order to use the correct model
-            # SharedResources.getInstance().user_diagnosis_configuration['Neuro']['tumor_type'] = tumor_type
+            # User input needed to select the correct brain tumor type in order to use the corresponding model
             diag = MyDialog(self)
             diag.exec()
         DeepSintefLogic.getInstance().run(self.diagnosis_interface_widget.diagnosis_model_parameters)
@@ -119,10 +119,18 @@ class BaseDiagnosisWidget(qt.QTabWidget):
 
     def on_logic_event_start(self):
         self.diagnosis_execution_widget.on_logic_event_start()
+        if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
+            self.diagnosis_results_neuro_widget.on_logic_event_start()
+        else:
+            pass
 
     #@TODO. Should there be a logic_event_abort to not update results/etc... if the run has been prematurely stopped.
     def on_logic_event_end(self):
         self.diagnosis_execution_widget.on_logic_event_end()
+        if SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] == 'neuro_diagnosis':
+            self.diagnosis_results_neuro_widget.on_logic_event_end()
+        else:
+            pass
         self.update_results_area()
 
     def on_logic_event_progress(self, progress, log):

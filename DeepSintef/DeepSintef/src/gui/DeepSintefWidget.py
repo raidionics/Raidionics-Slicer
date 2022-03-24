@@ -113,8 +113,10 @@ class DeepSintefWidget():
         self.global_options_groupbox_layout = qt.QFormLayout(self.global_options_groupbox)
         # option 1: actively updating local models
         self.global_options_active_models_update_checkbox = ctk.ctkCheckBox()
+        self.global_options_active_models_update_checkbox.setToolTip("Click to let the system check for possible updates available for the local models.")
         self.global_options_groupbox_layout.addRow("Active model update:", self.global_options_active_models_update_checkbox)
         self.global_options_purge_docker_images_pushbutton = ctk.ctkPushButton()
+        self.global_options_purge_docker_images_pushbutton.setToolTip("Click to purge the computer from old/unused Docker images (Not Implemented Yet).")
         self.global_options_groupbox_layout.addRow("Purge old Docker images:", self.global_options_purge_docker_images_pushbutton)
 
     def setup_user_interactions_widget(self):
