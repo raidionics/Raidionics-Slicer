@@ -100,12 +100,6 @@ class NeuroDiagnosisSlicerInterface:
                             segm_desc = next((item for item in desc_info if int(float(item["label"])) == segm_label), None)
                             if segm_desc is not None:
                                 segm.SetName(segm_desc['text'])
-                        # # @FIXME. Integer values for labels should be enforced during description file creation.
-                        # for l in desc_info:
-                        #     # segm = seg_node.GetSegmentation().GetNthSegment(int(float(l['label'])))
-                        #     segm = seg_node.GetSegmentation().GetNthSegment(int(l['']))
-                        #     if segm is not None:
-                        #         segm.SetName(l['text'])
                 else:
                     desc_info = []
                     csv_filename = str(
@@ -201,9 +195,10 @@ class NeuroDiagnosisSlicerInterface:
                 segmentation = node.GetSegmentation()
                 # @TODO. Must clean diagnosis.json name and have them match the atlas_description.csv names for retrieval convenience
                 for ind, overlap in enumerate(struct_overlap_info.values()):
-                    if ind == 3:
+                    if ind == 3:  # Only displaying the first three structures, not to overload display
                         break
-                    description_name = '_'.join(list(struct_overlap_info.keys())[ind].split('_')[1:-1])
+                    # description_name = '_'.join(list(struct_overlap_info.keys())[ind].split('_')[1:-1])
+                    description_name = list(struct_overlap_info.keys())[ind]
                     sname = segmentation.GetSegmentIdBySegmentName(description_name)
                     if sname != '':
                         display_node.SetSegmentVisibility(sname, True)
