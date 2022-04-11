@@ -52,7 +52,7 @@ class RaidionicsLogic:
         self.abort = False
         self.dockerPath = SharedResources.getInstance().docker_path
         self.file_extension_docker = '.nii.gz'
-        self.logic_task = 'segmentation'  # segmentation or diagnosis for now
+        self.logic_task = 'segmentation'  # segmentation or diagnosis (RADS) for now
 
     def yieldPythonGIL(self, seconds=0):
         sleep(seconds)
@@ -303,7 +303,8 @@ class RaidionicsLogic:
 
         dataPath = '/home/ubuntu/resources'
         if self.logic_task == 'diagnosis':
-            dataPath = '/home/ubuntu/sintef-segmenter/resources'
+            # dataPath = '/home/ubuntu/sintef-segmenter/resources'
+            dataPath = '/home/ubuntu/Raidionics-segmenter/resources'
 
         # if widgetPresent:
         #     self.cmdStartEvent()

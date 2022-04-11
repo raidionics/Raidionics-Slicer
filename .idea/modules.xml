@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/DeepSintef.iml" filepath="$PROJECT_DIR$/.idea/DeepSintef.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Raidionics/.idea/Raidionics.iml" filepath="$PROJECT_DIR$/../Raidionics/.idea/Raidionics.iml" />
     </modules>
   </component>
 </project>

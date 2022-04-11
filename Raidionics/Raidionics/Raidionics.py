@@ -19,10 +19,6 @@ import sitkUtils
 from src.RaidionicsLogic import *
 from src.gui.RaidionicsWidget import *
 
-"""
-Raidionics is based upon the DeepInfer code (available at https://github.com/DeepInfer/Slicer-DeepInfer)
-"""
-
 
 class Raidionics(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
@@ -34,10 +30,13 @@ class Raidionics(ScriptedLoadableModule):
     self.parent.title = "Raidionics"
     self.parent.categories = ["Machine Learning"]
     self.parent.dependencies = []
-    self.parent.contributors = ["David Bouget (SINTEF)"]
+    self.parent.contributors = ["David Bouget (Medical Technology, SINTEF Digital) david.bouget@sintef.no"]
     self.parent.helpText = """
-    This is a plugin developped by SINTEF MedTek, allowing users to run pre-trained models on neuro and mediastinum
-    data."""
+    The Raidionics plugin for 3D Slicer allows users to run pre-trained models for segmentation and standardized
+    reporting (RADS) over MRI volumes for patients diagnosed with brain cancer, and CT volumes for patients diagnosed 
+    with lung cancer.
+    The plugin has been developed in the Medical Technology group, Health Research Department, SINTEF Digital.
+    """
     self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
     This plugin is based upon the DeepInfer plugin (available at https://github.com/DeepInfer/Slicer-DeepInfer), 

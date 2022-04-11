@@ -54,7 +54,7 @@ class DownloadDialog(qt.QDialog):
 
     def set_diagnosis_name(self, diagnosis_name):
         self.diagnosis_name = diagnosis_name
-        self.download_label.setText("New diagnosis available for: {}".format(diagnosis_name))
+        self.download_label.setText("New RADS available for: {}".format(diagnosis_name))
         slicer.app.processEvents()
 
     def set_docker_image_name(self, docker_image_name):

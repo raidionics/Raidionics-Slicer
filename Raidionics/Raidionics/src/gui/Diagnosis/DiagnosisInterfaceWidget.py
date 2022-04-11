@@ -56,7 +56,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def setup_local_diagnosis_area(self):
         self.local_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.local_diagnosis_area_groupbox.setTitle("Local diagnosis")
+        self.local_diagnosis_area_groupbox.setTitle("Local RADS")
         self.base_layout.addWidget(self.local_diagnosis_area_groupbox)
         # Layout within the dummy collapsible button
         self.modelsFormLayout = qt.QFormLayout(self.local_diagnosis_area_groupbox)
@@ -67,7 +67,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
         # model selector
         self.local_diagnosis_selector_combobox = qt.QComboBox()
-        self.modelsFormLayout.addRow("Diagnosis:", self.local_diagnosis_selector_combobox)
+        self.modelsFormLayout.addRow("RADS:", self.local_diagnosis_selector_combobox)
 
         self.local_diagnosis_moreinfo_pushbutton = qt.QPushButton('Press to display')
         self.modelsFormLayout.addRow("Details:", self.local_diagnosis_moreinfo_pushbutton)

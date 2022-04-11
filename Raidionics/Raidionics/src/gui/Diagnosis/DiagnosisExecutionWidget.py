@@ -23,10 +23,10 @@ class DiagnosisExecutionWidget(qt.QWidget):
 
     def setup_execution_area(self):
         self.execution_area_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.execution_area_groupbox.setTitle("Diagnosis execution")
+        self.execution_area_groupbox.setTitle("RADS execution")
         self.base_layout.addWidget(self.execution_area_groupbox)
         self.execution_area_layout = qt.QGridLayout(self.execution_area_groupbox)
-        self.run_model_pushbutton = qt.QPushButton('Run diagnosis')
+        self.run_model_pushbutton = qt.QPushButton('Run RADS')
         self.execution_area_layout.addWidget(self.run_model_pushbutton, 0, 0)
         self.cancel_model_run_pushbutton = qt.QPushButton('Cancel...')
         self.execution_area_layout.addWidget(self.cancel_model_run_pushbutton, 0, 1)
@@ -50,7 +50,7 @@ class DiagnosisExecutionWidget(qt.QWidget):
 
     def set_default_execution_area(self):
         self.run_model_pushbutton.setEnabled(False)
-        self.run_model_pushbutton.setText('Run diagnosis')
+        self.run_model_pushbutton.setText('Run RADS')
         self.cancel_model_run_pushbutton.setEnabled(False)
 
     def set_default_interactive_area(self):
@@ -64,7 +64,7 @@ class DiagnosisExecutionWidget(qt.QWidget):
 
     def on_logic_event_start(self):
         self.run_model_pushbutton.setEnabled(False)
-        self.run_model_pushbutton.setText('Diagnosing...')
+        self.run_model_pushbutton.setText('RADS processing...')
         self.cancel_model_run_pushbutton.setEnabled(True)
         self.generate_segments_pushbutton.setEnabled(False)
 

@@ -32,7 +32,7 @@ More information about the different models provided and architectures used can 
 2.3 Load the plugin into 3DSlicer:   
 	∘ All Modules > Extension Wizard.  
 	∘ (Slicer v4.11) Developer Tools > Extension Wizard.  
-	∘ Select Extension > point to the folder and add it to the path (tick the small box at the bottom).  
+	∘ Select Extension > point to the folder (second Raidionics) and add it to the path (tick the small box at the bottom).  
 A restart of 3DSlicer is necessary after the initial launch with the plugin to have the proper Python environment.  
 
 :warning: old trick necessary for 3DSlicer using Python 2.7  
@@ -65,7 +65,8 @@ Then click on the downloaded executable and follow the instructions.
 
 ### 3.2 Setup the Docker images
 • All used Docker images are public, therefore an account is not necessary. 
-All images will be automatically downloaded upon model selection.  
+All images will be automatically downloaded upon model selection, which might 
+take some minutes while the 3DSlicer interface won't be responding.  
 
 ## 4. Options
 • A global option should be ticked to check for models update.  

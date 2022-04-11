@@ -27,7 +27,7 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
     def setup_results_area(self):
         # Setting up the CtkCollapsible and inner scrollable widgets/layouts
         self.results_collapsible_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.results_collapsible_groupbox.setTitle("Diagnosis results")
+        self.results_collapsible_groupbox.setTitle("RADS results")
         self.base_layout.addWidget(self.results_collapsible_groupbox)
 
         self.results_scrollarea_layout = qt.QHBoxLayout(self.results_collapsible_groupbox)

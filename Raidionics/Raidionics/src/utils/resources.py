@@ -35,7 +35,7 @@ class SharedResources:
         current_folder = os.path.dirname(os.path.realpath(__file__))
         self.icon_dir = os.path.join(current_folder, '../../', '/Resources/Icons/')
 
-        self.Raidionics_dir = os.path.join(self.home_path, '.Raidionics')
+        self.Raidionics_dir = os.path.join(self.home_path, '.raidionics-slicer')
         if not os.path.isdir(self.Raidionics_dir):
             os.mkdir(self.Raidionics_dir)
 

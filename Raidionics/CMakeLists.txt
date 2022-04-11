@@ -6,7 +6,7 @@ project(Raidionics)
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "http://slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/Raidionics")
 set(EXTENSION_CATEGORY "AI")
-set(EXTENSION_CONTRIBUTORS ", David (SINTEF)")
+set(EXTENSION_CONTRIBUTORS ", David Bouget (Medical Technology, SINTEF Digital)")
 set(EXTENSION_DESCRIPTION "This is an example of a simple extension")
 set(EXTENSION_ICONURL "http://www.example.com/Slicer/Extensions/Raidionics.png")
 set(EXTENSION_SCREENSHOTURLS "http://www.example.com/Slicer/Extensions/Raidionics/Screenshots/1.png")
