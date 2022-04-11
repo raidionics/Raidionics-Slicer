@@ -27,7 +27,7 @@ import sitkUtils
 from src.utils.resources import SharedResources
 
 
-class DeepSintefLogic:
+class RaidionicsLogic:
     """
     Singleton logic class, interfacing the backend where the processing happens.
     """
@@ -36,16 +36,16 @@ class DeepSintefLogic:
     @staticmethod
     def getInstance():
         """ Static access method. """
-        if DeepSintefLogic.__instance == None:
-            DeepSintefLogic()
-        return DeepSintefLogic.__instance
+        if RaidionicsLogic.__instance == None:
+            RaidionicsLogic()
+        return RaidionicsLogic.__instance
 
     def __init__(self):
         """ Virtually private constructor. """
-        if DeepSintefLogic.__instance != None:
+        if RaidionicsLogic.__instance != None:
             raise Exception("This class is a singleton!")
         else:
-            DeepSintefLogic.__instance = self
+            RaidionicsLogic.__instance = self
             self.__init_base_variables()
 
     def __init_base_variables(self):
@@ -75,7 +75,7 @@ class DeepSintefLogic:
         Begins monitoring of main_queue for callables
         """
         self.main_queue_running = True
-        # slicer.modules.DeepSintefWidget.onLogicRunStart()
+        # slicer.modules.RaidionicsWidget.onLogicRunStart()
         qt.QTimer.singleShot(0, self.main_queue_process)
 
     def main_queue_stop(self):
@@ -85,7 +85,7 @@ class DeepSintefLogic:
         self.main_queue_running = False
         if self.thread.is_alive():
             self.thread.join()
-        # slicer.modules.DeepSintefWidget.onLogicRunStop()
+        # slicer.modules.RaidionicsWidget.onLogicRunStop()
 
     def main_queue_process(self):
         """
@@ -166,20 +166,20 @@ class DeepSintefLogic:
         except Exception as e:
             msg = e.message
             qt.QMessageBox.critical(slicer.util.mainWindow(), "Exception during execution of ", msg)
-            slicer.modules.DeepSintefWidget.applyButton.enabled = True
-            slicer.modules.DeepSintefWidget.progress.hide = True
+            slicer.modules.RaidionicsWidget.applyButton.enabled = True
+            slicer.modules.RaidionicsWidget.progress.hide = True
             self.abort = True
             self.yieldPythonGIL()
         '''
 
     def cmdStartLogic(self):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
+        if hasattr(slicer.modules, 'RaidionicsWidget'):
+            widget = slicer.modules.RaidionicsWidget
             widget.on_logic_event_start(self.logic_task)
 
     def cmdStopLogic(self):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
+        if hasattr(slicer.modules, 'RaidionicsWidget'):
+            widget = slicer.modules.RaidionicsWidget
             widget.on_logic_event_end(self.logic_task)
 
     def cmdAbortEvent(self):
@@ -188,18 +188,18 @@ class DeepSintefLogic:
         In both cases, clean/reset methods should be called
         :return:
         """
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
+        if hasattr(slicer.modules, 'RaidionicsWidget'):
+            widget = slicer.modules.RaidionicsWidget
             widget.set_default()
 
     def cmdProgressEvent(self, progress, line):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
+        if hasattr(slicer.modules, 'RaidionicsWidget'):
+            widget = slicer.modules.RaidionicsWidget
             widget.on_logic_event_progress(self.logic_task, progress, line)
 
     def cmdLogEvent(self, line):
-        if hasattr(slicer.modules, 'DeepSintefWidget'):
-            widget = slicer.modules.DeepSintefWidget
+        if hasattr(slicer.modules, 'RaidionicsWidget'):
+            widget = slicer.modules.RaidionicsWidget
             widget.on_logic_log_event(line)
 
     def cmdCheckAbort(self, p):
@@ -296,7 +296,7 @@ class DeepSintefLogic:
             self.abort = True
 
         modules = slicer.modules
-        if hasattr(modules, 'DeepSintefWidget'):
+        if hasattr(modules, 'RaidionicsWidget'):
             widgetPresent = True
         else:
             widgetPresent = False

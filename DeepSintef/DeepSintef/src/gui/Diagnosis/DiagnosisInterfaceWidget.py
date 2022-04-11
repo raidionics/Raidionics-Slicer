@@ -10,7 +10,7 @@ if sys.version_info.major == 3:
 
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 from src.utils.io_utilities import get_available_cloud_diagnoses_list, download_cloud_diagnosis, check_local_diagnosis_for_update
 from src.gui.UtilsWidgets.DownloadDialog import DownloadDialog
 
@@ -37,7 +37,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def setup_cloud_diagnosis_area(self):
         self.cloud_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.cloud_diagnosis_area_groupbox.setTitle("Available cloud diagnosis")
+        self.cloud_diagnosis_area_groupbox.setTitle("Available cloud RADS")
         self.base_layout.addWidget(self.cloud_diagnosis_area_groupbox)
         # Layout within the dummy collapsible button
         self.cloud_diagnosis_area_groupbox_layout = qt.QFormLayout(self.cloud_diagnosis_area_groupbox)
@@ -48,7 +48,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
         # model selector
         self.cloud_diagnosis_selector_combobox = qt.QComboBox()
-        self.cloud_diagnosis_area_groupbox_layout.addRow("Diagnosis:", self.cloud_diagnosis_selector_combobox)
+        self.cloud_diagnosis_area_groupbox_layout.addRow("RADS:", self.cloud_diagnosis_selector_combobox)
 
         self.cloud_diagnosis_download_pushbutton = qt.QPushButton('Press to download')
         self.cloud_diagnosis_area_groupbox_layout.addRow("Download:", self.cloud_diagnosis_download_pushbutton)
@@ -179,13 +179,13 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
         # self.enable_user_interface(True)
         #self.onLocateButton()
-        DeepSintefLogic.getInstance().selected_model = self.local_diagnosis_selector_combobox
-        docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
+        RaidionicsLogic.getInstance().selected_model = self.local_diagnosis_selector_combobox
+        docker_status = RaidionicsLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
         if not docker_status:
             diag = DownloadDialog(self)
             diag.set_docker_image_name(self.diagnosis_model_parameters.dockerImageName)
             diag.exec()
-            new_docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
+            new_docker_status = RaidionicsLogic.getInstance().check_docker_image_local_existence(self.diagnosis_model_parameters.dockerImageName)
             if new_docker_status:
                 self.diagnosis_available_signal.emit(True)
             else:

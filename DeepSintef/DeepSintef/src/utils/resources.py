@@ -35,21 +35,21 @@ class SharedResources:
         current_folder = os.path.dirname(os.path.realpath(__file__))
         self.icon_dir = os.path.join(current_folder, '../../', '/Resources/Icons/')
 
-        self.deepsintef_dir = os.path.join(self.home_path, '.deepsintef')
-        if not os.path.isdir(self.deepsintef_dir):
-            os.mkdir(self.deepsintef_dir)
+        self.Raidionics_dir = os.path.join(self.home_path, '.Raidionics')
+        if not os.path.isdir(self.Raidionics_dir):
+            os.mkdir(self.Raidionics_dir)
 
-        self.json_cloud_dir = os.path.join(self.deepsintef_dir, 'json', 'cloud')
+        self.json_cloud_dir = os.path.join(self.Raidionics_dir, 'json', 'cloud')
         if os.path.isdir(self.json_cloud_dir):
             shutil.rmtree(self.json_cloud_dir)
         os.makedirs(self.json_cloud_dir)
         self.json_cloud_info_file = "https://drive.google.com/uc?id=13-Mx1Os9eXB_bJBcJt_o9MXQrRI1xONi"
 
-        self.json_local_dir = os.path.join(self.deepsintef_dir, 'json', 'local')
+        self.json_local_dir = os.path.join(self.Raidionics_dir, 'json', 'local')
         if not os.path.isdir(self.json_local_dir):
             os.makedirs(self.json_local_dir)
 
-        self.resources_path = os.path.join(self.deepsintef_dir, 'resources')
+        self.resources_path = os.path.join(self.Raidionics_dir, 'resources')
 
         self.model_path = os.path.join(self.resources_path, 'models')
         if not os.path.isdir(self.model_path):

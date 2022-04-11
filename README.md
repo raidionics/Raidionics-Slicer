@@ -1,5 +1,5 @@
-# RAIDIO-Slicer 3D Slicer plugin 
-Plugin developed to perform segmentation and clinical reporting using custom models.
+# Raidionics 3D Slicer plugin 
+Plugin developed to perform automatic segmentation and clinical reporting using custom models.
 
 Please cite the following article if you use the plugin:  
 >`@misc{,`  
@@ -23,11 +23,13 @@ More information about the different models provided and architectures used can 
 
 ## 2. Plugin installation
 
-• Download 3DSlicer for your running Operating System at https://download.slicer.org/ (running on stable 4.11).  
-• Download the release candidate with name .... on the right-hand panel (Github repo).  
-• (Or git clone --single-branch --branch master https://github.com/dbouget/Slicer-DeepSintef.git /path/to/folder/).  
+2.1 Download 3DSlicer for your running Operating System at https://download.slicer.org/ (running on stable 4.11).  
 
-• Load the plugin into 3DSlicer:   
+2.2 Download the Raidionics plugin code:  
+* release candidate with name .... on the right-hand panel (Github repo).  
+* (Or git clone --single-branch --branch master https://github.com/dbouget/Slicer-Raidionics.git /path/to/folder/).  
+
+2.3 Load the plugin into 3DSlicer:   
 	∘ All Modules > Extension Wizard.  
 	∘ (Slicer v4.11) Developer Tools > Extension Wizard.  
 	∘ Select Extension > point to the folder and add it to the path (tick the small box at the bottom).  
@@ -38,6 +40,9 @@ Install python package inside 3DSlicer
 Open 3D Slicer and open the python interaction window.
 import pip (if it doesn't work => from pip._internal import main as pipmain)
 pip.main(['install', 'package_name']) or pipmain(['install', 'package_name'])
+
+2.4  Plugin use  
+The plugin can be found in the Modules drop-down list, inside the 'Machine Learning' category. 
 
 ## 3. Docker setup
 A proper Docker setup is **mandatory** since all processing is performed within

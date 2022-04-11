@@ -11,7 +11,7 @@ if sys.version_info.major == 3:
 
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 from src.utils.io_utilities import get_available_cloud_models_list, download_cloud_model, download_cloud_model_thread, check_local_model_for_update
 from src.gui.UtilsWidgets.DownloadDialog import DownloadDialog
 
@@ -200,13 +200,13 @@ class ModelsInterfaceWidget(qt.QWidget):
 
         # self.enable_user_interface(True)
         #self.onLocateButton()
-        DeepSintefLogic.getInstance().selected_model = self.local_model_selector_combobox
-        docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
+        RaidionicsLogic.getInstance().selected_model = self.local_model_selector_combobox
+        docker_status = RaidionicsLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
         if not docker_status:
             diag = DownloadDialog(self)
             diag.set_docker_image_name(self.model_parameters.dockerImageName)
             diag.exec()
-            new_docker_status = DeepSintefLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
+            new_docker_status = RaidionicsLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
             if new_docker_status:
                 self.segmentation_available_signal.emit(True)
             else:
@@ -258,7 +258,7 @@ class ModelsInterfaceWidget(qt.QWidget):
             if 'task' in j and j['task'] == 'Segmentation':
                 self.local_model_selector_combobox.addItem(name, idx + 1)
 
-        if len(self.jsonModels) > 1:
+        if len(self.jsonModels) >= 1:
             self.local_model_moreinfo_pushbutton.setEnabled(True)
         else:
             self.local_model_moreinfo_pushbutton.setEnabled(False)
@@ -289,7 +289,9 @@ class ModelsInterfaceWidget(qt.QWidget):
 
     def on_model_details_selected(self):
         index = self.local_model_selector_combobox.currentIndex
-        #model_json = self.jsonModels[index]
+        if index == 0:
+            return
+
         model_json = self.jsonModels[[x['name'] == self.local_model_selector_combobox.currentText for x in self.jsonModels].index(True)]
 
         tip = ''

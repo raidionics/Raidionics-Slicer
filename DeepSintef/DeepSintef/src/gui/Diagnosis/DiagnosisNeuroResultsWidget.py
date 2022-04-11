@@ -8,7 +8,7 @@ import shutil
 
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 from src.logic.neuro_diagnosis_result_parameters import *
 from src.gui.Diagnosis.DiagnosisNeuroPartResultsWidget import *
 

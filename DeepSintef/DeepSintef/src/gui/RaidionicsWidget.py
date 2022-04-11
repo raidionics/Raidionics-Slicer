@@ -17,13 +17,13 @@ from __main__ import qt, ctk, slicer, vtk
 
 import SimpleITK as sitk
 import sitkUtils
-from src.DeepSintefLogic import *
+from src.RaidionicsLogic import *
 from src.gui.Segmentation.BaseSegmentationWidget import BaseSegmentationWidget
 from src.gui.Diagnosis.BaseDiagnosisWidget import BaseDiagnosisWidget
 from src.utils.resources import SharedResources
 
 
-class DeepSintefWidget():
+class RaidionicsWidget():
     """
     Main GUI object, similar to a QMainWindow, where all widgets and user interactions are defined for the plugin.
     """
@@ -128,7 +128,7 @@ class DeepSintefWidget():
         self.base_segmentation_widget = BaseSegmentationWidget(self.parent)
         self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
         self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
-        self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Diagnosis')
+        self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Reporting (RADS)')
         self.logging_textedit = qt.QTextEdit()
         #self.logging_textedit.setEnabled(False)
         self.logging_textedit.setReadOnly(True)

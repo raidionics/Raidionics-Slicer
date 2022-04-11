@@ -1,7 +1,7 @@
 from __main__ import qt, ctk, slicer, vtk
 
 from src.utils.resources import SharedResources
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 from src.gui.Segmentation.ModelsInterfaceWidget import *
 from src.gui.Segmentation.ModelsExecutionWidget import *
 
@@ -33,14 +33,14 @@ class BaseSegmentationWidget(qt.QWidget):
         self.model_interface_widget.segmentation_available_signal.connect(self.model_execution_widget.on_segmentation_available)
 
     def on_run_model(self):
-        DeepSintefLogic.getInstance().logic_task = 'segmentation'
-        DeepSintefLogic.getInstance().run(self.model_interface_widget.model_parameters)
+        RaidionicsLogic.getInstance().logic_task = 'segmentation'
+        RaidionicsLogic.getInstance().run(self.model_interface_widget.model_parameters)
         if SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'] == 'probabilities':
             self.model_execution_widget.populate_interactive_label_classes(self.model_interface_widget.model_parameters.outputs.keys())
             self.on_interactive_best_threshold_clicked()
 
     def on_cancel_model_run(self):
-        DeepSintefLogic.getInstance().cancel_run()
+        RaidionicsLogic.getInstance().cancel_run()
 
     def on_logic_event_start(self):
         self.model_execution_widget.on_logic_event_start()

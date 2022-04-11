@@ -7,7 +7,7 @@ import subprocess
 from copy import deepcopy
 
 from src.utils.resources import SharedResources
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 
 
 class ModelsExecutionWidget(qt.QWidget):
@@ -191,7 +191,7 @@ class ModelsExecutionWidget(qt.QWidget):
         # @TODO. Should save the current value for each class in order to redisplay the correct value upon re-selection from the combobox
         current_class = self.interactive_thresholding_combobox.currentText
         value = float(value)
-        original_data = deepcopy(DeepSintefLogic.getInstance().output_raw_values[current_class])
+        original_data = deepcopy(RaidionicsLogic.getInstance().output_raw_values[current_class])
         volume_node = slicer.util.getNode(model_parameters.outputs[current_class].GetName())
         arr = slicer.util.arrayFromVolume(volume_node)
         # Increase image contrast
@@ -200,7 +200,7 @@ class ModelsExecutionWidget(qt.QWidget):
         arr[original_data >= (value/100)] = 1
         slicer.util.arrayFromVolumeModified(volume_node)
         self.interactive_current_threshold_spinbox.setValue(value)
-        # DeepSintefLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
+        # RaidionicsLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
         # self.interactive_current_threshold_lineedit.setText(str(value))
 
     def on_interactive_best_threshold_clicked(self, model_parameters):

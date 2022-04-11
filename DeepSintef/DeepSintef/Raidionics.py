@@ -16,22 +16,22 @@ from __main__ import qt, ctk, slicer, vtk
 
 import SimpleITK as sitk
 import sitkUtils
-from src.DeepSintefLogic import *
-from src.gui.DeepSintefWidget import *
+from src.RaidionicsLogic import *
+from src.gui.RaidionicsWidget import *
 
 """
-DeepSintef is based upon the DeepInfer code (available at https://github.com/DeepInfer/Slicer-DeepInfer)
+Raidionics is based upon the DeepInfer code (available at https://github.com/DeepInfer/Slicer-DeepInfer)
 """
 
 
-class DeepSintef(ScriptedLoadableModule):
+class Raidionics(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "DeepSintef"
+    self.parent.title = "Raidionics"
     self.parent.categories = ["Machine Learning"]
     self.parent.dependencies = []
     self.parent.contributors = ["David Bouget (SINTEF)"]

@@ -7,7 +7,7 @@ import subprocess
 from copy import deepcopy
 
 from src.utils.resources import SharedResources
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 
 
 class DiagnosisExecutionWidget(qt.QWidget):

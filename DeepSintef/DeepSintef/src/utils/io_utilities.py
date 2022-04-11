@@ -76,10 +76,10 @@ def download_cloud_model(selected_model):
         model_dest_dir = SharedResources.getInstance().model_path
         json_local_dir = SharedResources.getInstance().json_local_dir
         json_cloud_dir = SharedResources.getInstance().json_cloud_dir
-        archive_dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+        archive_dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.zip')
-        tmp_archive_dir = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache', '.tmp')
+        tmp_archive_dir = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache', '.tmp')
         if not os.path.exists(os.path.dirname(archive_dl_dest)):
             os.makedirs(os.path.dirname(archive_dl_dest))
 
@@ -156,10 +156,10 @@ def check_local_model_for_update(selected_model):
         model_dest_dir = SharedResources.getInstance().model_path
         json_local_dir = SharedResources.getInstance().json_local_dir
         json_cloud_dir = SharedResources.getInstance().json_cloud_dir
-        archive_dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+        archive_dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.zip')
-        tmp_archive_dir = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache', '.tmp')
+        tmp_archive_dir = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache', '.tmp')
         download_required = not os.path.exists(archive_dl_dest) or hashlib.md5(open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum
 
         # Checking if update in dependencies is needed
@@ -210,7 +210,7 @@ def check_local_diagnosis_for_update(selected_diagnosis):
                 diagnosis_checksum = diagnosis[3]
 
         json_local_dir = SharedResources.getInstance().json_local_dir
-        dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+        dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.json')
         gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)
@@ -244,7 +244,7 @@ def download_cloud_diagnosis(selected_diagnosis):
                 diagnosis_checksum = diagnosis[3]
 
         json_local_dir = SharedResources.getInstance().json_local_dir
-        dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+        dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.json')
         gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)
@@ -303,11 +303,11 @@ class DownloadWorker(qt.QObject): #qt.QThread
             model_dest_dir = SharedResources.getInstance().model_path
             json_local_dir = SharedResources.getInstance().json_local_dir
             json_cloud_dir = SharedResources.getInstance().json_cloud_dir
-            archive_dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+            archive_dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                            str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/',
                                                                                                                  '-'))
                                            + '.zip')
-            tmp_archive_dir = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache', '.tmp')
+            tmp_archive_dir = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache', '.tmp')
             if not os.path.exists(os.path.dirname(archive_dl_dest)):
                 os.makedirs(os.path.dirname(archive_dl_dest))
 
@@ -381,7 +381,7 @@ class DownloadWorker(qt.QObject): #qt.QThread
                     diagnosis_checksum = diagnosis[3]
 
             json_local_dir = SharedResources.getInstance().json_local_dir
-            dl_dest = os.path.join(SharedResources.getInstance().deepsintef_dir, '.cache',
+            dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                    str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                    + '.json')
             gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)

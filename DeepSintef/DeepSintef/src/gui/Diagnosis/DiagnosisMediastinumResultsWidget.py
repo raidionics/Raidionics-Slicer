@@ -7,7 +7,7 @@ import subprocess
 
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 from src.logic.mediastinum_diagnosis_result_parameters import *
 # from src.gui.Diagnosis.DiagnosisMediastinumPartResultsWidget import *
 

@@ -1,6 +1,6 @@
 from __main__ import qt, ctk, slicer, vtk
 
-from src.DeepSintefLogic import DeepSintefLogic
+from src.RaidionicsLogic import RaidionicsLogic
 from src.utils.resources import SharedResources
 from src.gui.Diagnosis.DiagnosisInterfaceWidget import *
 from src.gui.Diagnosis.DiagnosisExecutionWidget import *
@@ -92,15 +92,15 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.diagnosis_results_stackedwidget.setVisible(True)
 
     def on_run_diagnosis(self):
-        DeepSintefLogic.getInstance().logic_task = 'diagnosis'
+        RaidionicsLogic.getInstance().logic_task = 'diagnosis'
         if self.diagnosis_interface_widget.diagnosis_model_parameters.json_dict['organ'] == 'Brain':
             # User input needed to select the correct brain tumor type in order to use the corresponding model
             diag = MyDialog(self)
             diag.exec()
-        DeepSintefLogic.getInstance().run(self.diagnosis_interface_widget.diagnosis_model_parameters)
+        RaidionicsLogic.getInstance().run(self.diagnosis_interface_widget.diagnosis_model_parameters)
 
     def on_cancel_diagnosis_run(self):
-        DeepSintefLogic.getInstance().cancel_run()
+        RaidionicsLogic.getInstance().cancel_run()
         self.diagnosis_execution_widget.generate_segments_pushbutton.setEnabled(False)
 
     def on_generate_segments(self):
