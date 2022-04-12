@@ -1,5 +1,5 @@
 # Raidionics 3D Slicer plugin 
-Plugin developed to perform automatic segmentation and clinical reporting using custom models.
+Plugin developed to perform automatic segmentation and clinical reporting (RADS) using custom models.
 
 Please cite the following article if you use the plugin:  
 >`@misc{,`  
@@ -10,16 +10,21 @@ Please cite the following article if you use the plugin:
       `primaryClass=`  
 `}`
 
-## 1. Method background
+## 1. Methodological background
 
-More information about the different models provided and architectures used can be accessed from those previous publications:  
+More information about the different models provided and architectures used can be accessed from the below-listed publications.  
 
->`@article{bouget2021mediastinal,`  
-  `title={Mediastinal lymph nodes segmentation using 3D convolutional neural network ensembles and anatomical priors guiding},`  
-  `author={Bouget, David and Pedersen, Andr{\'e} and Vanel, Johanna and Leira, Haakon O and Lang{\o}, Thomas},`  
-  `journal={arXiv preprint arXiv:2102.06515},`  
-  `year={2021}`  
-`}`  
+## 1.1 Neuro  
+* AGUNet neural network architecture => [Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms](https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)
+
+* Standardized reporting and Data System (RADS) => [Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations ](https://www.mdpi.com/2072-6694/13/12/2854)
+
+* Segmentation performance => [Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task ](https://www.mdpi.com/2072-6694/13/18/4674)
+
+## 1.2 Mediastinum
+* Mediastinum organs segmentation => [Semantic segmentation and detection of mediastinal lymph nodes and anatomical structures in CT data for lung cancer staging](https://link.springer.com/article/10.1007/s11548-019-01948-8)  
+* Lymph nodes segmentation => [Mediastinal lymph nodes segmentation using 3D convolutional neural network ensembles and anatomical priors guiding](https://www.tandfonline.com/doi/pdf/10.1080/21681163.2022.2043778)
+
 
 ## 2. Plugin installation
 
@@ -27,7 +32,10 @@ More information about the different models provided and architectures used can 
 
 2.2 Download the Raidionics plugin code:  
 * release candidate with name .... on the right-hand panel (Github repo).  
-* (Or git clone --single-branch --branch master https://github.com/dbouget/Slicer-Raidionics.git /path/to/folder/).  
+Or
+* git clone --single-branch --branch master https://github.com/dbouget/Slicer-Raidionics.git /path/to/folder/.  
+
+2.3 Download and install Docker (see Section 3).  
 
 2.3 Load the plugin into 3DSlicer:   
 	∘ All Modules > Extension Wizard.  
