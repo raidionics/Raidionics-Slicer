@@ -76,6 +76,9 @@ Then click on the downloaded executable and follow the instructions.
 All images will be automatically downloaded upon model selection, which might 
 take some minutes while the 3DSlicer interface won't be responding.  
 
+• When you execute for the first time, you might get a pop-up from Docker asking to allow
+the sharing of a .raidonics-slicer directory, accept!
+
 ## 4. Options
 • A global option should be ticked to check for models update.  
 

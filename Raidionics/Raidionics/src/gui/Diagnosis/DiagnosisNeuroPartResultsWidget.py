@@ -108,7 +108,7 @@ class DiagnosisNeuroPartResultsWidget(qt.QWidget):
             struct_tablewidget.setRowCount(len(values['Overall'].mni_space_cortical_structures_overlap[a].keys()))
             struct_tablewidget.setHorizontalHeaderLabels(['Overlap (%)', 'Structure'])
             for s, sn in enumerate(values['Overall'].mni_space_cortical_structures_overlap[a].keys()):
-                readable_name = sn.replace(a + '_', '').split('_')[0].replace('-', ' ')
+                readable_name = sn.replace(a + '_', '').replace('-', ' ').replace('_', ' ')
                 struct_tablewidget.setItem(s, 0, qt.QTableWidgetItem(str(np.round(values['Overall'].mni_space_cortical_structures_overlap[a][sn], 2))))
                 struct_tablewidget.setItem(s, 1, qt.QTableWidgetItem(readable_name))
             struct_tablewidget.horizontalHeader().setStretchLastSection(True)

@@ -135,7 +135,7 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
     def __setup_tumor_parts_results_area(self, nb_parts):
         for i in range(nb_parts):
             w = DiagnosisNeuroPartResultsWidget(parent=self)
-            self.overall_results_area_tabwidget.addTab(w, 'Foci ' + str(i+1))
+            self.overall_results_area_tabwidget.addTab(w, 'Focus ' + str(i+1))
             self.results_widgets[str(i+1)] = w
 
     def update_results(self):
