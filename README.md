@@ -31,9 +31,9 @@ More information about the different models provided and architectures used can 
 2.1 Download 3DSlicer for your running Operating System at https://download.slicer.org/ (running on stable 4.11).  
 
 2.2 Download the Raidionics plugin code:  
-* release candidate with name .... on the right-hand panel (Github repo).  
+* release candidate with name Raidionics-Slicer on the right-hand panel (Github repo).  
 Or
-* git clone --single-branch --branch master https://github.com/dbouget/Slicer-Raidionics.git /path/to/folder/.  
+* git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git /path/to/folder/.  
 
 2.3 Download and install Docker (see Section 3).  
 
