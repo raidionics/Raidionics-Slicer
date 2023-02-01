@@ -54,12 +54,19 @@ class ModelParameters(object):
                 elif t in ["volume"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                               "voltype": member["voltype"]}
+                    if 'sequence_type' in member:
+                        iodict[member["name"]]['sequence_type'] = member['sequence_type']
+                    if 'timestamp_order' in member:
+                        iodict[member["name"]]['timestamp_order'] = member['timestamp_order']
                     if 'description' in member:
                         iodict[member["name"]]['description'] = member['description']
                     if 'threshold' in member:
                         iodict[member["name"]]['threshold'] = member['threshold']
                     if 'color' in member:
                         iodict[member["name"]]['color'] = member['color']
+                elif t in ["configuration"]:
+                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
+                                              "pipeline_name": member["pipeline_name"]}
                 else:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
         return iodict
@@ -185,7 +192,12 @@ class ModelParameters(object):
                 # We are going to ignore it
                 pass
             elif t == "volume":
-                w = self.createVolumeWidget(member["name"], member["iotype"], member["voltype"], False)
+                cname = member["name"]
+                # if "sequence_type" in member:
+                #     cname = cname + " " + member["sequence_type"]
+                # if "timestamp_order" in member:
+                #     cname = cname + " (T" + member["timestamp_order"] + ")"
+                w = self.createVolumeWidget(cname, member["iotype"], member["voltype"], False)
 
             elif t == "InterpolatorEnum":
                 labels = ["Nearest Neighbor",

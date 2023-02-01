@@ -25,6 +25,7 @@ from __main__ import qt, ctk, slicer, vtk
 import SimpleITK as sitk
 import sitkUtils
 from src.utils.resources import SharedResources
+from src.utils.backend_utilities import generate_backend_config
 
 
 class RaidionicsLogic:
@@ -364,16 +365,22 @@ class RaidionicsLogic:
                     input_node_name = inputs[item].GetName()
                     #try:
                     img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
-                    fileName = item + self.file_extension_docker
+                    input_sequence_type = iodict[item]["sequence_type"]
+                    fileName = 'input_' + input_sequence_type + self.file_extension_docker
                     inputDict[item] = fileName
-                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
+                    input_timestamp_order = iodict[item]["timestamp_order"]
+                    os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
+                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
+                                                          "T" + input_timestamp_order, fileName)))
                     #except Exception as e:
                     #    print(e.message)
                 elif iodict[item]["type"] == "configuration":
-                    with open(SharedResources.getInstance().user_config_filename, 'w') as configfile:
-                        SharedResources.getInstance().user_configuration.write(configfile)
-                    with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
-                        SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
+                    # with open(SharedResources.getInstance().user_config_filename, 'w') as configfile:
+                    #     SharedResources.getInstance().user_configuration.write(configfile)
+                    # with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
+                    #     SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
+                    generate_backend_config(SharedResources.getInstance().data_path,
+                                            iodict)
                     #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "parameter":
                 paramDict[item] = str(params[item])
@@ -388,28 +395,32 @@ class RaidionicsLogic:
         #cmd.append(TMP_PATH + ':' + dataPath)
         cmd.append(SharedResources.getInstance().resources_path + ':' + dataPath)
         cmd.append(dockerName)
-        if self.logic_task == 'segmentation':
-            cmd.append('--' + 'Task')
-            cmd.append('segmentation')  #@TODO. Should consider including that in model_parameters, might be diagnosis in the future
-
-        for key in inputDict.keys():
-            cmd.append('--' + 'Input')
-            cmd.append(dataPath + '/data/' + inputDict[key])
-        cmd.append('--' + 'Output')
-        cmd.append(dataPath + '/output/')
-        if modelName:
-            cmd.append('--' + 'Model')
-            cmd.append(modelName)
-        else:
-            pass  # Should break? Most likely impossible to occur.
-
-        if SharedResources.getInstance().use_gpu:  # Should maybe let the user choose which GPU, if multiple on a machine?
-            cmd.append('--' + 'GPU')
-            cmd.append('0')
-
-        if self.logic_task == 'diagnosis':
-            cmd.append('--' + 'Config')
-            cmd.append(dataPath + '/data/' + 'diagnosis_config.ini')
+        cmd.append('-c')
+        cmd.append('/home/ubuntu/resources/data/rads_config.ini')
+        cmd.append('-v')
+        cmd.append('debug')
+        # if self.logic_task == 'segmentation':
+        #     cmd.append('--' + 'Task')
+        #     cmd.append('segmentation')  #@TODO. Should consider including that in model_parameters, might be diagnosis in the future
+        #
+        # for key in inputDict.keys():
+        #     cmd.append('--' + 'Input')
+        #     cmd.append(dataPath + '/data/' + inputDict[key])
+        # cmd.append('--' + 'Output')
+        # cmd.append(dataPath + '/output/')
+        # if modelName:
+        #     cmd.append('--' + 'Model')
+        #     cmd.append(modelName)
+        # else:
+        #     pass  # Should break? Most likely impossible to occur.
+        #
+        # if SharedResources.getInstance().use_gpu:  # Should maybe let the user choose which GPU, if multiple on a machine?
+        #     cmd.append('--' + 'GPU')
+        #     cmd.append('0')
+        #
+        # if self.logic_task == 'diagnosis':
+        #     cmd.append('--' + 'Config')
+        #     cmd.append(dataPath + '/data/' + 'diagnosis_config.ini')
 
         self.cmdLogEvent(cmd)
 
@@ -436,7 +447,7 @@ class RaidionicsLogic:
         output_text_files = dict()
         self.output_raw_values = dict()
         created_files = []
-        for _, _, files in os.walk(SharedResources.getInstance().output_path):
+        for _, _, files in os.walk(os.path.join(SharedResources.getInstance().output_path, 'T0')):
             for f, file in enumerate(files):
                 created_files.append(file)
             break
@@ -445,13 +456,13 @@ class RaidionicsLogic:
             if iodict[item]["iotype"] == "output":
                 if iodict[item]["type"] == "volume":
                     # @TODO. Better way to disambiguate between output.nii.gz and output_description.csv for example?
-                    fileName = str(os.path.join(SharedResources.getInstance().output_path, created_files[[item+'.' in x for x in created_files].index(True)]))
+                    fileName = str(os.path.join(SharedResources.getInstance().output_path, 'T0', created_files[[item+'.' in x for x in created_files].index(True)]))
                     output_volume_files[item] = fileName
                 if iodict[item]["type"] == "point_vec":
-                    fileName = str(os.path.join(SharedResources.getInstance().output_path, item + '.fcsv'))
+                    fileName = str(os.path.join(SharedResources.getInstance().output_path, 'T0', item + '.fcsv'))
                     output_fiduciallist_files[item] = fileName
                 if iodict[item]["type"] == "text":
-                    fileName = str(os.path.join(SharedResources.getInstance().output_path, item + '.txt'))
+                    fileName = str(os.path.join(SharedResources.getInstance().output_path, 'T0', item + '.txt'))
                     output_text_files[item] = fileName
 
         for output_volume in output_volume_files.keys():

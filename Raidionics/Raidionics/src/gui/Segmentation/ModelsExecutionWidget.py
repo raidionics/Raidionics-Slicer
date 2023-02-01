@@ -1,3 +1,4 @@
+import traceback
 from __main__ import qt, ctk, slicer, vtk
 from glob import glob
 import os
@@ -189,19 +190,22 @@ class ModelsExecutionWidget(qt.QWidget):
 
     def on_interactive_slider_moved(self, value, model_parameters):
         # @TODO. Should save the current value for each class in order to redisplay the correct value upon re-selection from the combobox
-        current_class = self.interactive_thresholding_combobox.currentText
-        value = float(value)
-        original_data = deepcopy(RaidionicsLogic.getInstance().output_raw_values[current_class])
-        volume_node = slicer.util.getNode(model_parameters.outputs[current_class].GetName())
-        arr = slicer.util.arrayFromVolume(volume_node)
-        # Increase image contrast
-        #arr[:] = original_data
-        arr[original_data < (value/100)] = 0
-        arr[original_data >= (value/100)] = 1
-        slicer.util.arrayFromVolumeModified(volume_node)
-        self.interactive_current_threshold_spinbox.setValue(value)
-        # RaidionicsLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
-        # self.interactive_current_threshold_lineedit.setText(str(value))
+        try:
+            current_class = self.interactive_thresholding_combobox.currentText
+            value = float(value)
+            original_data = deepcopy(RaidionicsLogic.getInstance().output_raw_values[current_class])
+            volume_node = slicer.util.getNode(model_parameters.outputs[current_class].GetName())
+            arr = slicer.util.arrayFromVolume(volume_node)
+            # Increase image contrast
+            #arr[:] = original_data
+            arr[original_data < (value/100)] = 0
+            arr[original_data >= (value/100)] = 1
+            slicer.util.arrayFromVolumeModified(volume_node)
+            self.interactive_current_threshold_spinbox.setValue(value)
+            # RaidionicsLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
+            # self.interactive_current_threshold_lineedit.setText(str(value))
+        except Exception:
+            print("{}".format(traceback.format_exc()))
 
     def on_interactive_best_threshold_clicked(self, model_parameters):
         current_class = self.interactive_thresholding_combobox.currentText
