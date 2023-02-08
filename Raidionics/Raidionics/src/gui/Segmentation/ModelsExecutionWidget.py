@@ -165,12 +165,10 @@ class ModelsExecutionWidget(qt.QWidget):
         self.interactive_options_area_groupbox.setChecked(True)
 
     def on_logic_event_progress(self, progress, log):
-        # Should the number of steps be known beforehand (in the json) to indicate 1/5, 2/5, etc...
-        # Should a timer be used to indicate elapsed time for each task?
-        # The QTextEdit should automatically scroll to bottom also to follow the latest status...
-        if 'SLICERLOG' in log:
-            task = log.split(':')[1].split('-')[0].strip()
-            status = log.split(':')[1].split('-')[1].strip()
+        # @TODO. Have to copy/paste how it is done inside Raidionics regarding the parsing of log messages
+        if 'LOG:' in log:
+            task = log.split(':')[1].split('-')[1].strip()
+            status = log.split(':')[1].split('-')[-1].strip().split('(')[0].strip()
             log_text = self.model_execution_progress_textedit.plainText
             new_log_text = ''
             if status == 'Begin':

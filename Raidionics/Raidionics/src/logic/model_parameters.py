@@ -74,8 +74,9 @@ class ModelParameters(object):
     def create_model_info(self, json_dict):
         dockerImageName = json_dict['docker']['dockerhub_repository']
         modelName = json_dict.get('model_name')
+        modelTarget = json_dict.get('target')
         dataPath = json_dict.get('data_path')
-        return dockerImageName, modelName, dataPath
+        return dockerImageName, modelName, modelTarget, dataPath
 
     def create(self, json_dict):
         if not self.parent:
@@ -87,7 +88,7 @@ class ModelParameters(object):
 
         self.json_dict = json_dict
         self.iodict = self.create_iodict(json_dict)
-        self.dockerImageName, self.modelName, self.dataPath = self.create_model_info(json_dict)
+        self.dockerImageName, self.modelName, self.modelTarget, self.dataPath = self.create_model_info(json_dict)
 
         self.prerun_callbacks = []
         self.inputs = dict()

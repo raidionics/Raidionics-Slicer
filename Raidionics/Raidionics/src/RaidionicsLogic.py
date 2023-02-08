@@ -54,6 +54,7 @@ class RaidionicsLogic:
         self.dockerPath = SharedResources.getInstance().docker_path
         self.file_extension_docker = '.nii.gz'
         self.logic_task = 'segmentation'  # segmentation or diagnosis (RADS) for now
+        self.logic_target_space = "neuro_diagnosis"
 
     def yieldPythonGIL(self, seconds=0):
         sleep(seconds)
@@ -136,6 +137,7 @@ class RaidionicsLogic:
         outputs = model_parameters.outputs
         dockerName = model_parameters.dockerImageName
         modelName = model_parameters.modelName
+        modelTarget = model_parameters.modelTarget
         dataPath = model_parameters.dataPath
         widgets = model_parameters.widgets
         # The Docker image existence should have been checked when the model was selected.
@@ -147,11 +149,12 @@ class RaidionicsLogic:
 
         try:
             self.main_queue_start()
-            if model_parameters.json_dict['task'] == 'Diagnosis':
-                if model_parameters.json_dict['organ'] == 'Brain':
-                    SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
-                elif model_parameters.json_dict['organ'] == 'Mediastinum':
-                    SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'mediastinum_diagnosis'
+            self.logic_target_space = "neuro_diagnosis" if modelTarget == "Brain" else "mediastinum_diagnosis"
+            # if model_parameters.json_dict['task'] == 'Diagnosis':
+            #     if model_parameters.json_dict['organ'] == 'Brain':
+            #         SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
+            #     elif model_parameters.json_dict['organ'] == 'Mediastinum':
+            #         SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'mediastinum_diagnosis'
 
             self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
             if not self.abort:
@@ -367,6 +370,9 @@ class RaidionicsLogic:
                     img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
                     input_sequence_type = iodict[item]["sequence_type"]
                     fileName = 'input_' + input_sequence_type + self.file_extension_docker
+                    # @TODO. hard-coding to improve.
+                    if input_sequence_type == "T1-CE":
+                        fileName = 'input_t1gd' + self.file_extension_docker
                     inputDict[item] = fileName
                     input_timestamp_order = iodict[item]["timestamp_order"]
                     os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
@@ -380,7 +386,7 @@ class RaidionicsLogic:
                     # with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
                     #     SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
                     generate_backend_config(SharedResources.getInstance().data_path,
-                                            iodict)
+                                            iodict, self.logic_target_space)
                     #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "parameter":
                 paramDict[item] = str(params[item])

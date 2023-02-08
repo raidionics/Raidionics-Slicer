@@ -24,7 +24,7 @@ from src.utils.resources import SharedResources
 
 def get_available_cloud_models_list():
     cloud_models_list = []
-    cloud_models_list_url = 'https://drive.google.com/uc?id=13-Mx1Os9eXB_bJBcJt_o9MXQrRI1xONi'
+    cloud_models_list_url = 'https://drive.google.com/uc?id=1wVjqpQ7S3xTcNJyV2Sp_hSyKglcxfQLe'
     try:
         cloud_models_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_models_list.csv')
         gdown.cached_download(url=cloud_models_list_url, path=cloud_models_list_filename)
@@ -74,6 +74,7 @@ def download_cloud_model(selected_model):
                 model_checksum = model[3]
 
         model_dest_dir = SharedResources.getInstance().model_path
+        pipeline_dest_dir = SharedResources.getInstance().pipeline_path
         json_local_dir = SharedResources.getInstance().json_local_dir
         json_cloud_dir = SharedResources.getInstance().json_cloud_dir
         archive_dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
@@ -104,19 +105,27 @@ def download_cloud_model(selected_model):
 
             model_folder = []
             config_file = []
+            pipeline_file = []
             for _, dirs, files in os.walk(tmp_archive_dir):
                 for d in dirs:
                     model_folder.append(d)
                 for f in files:
-                    if 'json' in f:
+                    if 'json' in f and 'pipeline' not in f:
                         config_file.append(f)
+                    elif 'json' in f:
+                        pipeline_file.append(f)
                 break
 
-            shutil.move(src=os.path.join(tmp_archive_dir, config_file[0]), dst=os.path.join(json_local_dir, config_file[0]))
+            shutil.move(src=os.path.join(tmp_archive_dir, config_file[0]),
+                        dst=os.path.join(json_local_dir, config_file[0]))
+
+            shutil.move(src=os.path.join(tmp_archive_dir, pipeline_file[0]),
+                        dst=os.path.join(pipeline_dest_dir, pipeline_file[0]))
 
             if os.path.exists(os.path.join(model_dest_dir, model_folder[0])):
                 shutil.rmtree(os.path.join(model_dest_dir, model_folder[0]))
-            shutil.move(src=os.path.join(tmp_archive_dir, model_folder[0]), dst=os.path.join(model_dest_dir, model_folder[0]))
+            shutil.move(src=os.path.join(tmp_archive_dir, model_folder[0]),
+                        dst=os.path.join(model_dest_dir, model_folder[0]))
 
             shutil.rmtree(tmp_archive_dir)
 
