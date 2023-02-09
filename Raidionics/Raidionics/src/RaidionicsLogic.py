@@ -225,7 +225,7 @@ class RaidionicsLogic:
     def check_docker_image_local_existence(self, docker_image_name):
         # Verify if the docker image exists on disk
         result = False
-        cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
+        cmd_docker = [self.dockerPath, 'image', 'inspect', docker_image_name]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
 
@@ -249,7 +249,7 @@ class RaidionicsLogic:
     def checkDockerImageLocalExistence(self, docker_image_name):
         # Verify if the docker image exists on disk, or ask to download it
         result = False
-        cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
+        cmd_docker = [self.dockerPath, 'image', 'inspect', docker_image_name]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # res_lines = ""
         # while True:
@@ -264,9 +264,9 @@ class RaidionicsLogic:
         # If the image has not been found, attempt to download it
         if 'Error: No such image' in stderr.decode("utf-8"):
         # if 'Error: No such image' in res_lines:
-            cmd_docker = ['docker', 'image', 'pull', docker_image_name]
+            cmd_docker = [self.dockerPath, 'image', 'pull', docker_image_name]
             p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
-            cmd_docker = ['docker', 'image', 'inspect', docker_image_name]
+            cmd_docker = [self.dockerPath, 'image', 'inspect', docker_image_name]
             p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout2, stderr2 = p2.communicate()
             # If the image could not be downloaded -- abort
