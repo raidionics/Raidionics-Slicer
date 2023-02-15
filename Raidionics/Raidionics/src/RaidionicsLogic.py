@@ -1,3 +1,5 @@
+import traceback
+
 from slicer.ScriptedLoadableModule import *
 import logging
 import sys
@@ -307,89 +309,87 @@ class RaidionicsLogic:
 
         dataPath = '/home/ubuntu/resources'
         if self.logic_task == 'diagnosis':
-            # dataPath = '/home/ubuntu/sintef-segmenter/resources'
             dataPath = '/home/ubuntu/Raidionics-segmenter/resources'
 
         # if widgetPresent:
         #     self.cmdStartEvent()
-        inputDict = dict()
-        outputDict = dict()
-        paramDict = dict()
-        for item in iodict:
-            if iodict[item]["iotype"] == "output":
-                if iodict[item]["type"] == "volume":
-                    outputDict[item] = item
-                    # curr_output = outputs[item]
-                    nodes = slicer.util.getNodes(outputDict[item])
-                    manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].currentNode()
-                    if len(nodes) == 0 and manual_node is None:
-                        # If the output volume is not set, a new one is created
-                        node = slicer.vtkMRMLLabelMapVolumeNode()
-                        node.SetName(outputDict[item])
-                        slicer.mrmlScene.AddNode(node)
-                        node.CreateDefaultDisplayNodes()
-                        if iodict[item]["voltype"] == "LabelMap":
+        try:
+            inputDict = dict()
+            outputDict = dict()
+            paramDict = dict()
+            for item in iodict:
+                if iodict[item]["iotype"] == "output":
+                    if iodict[item]["type"] == "volume":
+                        outputDict[item] = item
+                        # curr_output = outputs[item]
+                        nodes = slicer.util.getNodes(outputDict[item])
+                        manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].currentNode()
+                        if len(nodes) == 0 and manual_node is None:
+                            # If the output volume is not set, a new one is created
+                            node = slicer.vtkMRMLLabelMapVolumeNode()
+                            node.SetName(outputDict[item])
+                            slicer.mrmlScene.AddNode(node)
+                            node.CreateDefaultDisplayNodes()
+                            if iodict[item]["voltype"] == "LabelMap":
+                                imageData = vtk.vtkImageData()
+                                imageData.SetDimensions((150, 150, 150))
+                                imageData.AllocateScalars(vtk.VTK_SHORT, 1)
+                                node.SetAndObserveImageData(imageData)
+                            outputs[item] = node
+
+                            # Select the correct item in the combobox upon creation
+                            combobox_widget = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)]
+                            combobox_widget.setCurrentNode(node)
+                        elif not manual_node is None and not manual_node.GetImageData() is None:
+                            # If the node links to a manually imported volume, used as input (e.g., for faster diagnosis)
+                            # Working only if pointing to a file, not if a new empty LabelMapVolume was created.
+                            outputs[item] = manual_node
+                            output_node_name = outputs[item].GetName()
+                            img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(output_node_name))
+                            fileName = item + self.file_extension_docker
+                            # inputDict[item] = fileName
+                            SharedResources.getInstance().user_diagnosis_configuration['Neuro'][item.lower() + '_segmentation_filename'] = os.path.join(dataPath, 'data', fileName)
+                            sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
+                        elif manual_node.GetImageData() is None:
+                            # If the placeholder was manually created, but not linked to an image container
                             imageData = vtk.vtkImageData()
                             imageData.SetDimensions((150, 150, 150))
                             imageData.AllocateScalars(vtk.VTK_SHORT, 1)
-                            node.SetAndObserveImageData(imageData)
-                        outputs[item] = node
+                            manual_node.SetAndObserveImageData(imageData)
 
-                        # Select the correct item in the combobox upon creation
-                        combobox_widget = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)]
-                        combobox_widget.setCurrentNode(node)
-                    elif not manual_node is None and not manual_node.GetImageData() is None:
-                        # If the node links to a manually imported volume, used as input (e.g., for faster diagnosis)
-                        # Working only if pointing to a file, not if a new empty LabelMapVolume was created.
-                        outputs[item] = manual_node
-                        output_node_name = outputs[item].GetName()
-                        img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(output_node_name))
-                        fileName = item + self.file_extension_docker
-                        # inputDict[item] = fileName
-                        SharedResources.getInstance().user_diagnosis_configuration['Neuro'][item.lower() + '_segmentation_filename'] = os.path.join(dataPath, 'data', fileName)
-                        sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path, fileName)))
-                    elif manual_node.GetImageData() is None:
-                        # If the placeholder was manually created, but not linked to an image container
-                        imageData = vtk.vtkImageData()
-                        imageData.SetDimensions((150, 150, 150))
-                        imageData.AllocateScalars(vtk.VTK_SHORT, 1)
-                        manual_node.SetAndObserveImageData(imageData)
-
-                elif iodict[item]["type"] == "point_vec":
-                    outputDict[item] = item + '.fcsv'
-                elif iodict[item]["type"] == "text":
-                    outputDict[item] = item + '.txt'
-                else:
+                    elif iodict[item]["type"] == "point_vec":
+                        outputDict[item] = item + '.fcsv'
+                    elif iodict[item]["type"] == "text":
+                        outputDict[item] = item + '.txt'
+                    else:
+                        paramDict[item] = str(params[item])
+            for item in iodict:
+                if iodict[item]["iotype"] == "input":
+                    if iodict[item]["type"] == "volume":
+                        # print(inputs[item])
+                        input_node_name = inputs[item].GetName()
+                        #try:
+                        img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
+                        input_sequence_type = iodict[item]["sequence_type"]
+                        fileName = 'input_' + input_sequence_type + self.file_extension_docker
+                        # @TODO. hard-coding to improve.
+                        if input_sequence_type == "T1-CE":
+                            fileName = 'input_t1gd' + self.file_extension_docker
+                        inputDict[item] = fileName
+                        input_timestamp_order = iodict[item]["timestamp_order"]
+                        os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
+                        sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
+                                                              "T" + input_timestamp_order, fileName)))
+                        #except Exception as e:
+                        #    print(e.message)
+                    elif iodict[item]["type"] == "configuration":
+                        generate_backend_config(SharedResources.getInstance().data_path,
+                                                iodict, self.logic_target_space, modelName)
+                elif iodict[item]["iotype"] == "parameter":
                     paramDict[item] = str(params[item])
-        for item in iodict:
-            if iodict[item]["iotype"] == "input":
-                if iodict[item]["type"] == "volume":
-                    # print(inputs[item])
-                    input_node_name = inputs[item].GetName()
-                    #try:
-                    img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
-                    input_sequence_type = iodict[item]["sequence_type"]
-                    fileName = 'input_' + input_sequence_type + self.file_extension_docker
-                    # @TODO. hard-coding to improve.
-                    if input_sequence_type == "T1-CE":
-                        fileName = 'input_t1gd' + self.file_extension_docker
-                    inputDict[item] = fileName
-                    input_timestamp_order = iodict[item]["timestamp_order"]
-                    os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
-                    sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
-                                                          "T" + input_timestamp_order, fileName)))
-                    #except Exception as e:
-                    #    print(e.message)
-                elif iodict[item]["type"] == "configuration":
-                    # with open(SharedResources.getInstance().user_config_filename, 'w') as configfile:
-                    #     SharedResources.getInstance().user_configuration.write(configfile)
-                    # with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
-                    #     SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
-                    generate_backend_config(SharedResources.getInstance().data_path,
-                                            iodict, self.logic_target_space, modelName)
-                    #inputDict[item] = configfile
-            elif iodict[item]["iotype"] == "parameter":
-                paramDict[item] = str(params[item])
+        except Exception:
+            print("Error during inputs preparation before Docker call.")
+            print(traceback.format_exc())
 
         self.cmdLogEvent('Docker run command:')
 
@@ -405,28 +405,6 @@ class RaidionicsLogic:
         cmd.append('/home/ubuntu/resources/data/rads_config.ini')
         cmd.append('-v')
         cmd.append('debug')
-        # if self.logic_task == 'segmentation':
-        #     cmd.append('--' + 'Task')
-        #     cmd.append('segmentation')  #@TODO. Should consider including that in model_parameters, might be diagnosis in the future
-        #
-        # for key in inputDict.keys():
-        #     cmd.append('--' + 'Input')
-        #     cmd.append(dataPath + '/data/' + inputDict[key])
-        # cmd.append('--' + 'Output')
-        # cmd.append(dataPath + '/output/')
-        # if modelName:
-        #     cmd.append('--' + 'Model')
-        #     cmd.append(modelName)
-        # else:
-        #     pass  # Should break? Most likely impossible to occur.
-        #
-        # if SharedResources.getInstance().use_gpu:  # Should maybe let the user choose which GPU, if multiple on a machine?
-        #     cmd.append('--' + 'GPU')
-        #     cmd.append('0')
-        #
-        # if self.logic_task == 'diagnosis':
-        #     cmd.append('--' + 'Config')
-        #     cmd.append(dataPath + '/data/' + 'diagnosis_config.ini')
 
         self.cmdLogEvent(cmd)
 
@@ -453,6 +431,7 @@ class RaidionicsLogic:
         output_text_files = dict()
         self.output_raw_values = dict()
         created_files = []
+        # @TODO. Have to fetch from the json files the correct timestamp for the task, to know in which folder to look.
         for _, _, files in os.walk(os.path.join(SharedResources.getInstance().output_path, 'T0')):
             for f, file in enumerate(files):
                 created_files.append(file)
