@@ -79,3 +79,5 @@ class DownloadDialog(qt.QDialog):
             self.accept()
         else:
             self.download_label.setText("Downloading failed.")
+            # @TODO. Should then pop-up a browser window with the model url, let the user download it manually,
+            # then ask where the archive has been saved, and perform its extraction...

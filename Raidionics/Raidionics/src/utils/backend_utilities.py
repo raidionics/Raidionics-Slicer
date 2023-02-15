@@ -4,8 +4,7 @@ import json
 from src.utils.resources import SharedResources
 
 
-def generate_backend_config(input_folder, parameters, logic_target_space):
-    pipeline_filename = parameters["UserConfiguration"]["pipeline_name"]
+def generate_backend_config(input_folder, parameters, logic_target_space, model_name):
     rads_config = configparser.ConfigParser()
     rads_config.add_section('Default')
     rads_config.set('Default', 'task', logic_target_space)
@@ -15,7 +14,7 @@ def generate_backend_config(input_folder, parameters, logic_target_space):
     rads_config.set('System', 'input_folder', '/home/ubuntu/resources/data')
     rads_config.set('System', 'output_folder', '/home/ubuntu/resources/output')
     rads_config.set('System', 'model_folder', '/home/ubuntu/resources/models')
-    rads_config.set('System', 'pipeline_filename', os.path.join('/home/ubuntu/resources/pipelines', pipeline_filename))
+    rads_config.set('System', 'pipeline_filename', '/home/ubuntu/resources/models/' + model_name + '/pipeline.json')
     rads_config.add_section('Runtime')
     rads_config.set('Runtime', 'reconstruction_method',
                     SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'])

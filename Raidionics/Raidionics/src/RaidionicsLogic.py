@@ -149,7 +149,7 @@ class RaidionicsLogic:
 
         try:
             self.main_queue_start()
-            self.logic_target_space = "neuro_diagnosis" if modelTarget == "Brain" else "mediastinum_diagnosis"
+            self.logic_target_space = "neuro_diagnosis" if modelTarget == "Neuro" else "mediastinum_diagnosis"
             # if model_parameters.json_dict['task'] == 'Diagnosis':
             #     if model_parameters.json_dict['organ'] == 'Brain':
             #         SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
@@ -386,7 +386,7 @@ class RaidionicsLogic:
                     # with open(SharedResources.getInstance().diagnosis_config_filename, 'w') as configfile:
                     #     SharedResources.getInstance().user_diagnosis_configuration.write(configfile)
                     generate_backend_config(SharedResources.getInstance().data_path,
-                                            iodict, self.logic_target_space)
+                                            iodict, self.logic_target_space, modelName)
                     #inputDict[item] = configfile
             elif iodict[item]["iotype"] == "parameter":
                 paramDict[item] = str(params[item])

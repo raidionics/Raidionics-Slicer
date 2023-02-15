@@ -65,8 +65,7 @@ class ModelParameters(object):
                     if 'color' in member:
                         iodict[member["name"]]['color'] = member['color']
                 elif t in ["configuration"]:
-                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
-                                              "pipeline_name": member["pipeline_name"]}
+                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
                 else:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
         return iodict
