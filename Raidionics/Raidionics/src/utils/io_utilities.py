@@ -54,128 +54,16 @@ def download_cloud_model_thread(selected_model):
     download_cloud_model_thread.daemon = True  # using daemon thread the thread is killed gracefully if program is abruptly closed
     download_cloud_model_thread.start()
 
-    # success = download_cloud_model_thread.join()
-    # return success
-
-    # success = False
-    # import concurrent.futures
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     future = executor.submit(download_cloud_model, selected_model, local_models, cloud_models)
-    #     success = future.result()
-    # return success
-
-
-def download_cloud_model_alt(selected_model):
-    model_url = ''
-    model_dependencies = []
-    model_checksum = None
-    tmp_archive_dir = ''
-    success = True
-    cloud_models = get_available_cloud_models_list()
-    try:
-        for model in cloud_models:
-            if model[0] == selected_model:
-                model_url = model[1]
-                model_dependencies = model[2].split(';') if model[2].strip() != '' else []
-                model_checksum = model[3]
-
-        model_dest_dir = SharedResources.getInstance().model_path
-        pipeline_dest_dir = SharedResources.getInstance().pipeline_path
-        json_local_dir = SharedResources.getInstance().json_local_dir
-        json_cloud_dir = SharedResources.getInstance().json_cloud_dir
-        archive_dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
-                                       str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/', '-'))
-                                       + '.zip')
-        tmp_archive_dir = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache', '.tmp')
-        if not os.path.exists(os.path.dirname(archive_dl_dest)):
-            os.makedirs(os.path.dirname(archive_dl_dest))
-
-        headers = {}
-
-        if os.path.exists(archive_dl_dest):
-            mtime = os.path.getmtime(archive_dl_dest)
-            headers["if-modified-since"] = formatdate(mtime, usegmt=True)
-
-        response = requests.get(model_url, headers=headers, stream=True)
-        response.raise_for_status()
-
-        if response.status_code == requests.codes.not_modified:
-            return
-
-        if response.status_code == requests.codes.ok:
-            with open(archive_dl_dest, "wb") as f:
-                for chunk in response.iter_content(chunk_size=1048576):
-                    f.write(chunk)
-
-            last_modified = response.headers.get("last-modified")
-            if last_modified:
-                new_mtime = parsedate_to_datetime(last_modified).timestamp()
-                os.utime(archive_dl_dest, times=(datetime.now().timestamp(), new_mtime))
-
-        extract_state = not os.path.exists(archive_dl_dest) or hashlib.md5(open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum
-        local_headers = []
-        for _, _, files in os.walk(json_local_dir):
-            for f in files:
-                local_headers.append(f)
-            break
-
-        missing_header = True
-        for loc_h in local_headers:
-            json_file = json.load(open(os.path.join(json_local_dir, loc_h), 'rb'))
-            if json_file["name"] == selected_model:
-                missing_header = False
-
-        extract_state = extract_state or missing_header
-        if extract_state:
-            os.makedirs(tmp_archive_dir, exist_ok=True)
-            gdown.extractall(path=archive_dl_dest, to=tmp_archive_dir)
-
-            model_folder = []
-            config_file = []
-            pipeline_file = []
-            for _, dirs, files in os.walk(tmp_archive_dir):
-                for d in dirs:
-                    model_folder.append(d)
-                for f in files:
-                    if 'json' in f and 'pipeline' not in f:
-                        config_file.append(f)
-                    elif 'json' in f:
-                        pipeline_file.append(f)
-                break
-
-            shutil.move(src=os.path.join(tmp_archive_dir, config_file[0]),
-                        dst=os.path.join(json_local_dir, config_file[0]))
-
-            shutil.move(src=os.path.join(tmp_archive_dir, pipeline_file[0]),
-                        dst=os.path.join(pipeline_dest_dir, pipeline_file[0]))
-
-            if os.path.exists(os.path.join(model_dest_dir, model_folder[0])):
-                shutil.rmtree(os.path.join(model_dest_dir, model_folder[0]))
-            shutil.move(src=os.path.join(tmp_archive_dir, model_folder[0]),
-                        dst=os.path.join(model_dest_dir, model_folder[0]))
-
-            shutil.rmtree(tmp_archive_dir)
-
-        # Checking if dependencies are needed, and if they exist already locally
-        if len(model_dependencies) > 0:
-            for dep in model_dependencies:
-                success_dep = download_cloud_model_alt(dep)
-                success = success & success_dep
-    except Exception as e:
-        print('Impossible to download the selected cloud model.\n')
-        print('{}'.format(traceback.format_exc()))
-        success = False
-        if os.path.exists(tmp_archive_dir):
-            shutil.rmtree(tmp_archive_dir)
-    return success
-
 
 def download_cloud_model(selected_model):
     model_url = ''
     model_dependencies = []
     model_checksum = None
+    model_config_url = None
     tmp_archive_dir = ''
     success = True
+    download_state = False
+    extract_state = False
     cloud_models = get_available_cloud_models_list()
     try:
         for model in cloud_models:
@@ -183,63 +71,44 @@ def download_cloud_model(selected_model):
                 model_url = model[1]
                 model_dependencies = model[2].split(';') if model[2].strip() != '' else []
                 model_checksum = model[3]
+                model_config_url = model[4]
 
         model_dest_dir = SharedResources.getInstance().model_path
-        pipeline_dest_dir = SharedResources.getInstance().pipeline_path
         json_local_dir = SharedResources.getInstance().json_local_dir
         json_cloud_dir = SharedResources.getInstance().json_cloud_dir
         archive_dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
-                                       str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/', '-'))
+                                       str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/',
+                                                                                                             '-'))
                                        + '.zip')
-        tmp_archive_dir = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache', '.tmp')
-        if not os.path.exists(os.path.dirname(archive_dl_dest)):
-            os.makedirs(os.path.dirname(archive_dl_dest))
+        os.makedirs(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache'), exist_ok=True)
+        gdown.cached_download(url=model_config_url,
+                              path=os.path.join(SharedResources.getInstance().json_local_dir,
+                                                '_'.join(selected_model[1:-1].split('][')) + '.json'))
 
-        webbrowser.open(model_url, new=2)
-        gdown.cached_download(url=model_url, path=archive_dl_dest, md5=model_checksum)
-        extract_state = not os.path.exists(archive_dl_dest) or hashlib.md5(open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum
-        local_headers = []
-        for _, _, files in os.walk(json_local_dir):
-            for f in files:
-                local_headers.append(f)
-            break
+        if not os.path.exists(archive_dl_dest) or hashlib.md5(
+                open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum:
+            download_state = True
 
-        missing_header = True
-        for loc_h in local_headers:
-            json_file = json.load(open(os.path.join(json_local_dir, loc_h), 'rb'))
-            if json_file["name"] == selected_model:
-                missing_header = False
+        if download_state:
+            headers = {}
 
-        extract_state = extract_state or missing_header
+            response = requests.get(model_url, headers=headers, stream=True)
+            response.raise_for_status()
+
+            if response.status_code == requests.codes.ok:
+                with open(archive_dl_dest, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
+                extract_state = True
+        else:
+            zip_content = zipfile.ZipFile(archive_dl_dest).namelist()
+            for f in zip_content:
+                if not os.path.exists(os.path.join(model_dest_dir, f)):
+                    extract_state = True
+
         if extract_state:
-            os.makedirs(tmp_archive_dir, exist_ok=True)
-            gdown.extractall(path=archive_dl_dest, to=tmp_archive_dir)
-
-            model_folder = []
-            config_file = []
-            pipeline_file = []
-            for _, dirs, files in os.walk(tmp_archive_dir):
-                for d in dirs:
-                    model_folder.append(d)
-                for f in files:
-                    if 'json' in f and 'pipeline' not in f:
-                        config_file.append(f)
-                    elif 'json' in f:
-                        pipeline_file.append(f)
-                break
-
-            shutil.move(src=os.path.join(tmp_archive_dir, config_file[0]),
-                        dst=os.path.join(json_local_dir, config_file[0]))
-
-            shutil.move(src=os.path.join(tmp_archive_dir, pipeline_file[0]),
-                        dst=os.path.join(pipeline_dest_dir, pipeline_file[0]))
-
-            if os.path.exists(os.path.join(model_dest_dir, model_folder[0])):
-                shutil.rmtree(os.path.join(model_dest_dir, model_folder[0]))
-            shutil.move(src=os.path.join(tmp_archive_dir, model_folder[0]),
-                        dst=os.path.join(model_dest_dir, model_folder[0]))
-
-            shutil.rmtree(tmp_archive_dir)
+            with zipfile.ZipFile(archive_dl_dest, 'r') as zip_ref:
+                zip_ref.extractall(model_dest_dir)
 
         # Checking if dependencies are needed, and if they exist already locally
         if len(model_dependencies) > 0:
@@ -432,9 +301,9 @@ class DownloadWorker(qt.QObject): #qt.QThread
                                            str('_'.join(selected_model.split(']')[:-1]).replace('[', '').replace('/',
                                                                                                                  '-'))
                                            + '.zip')
-
+            os.makedirs(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache'), exist_ok=True)
             gdown.cached_download(url=model_config_url,
-                                  path=os.path.join(SharedResources.getInstance().json_local_dir, '_'.join(model[0][1:-1].split('][')) + '.json'))
+                                  path=os.path.join(SharedResources.getInstance().json_local_dir, '_'.join(selected_model[1:-1].split('][')) + '.json'))
 
             if not os.path.exists(archive_dl_dest) or hashlib.md5(open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum:
                 download_state = True

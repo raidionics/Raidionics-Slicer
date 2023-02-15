@@ -118,36 +118,6 @@ class ModelsInterfaceWidget(qt.QWidget):
         x = popup.exec_()
 
     def on_cloud_model_download_selected(self):
-        # mainWindow = slicer.util.mainWindow()
-        # downloadWidget = qt.QWidget()
-        # layout = qt.QVBoxLayout()
-        # downloadWidget.setLayout(layout)
-        # popupGeometry = qt.QRect()
-        # if mainWindow:
-        #     width = 400
-        #     height = 200
-        #     popupGeometry.setWidth(width)
-        #     popupGeometry.setHeight(height)
-        #     downloadWidget.setGeometry(popupGeometry)
-        #
-        # pos = mainWindow.pos
-        # downloadWidget.move(pos.x() + (mainWindow.width - downloadWidget.width) / 2,
-        #                     pos.y() + (mainWindow.height - downloadWidget.height) / 2)
-        #
-        # titleLabel = qt.QLabel('Download box')
-        # layout.addWidget(titleLabel)
-        # te = qt.QTextEdit('plop')
-        # te.readOnly = True
-        # layout.addWidget(te)
-        # closeButton = qt.QPushButton('Close')
-        # layout.addWidget(closeButton)
-        # downloadWidget.show()
-
-        # popup = qt.QMessageBox()
-        # popup.setWindowTitle('Downloading\n')
-        # popup.setText('plop')
-        # x = popup.exec_()
-
         selected_model = self.cloud_model_selector_combobox.currentText
         diag = DownloadDialog(self)
         diag.set_model_name(selected_model)
