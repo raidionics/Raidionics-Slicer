@@ -9,7 +9,9 @@ segmentation and standardized reporting", which has been published in [Frontiers
 
 <details open>
 <summary>
-## Installation </summary>
+
+# Installation
+</summary>
 2.1 Download 3DSlicer for your running Operating System at https://download.slicer.org/ (running on stable 5.2.1).  
 
 2.2 Download the Raidionics plugin code:  
@@ -28,8 +30,10 @@ A restart of 3DSlicer is necessary after the initial launch with the plugin to h
 
 <details open>
 <summary>
-## How to cite </summary>
-If you are using Raidionics-Slicer in your research, please use the following citation:
+
+# How to cite </summary>
+If you are using Raidionics-Slicer in your research, please use the following citation:  
+
 ```
 @article{10.3389/fneur.2022.932219,
 title={Preoperative Brain Tumor Imaging: Models and Software for Segmentation and Standardized Reporting},
@@ -45,18 +49,19 @@ issn={1664-2295}}
 
 <details>
 <summary>
-## Methodological background </summary>
+
+# Methodological background </summary>
 
 More information about the different models provided and architectures used can be accessed from the below-listed publications.  
 
-### Neuro  
+## Neuro  
 * AGUNet neural network architecture => [Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms](https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)
 
 * Standardized reporting and Data System (RADS) => [Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations ](https://www.mdpi.com/2072-6694/13/12/2854)
 
 * Segmentation performance => [Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task ](https://www.mdpi.com/2072-6694/13/18/4674)
 
-### Mediastinum
+## Mediastinum
 * Mediastinum organs segmentation => [Semantic segmentation and detection of mediastinal lymph nodes and anatomical structures in CT data for lung cancer staging](https://link.springer.com/article/10.1007/s11548-019-01948-8)  
 * Lymph nodes segmentation => [Mediastinal lymph nodes segmentation using 3D convolutional neural network ensembles and anatomical priors guiding](https://www.tandfonline.com/doi/pdf/10.1080/21681163.2022.2043778)
 
@@ -64,13 +69,14 @@ More information about the different models provided and architectures used can 
 
 <details>
 <summary>
-## Docker setup </summary>
+
+# Docker setup  </summary>  
 A proper Docker setup is **mandatory** since all processing is performed within
 a Docker image, 3DSlicer is only used for its GUI.  
 Start by downloading the Docker Desktop app at https://www.docker.com/products/docker-desktop/.
 Then click on the downloaded executable and follow the instructions.  
 
-### Ubuntu installation: 
+## Ubuntu installation: 
 * https://docs.docker.com/install/linux/docker-ce/ubuntu/  
     > ‣ sudo apt-get update  
     > ‣ sudo apt-get install \  
@@ -83,7 +89,7 @@ Then click on the downloaded executable and follow the instructions.
     > ‣ sudo apt-key fingerprint 0EBFCD88   
     > ‣ sudo apt-get install docker-ce docker-ce-cli containerd.io  
 
-### Setup the Docker images
+## Setup the Docker images
 • The necessary Docker images are public, therefore an account is not necessary. 
 All images will be automatically downloaded upon model selection, which might 
 take some minutes while the 3DSlicer interface won't be responding.  
