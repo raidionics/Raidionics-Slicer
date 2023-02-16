@@ -7,6 +7,7 @@ import traceback
 import csv
 import threading
 import hashlib
+from typing import List
 import json
 import datetime
 import zipfile
@@ -27,7 +28,15 @@ except:
 from src.utils.resources import SharedResources
 
 
-def get_available_cloud_models_list():
+def get_available_cloud_models_list() -> List[List[str]]:
+    """
+    Collects a csv file from Google Drive, summarizing all available models.
+
+    Returns
+    ------
+    List of all available models on the cloud, each expressed as a List[str].
+    Each model list element corresponds to the following headers: Item,link,dependencies,sum.
+    """
     cloud_models_list = []
     # cloud_models_list_url = 'https://drive.google.com/uc?id=1wVjqpQ7S3xTcNJyV2Sp_hSyKglcxfQLe'
     cloud_models_list_url = 'https://drive.google.com/uc?id=1uibFBPBQywX7EGK5G_Oc6CXlDSiOePKF'
@@ -56,6 +65,19 @@ def download_cloud_model_thread(selected_model):
 
 
 def download_cloud_model(selected_model):
+    """
+    Legacy, but still needed, model download method (use recursively from within the DownloadWorker thread.
+    @TODO. Should be removed and the recursive download should just happen inside the worker.
+
+    Parameters
+    ----------
+    selected_model: str
+        Unique name identifier of the model to be downloaded.
+
+    Returns
+    -------
+    Boolean to indicate if the download operation succeeded or failed.
+    """
     model_url = ''
     model_dependencies = []
     model_checksum = None
@@ -126,9 +148,10 @@ def download_cloud_model(selected_model):
 
 def check_local_model_for_update(selected_model):
     """
+    Compares the existing local model with the remote ones, to identify if a new version is available for download,
+    by checking the checksums.
 
-    :param selected_model:
-    :return:
+
     """
     model_url = ''
     model_dependencies = []
@@ -263,7 +286,6 @@ class DownloadWorker(qt.QObject): #qt.QThread
 
     def __init__(self):
         super(qt.QObject, self).__init__()
-        # self.finished_signal = qt.Signal(bool) #WorkerFinishedSignal() #qt.Signal() #qt.Signal(name='workerFinished')
 
     def onWorkerStart(self, model=None, diagnosis=None, docker_image=None):
         try:

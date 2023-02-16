@@ -143,10 +143,10 @@ class ModelsInterfaceWidget(qt.QWidget):
             self.cloud_model_download_pushbutton.setEnabled(False)
 
     def on_model_selection(self, index):
-        # @TODO. Maybe need a flush method to remove old models, in case the users don't know how to do it themselves?
-        if index < 1 or self.local_model_selector_combobox.count == 1:
-            return
-
+        """
+        Updates the model parameters GUI part based on the currently selected model.
+        The index parameter is currently not used, as the current combobox text is directly retrieved and used.
+        """
         selected_model = self.local_model_selector_combobox.currentText
         # @TODO. Should also check if the files are still on disk, before sending the OK signal?
         # @TODO. Should also check for an update of the docker image by comparing sha numbers?
@@ -157,12 +157,14 @@ class ModelsInterfaceWidget(qt.QWidget):
                 diag.set_model_name(selected_model)
                 diag.exec()
         self.model_parameters.destroy()
-        jsonIndex = self.local_model_selector_combobox.itemData(index)
-        json_model = self.jsonModels[jsonIndex - 1]
+        json_model = self.find_json_model(selected_model_name=selected_model)
+        if not json_model:
+            return
+
         self.model_parameters.create(json_model)
 
-        if "briefdescription" in self.jsonModels[jsonIndex - 1]:
-            tip = self.jsonModels[jsonIndex - 1]["briefdescription"]
+        if "briefdescription" in json_model:
+            tip = json_model["briefdescription"]
             tip = tip.rstrip()
             self.local_model_selector_combobox.setToolTip(tip)
         else:
@@ -180,7 +182,7 @@ class ModelsInterfaceWidget(qt.QWidget):
             if new_docker_status:
                 self.segmentation_available_signal.emit(True)
             else:
-                tip = 'The required Docker image could not be downloaded, maybe because of read/write access rights or because the image is private:\n'
+                tip = 'The required Docker image could not be downloaded, because of inadequate access rights or missing Docker installation.\n'
                 tip += '   * Open the command line editor (On Windows, type \'cmd\' in the search bar.)\n'
                 tip += '   * Copy and execute: docker image pull {}\n'.format(self.model_parameters.dockerImageName)
                 tip += '   * Wait for the download to be complete, then exit the popup.\n'
@@ -276,3 +278,11 @@ class ModelsInterfaceWidget(qt.QWidget):
         popup.setWindowTitle('Exhaustive description for {}'.format(self.local_model_selector_combobox.currentText))
         popup.setText(tip)
         x = popup.exec_()
+
+    def find_json_model(self, selected_model_name):
+        json_model = None
+        for m in self.jsonModels:
+            if m['name'] == selected_model_name:
+                json_model = m
+                break
+        return json_model

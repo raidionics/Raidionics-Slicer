@@ -152,11 +152,6 @@ class RaidionicsLogic:
         try:
             self.main_queue_start()
             self.logic_target_space = "neuro_diagnosis" if modelTarget == "Neuro" else "mediastinum_diagnosis"
-            # if model_parameters.json_dict['task'] == 'Diagnosis':
-            #     if model_parameters.json_dict['organ'] == 'Brain':
-            #         SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'neuro_diagnosis'
-            #     elif model_parameters.json_dict['organ'] == 'Mediastinum':
-            #         SharedResources.getInstance().user_diagnosis_configuration['Default']['task'] = 'mediastinum_diagnosis'
 
             self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
             if not self.abort:
@@ -368,20 +363,21 @@ class RaidionicsLogic:
                     if iodict[item]["type"] == "volume":
                         # print(inputs[item])
                         input_node_name = inputs[item].GetName()
-                        #try:
-                        img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
-                        input_sequence_type = iodict[item]["sequence_type"]
-                        fileName = 'input_' + input_sequence_type + self.file_extension_docker
-                        # @TODO. hard-coding to improve.
-                        if input_sequence_type == "T1-CE":
-                            fileName = 'input_t1gd' + self.file_extension_docker
-                        inputDict[item] = fileName
-                        input_timestamp_order = iodict[item]["timestamp_order"]
-                        os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
-                        sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
-                                                              "T" + input_timestamp_order, fileName)))
-                        #except Exception as e:
-                        #    print(e.message)
+                        try:
+                            img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
+                            input_sequence_type = iodict[item]["sequence_type"]
+                            fileName = 'input_' + input_sequence_type + self.file_extension_docker
+                            # @TODO. hard-coding to improve.
+                            if input_sequence_type == "T1-CE":
+                                fileName = 'input_t1gd' + self.file_extension_docker
+                            inputDict[item] = fileName
+                            input_timestamp_order = iodict[item]["timestamp_order"]
+                            os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
+                            sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
+                                                                  "T" + input_timestamp_order, fileName)))
+                        except Exception as e:
+                            print("Issue preparing input volume.")
+                            print(traceback.format_exc())
                     elif iodict[item]["type"] == "configuration":
                         generate_backend_config(SharedResources.getInstance().data_path,
                                                 iodict, self.logic_target_space, modelName)

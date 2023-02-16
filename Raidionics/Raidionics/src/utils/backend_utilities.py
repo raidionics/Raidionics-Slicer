@@ -6,7 +6,21 @@ import traceback
 from src.utils.resources import SharedResources
 
 
-def generate_backend_config(input_folder, parameters, logic_target_space, model_name):
+def generate_backend_config(input_folder: str, parameters, logic_target_space: str, model_name: str) -> None:
+    """
+    Preparing the configuration file to be used as input by raidionics_rads_lib (processing backend).
+
+    Parameters
+    ----------
+    input_folder: str
+         Folder to be used as input by the backend.
+    parameters: ?
+        Not used anymore
+    logic_target_space: str
+        Description of the targeted medical specialty, between neuro and mediastinum for now.
+    model_name: str
+        Name of the model to be executed in the backend.
+    """
     try:
         rads_config = configparser.ConfigParser()
         rads_config.add_section('Default')
@@ -19,6 +33,7 @@ def generate_backend_config(input_folder, parameters, logic_target_space, model_
         rads_config.set('System', 'model_folder', '/home/ubuntu/resources/models')
         rads_config.set('System', 'pipeline_filename', '/home/ubuntu/resources/models/' + model_name + '/pipeline.json')
         rads_config.add_section('Runtime')
+        # @TODO. The backend disregards those parameters after the latest RADS lib update, has to be fixed
         rads_config.set('Runtime', 'reconstruction_method',
                         SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'])
         rads_config.set('Runtime', 'reconstruction_order',

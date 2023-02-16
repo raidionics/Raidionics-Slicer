@@ -19,13 +19,13 @@ segmentation and standardized reporting", which has been published in [Frontiers
 Or
 * git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git /path/to/folder/.  
 
-2.3 Download and install Docker (see Section 3).  
+2.3 Download and install Docker (see below).  
 
 2.3 Load the plugin into 3DSlicer:   
 	∘ All Modules > Extension Wizard.  
 	∘ Developer Tools > Extension Wizard.  
 	∘ Select Extension > point to the folder (second Raidionics) and add it to the path (tick the small box at the bottom).  
-A restart of 3DSlicer is necessary after the initial launch with the plugin to have the proper Python environment.  
+:warning: A restart of 3DSlicer is necessary after the initial launch with the plugin to have the proper Python environment.  
 </details>
 
 <details open>

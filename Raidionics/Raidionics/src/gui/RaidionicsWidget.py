@@ -129,6 +129,8 @@ class RaidionicsWidget():
         self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
         self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
         self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Reporting (RADS)')
+        self.base_diagnosis_widget.setEnabled(False)
+        self.base_diagnosis_widget.setToolTip("Currently disabled for maintenance, please use Raidionics in the meantime.")
         self.logging_textedit = qt.QTextEdit()
         #self.logging_textedit.setEnabled(False)
         self.logging_textedit.setReadOnly(True)

@@ -73,6 +73,7 @@ class SharedResources:
         self.global_active_model_update = False
 
     def __set_runtime_parameters(self):
+        # Most likely deprecated, as we moved from the seg backend to the rads one!
         # Set of variables sent to the docker images as runtime config, manually chosen by the user.
         self.user_configuration = configparser.ConfigParser()
         self.user_configuration['Predictions'] = {}
@@ -94,6 +95,3 @@ class SharedResources:
         self.user_diagnosis_configuration['Neuro']['tumor_segmentation_filename'] = ''
         self.user_diagnosis_configuration['Neuro']['brain_segmentation_filename'] = ''
         self.user_diagnosis_configuration['Neuro']['tumor_type'] = ''
-        # @TODO. Give the option to the user to decide what to include in the standardized report generation
-        self.user_diagnosis_configuration['Neuro']['compute_cortical_structures'] = 'True'
-        self.user_diagnosis_configuration['Neuro']['compute_subcortical_structures'] = 'True'
