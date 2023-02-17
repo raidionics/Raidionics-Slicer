@@ -306,6 +306,15 @@ class RaidionicsLogic:
         if self.logic_task == 'diagnosis':
             dataPath = '/home/ubuntu/Raidionics-segmenter/resources'
 
+        # Cleaning input/output folders for every run
+        if os.path.exists(SharedResources.getInstance().data_path):
+            shutil.rmtree(SharedResources.getInstance().data_path)
+        os.makedirs(SharedResources.getInstance().data_path)
+
+        if os.path.exists(SharedResources.getInstance().output_path):
+            shutil.rmtree(SharedResources.getInstance().output_path)
+        os.makedirs(SharedResources.getInstance().output_path)
+
         # if widgetPresent:
         #     self.cmdStartEvent()
         try:
@@ -372,7 +381,8 @@ class RaidionicsLogic:
                                 fileName = 'input_t1gd' + self.file_extension_docker
                             inputDict[item] = fileName
                             input_timestamp_order = iodict[item]["timestamp_order"]
-                            os.makedirs(str(os.path.join(SharedResources.getInstance().data_path, "T" + input_timestamp_order)))
+                            os.makedirs(str(os.path.join(SharedResources.getInstance().data_path,
+                                                         "T" + input_timestamp_order)), exist_ok=True)
                             sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
                                                                   "T" + input_timestamp_order, fileName)))
                         except Exception as e:
@@ -432,6 +442,10 @@ class RaidionicsLogic:
             for f, file in enumerate(files):
                 created_files.append(file)
             break
+
+        if len(created_files) == 0:
+            logging.warning("No results were generated! If no other error message was printed, it might indicate an"
+                            "issue with Docker. Make sure the Docker service is running.")
 
         for item in iodict:
             if iodict[item]["iotype"] == "output":

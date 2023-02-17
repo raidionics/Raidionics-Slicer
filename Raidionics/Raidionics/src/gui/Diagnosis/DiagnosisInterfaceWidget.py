@@ -32,6 +32,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.setLayout(self.base_layout)
         self.setup_connections()
         # self.on_diagnosis_selection(0)
+        self.json_diagnoses = []
         self.populate_local_diagnosis()
         self.populate_cloud_diagnosis()
 
@@ -239,7 +240,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def find_json_model(self, selected_model_name):
         json_model = None
-        for m in self.jsonModels:
+        for m in self.json_diagnoses:
             if m['name'] == selected_model_name:
                 json_model = m
                 break

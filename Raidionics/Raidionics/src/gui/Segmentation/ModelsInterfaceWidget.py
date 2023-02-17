@@ -35,6 +35,7 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.setLayout(self.base_layout)
         self.setup_connections()
         # self.on_model_selection(0)
+        self.jsonModels = []
         self.populate_local_models()
         self.populate_cloud_models()
 
