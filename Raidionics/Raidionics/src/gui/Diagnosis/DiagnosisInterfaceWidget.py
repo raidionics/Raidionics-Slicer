@@ -166,6 +166,9 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
         self.diagnosis_model_parameters.destroy()
         json_model = self.find_json_model(selected_model_name=selected_model)
+        if not json_model:
+            return
+
         self.diagnosis_model_parameters.create(json_model)
 
         if "briefdescription" in json_model:

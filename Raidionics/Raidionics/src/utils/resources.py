@@ -80,6 +80,9 @@ class SharedResources:
         self.user_configuration['Predictions']['non_overlapping'] = 'true'
         self.user_configuration['Predictions']['reconstruction_method'] = 'probabilities'
         self.user_configuration['Predictions']['reconstruction_order'] = 'resample_first'
+        self.user_configuration['Runtime'] = {}
+        self.user_configuration['Runtime']['use_stripped_data'] = 'False'
+        self.user_configuration['Runtime']['use_registered_data'] = 'False'
         self.user_configuration['Neuro'] = {}
         self.user_configuration['Neuro']['brain_segmentation_filename'] = ''
         self.user_configuration['Mediastinum'] = {}
@@ -94,4 +97,3 @@ class SharedResources:
         self.user_diagnosis_configuration['Neuro'] = {}
         self.user_diagnosis_configuration['Neuro']['tumor_segmentation_filename'] = ''
         self.user_diagnosis_configuration['Neuro']['brain_segmentation_filename'] = ''
-        self.user_diagnosis_configuration['Neuro']['tumor_type'] = ''

@@ -46,8 +46,18 @@ class ModelsExecutionWidget(qt.QWidget):
         tmp_layout = qt.QGridLayout()
         self.advanced_use_gpu_label = qt.QLabel('Use GPU')
         self.advanced_use_gpu_checkbox = qt.QCheckBox()
+        self.advanced_use_gpu_checkbox.setEnabled(False)
         tmp_layout.addWidget(self.advanced_use_gpu_label, 0, 0)
         tmp_layout.addWidget(self.advanced_use_gpu_checkbox, 0, 1)
+        self.advanced_use_stripped_inputs_label = qt.QLabel('Stripped inputs')
+        self.advanced_use_stripped_inputs_checkbox = qt.QCheckBox()
+        tmp_layout.addWidget(self.advanced_use_stripped_inputs_label, 0, 2)
+        tmp_layout.addWidget(self.advanced_use_stripped_inputs_checkbox, 0, 3)
+        self.advanced_use_registered_inputs_label = qt.QLabel('Registered inputs')
+        self.advanced_use_registered_inputs_checkbox = qt.QCheckBox()
+        tmp_layout.addWidget(self.advanced_use_registered_inputs_label, 0, 4)
+        tmp_layout.addWidget(self.advanced_use_registered_inputs_checkbox, 0, 5)
+
         self.advanced_predictions_type_label = qt.QLabel('Predictions')
         self.advanced_predictions_type_combobox = qt.QComboBox()
         self.advanced_predictions_type_combobox.addItems(['Probabilities', 'Binary'])
@@ -103,6 +113,8 @@ class ModelsExecutionWidget(qt.QWidget):
 
     def setup_connections(self):
         self.advanced_use_gpu_checkbox.connect("stateChanged(int)", self.on_use_gpu_change)
+        self.advanced_use_stripped_inputs_checkbox.connect("stateChanged(int)", self.on_use_stripped_inputs_change)
+        self.advanced_use_registered_inputs_checkbox.connect("stateChanged(int)", self.on_use_registered_inputs_change)
         self.advanced_resampling_combobox.connect("currentIndexChanged(QString)", self.on_sampling_strategy_change)
         self.advanced_predictions_type_combobox.connect("currentIndexChanged(QString)", self.on_predictions_type_change)
 
@@ -131,6 +143,18 @@ class ModelsExecutionWidget(qt.QWidget):
             SharedResources.getInstance().use_gpu = True
         elif state == qt.Qt.Unchecked:
             SharedResources.getInstance().use_gpu = False
+
+    def on_use_stripped_inputs_change(self, state):
+        if state == qt.Qt.Checked:
+            SharedResources.getInstance().user_configuration['Runtime']['use_stripped_data'] = 'True'
+        elif state == qt.Qt.Unchecked:
+            SharedResources.getInstance().user_configuration['Runtime']['use_stripped_data'] = 'False'
+
+    def on_use_registered_inputs_change(self, state):
+        if state == qt.Qt.Checked:
+            SharedResources.getInstance().user_configuration['Runtime']['use_registered_data'] = 'True'
+        elif state == qt.Qt.Unchecked:
+            SharedResources.getInstance().user_configuration['Runtime']['use_registered_data'] = 'False'
 
     def on_sampling_strategy_change(self, order):
         if order == 'First':

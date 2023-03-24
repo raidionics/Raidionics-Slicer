@@ -33,11 +33,14 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         rads_config.set('System', 'model_folder', '/home/ubuntu/resources/models')
         rads_config.set('System', 'pipeline_filename', '/home/ubuntu/resources/models/' + model_name + '/pipeline.json')
         rads_config.add_section('Runtime')
-        # @TODO. The backend disregards those parameters after the latest RADS lib update, has to be fixed
         rads_config.set('Runtime', 'reconstruction_method',
                         SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'])
         rads_config.set('Runtime', 'reconstruction_order',
                         SharedResources.getInstance().user_configuration['Predictions']['reconstruction_order'])
+        rads_config.set('Runtime', 'use_stripped_data',
+                        SharedResources.getInstance().user_configuration['Runtime']['use_stripped_data'])
+        rads_config.set('Runtime', 'use_registered_data',
+                        SharedResources.getInstance().user_configuration['Runtime']['use_registered_data'])
         # rads_config.add_section('Neuro')
         # if SoftwareConfigResources.getInstance().user_preferences.compute_cortical_structures:
         #     rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
