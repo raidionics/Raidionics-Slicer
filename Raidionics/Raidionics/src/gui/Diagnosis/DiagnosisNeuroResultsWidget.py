@@ -139,7 +139,7 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
             self.results_widgets[str(i+1)] = w
 
     def update_results(self):
-        diagnosis_file = os.path.join(SharedResources.getInstance().output_path, 'Diagnosis.json')
+        diagnosis_file = os.path.join(SharedResources.getInstance().output_path, 'neuro_clinical_report.json')
         NeuroDiagnosisParameters.getInstance().from_json(diagnosis_file)
 
         self.__clean_results_area()

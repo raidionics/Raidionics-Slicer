@@ -190,7 +190,7 @@ def check_local_model_for_update(selected_model):
 
 def get_available_cloud_diagnoses_list():
     cloud_diagnoses_list = []
-    cloud_diagnoses_list_url = 'https://drive.google.com/uc?id=1FDleimGDdODufCaTqGdK4yTVA9JdOAHx'
+    cloud_diagnoses_list_url = 'https://drive.google.com/uc?id=1lFlfUGxiHxykmf_2keLhXX6k2PG5jn6M'
     try:
         cloud_diagnoses_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_diagnoses_list.csv')
         gdown.cached_download(url=cloud_diagnoses_list_url, path=cloud_diagnoses_list_filename)
@@ -212,7 +212,8 @@ def get_available_cloud_diagnoses_list():
 def check_local_diagnosis_for_update(selected_diagnosis):
     diagnosis_url = ''
     diagnosis_dependencies = []
-    diagnosis_checksum = None
+    diagnosis_md5sum = None
+    diagnosis_pipeline_url = ''
     download_required = False
     cloud_diagnoses = get_available_cloud_diagnoses_list()
     try:
@@ -220,14 +221,21 @@ def check_local_diagnosis_for_update(selected_diagnosis):
             if diagnosis[0] == selected_diagnosis:
                 diagnosis_url = diagnosis[1]
                 diagnosis_dependencies = diagnosis[2].split(';') if diagnosis[2].strip() != '' else []
-                diagnosis_checksum = diagnosis[3]
+                diagnosis_md5sum = diagnosis[3]
+                diagnosis_pipeline_url = diagnosis[4]
 
         json_local_dir = SharedResources.getInstance().json_local_dir
         dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.json')
-        gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)
+        gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_md5sum)
         shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
+
+        diagnosis_dir = SharedResources.getInstance().diagnosis_path
+        dl_dest = os.path.join(diagnosis_dir,
+                               str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
+                               + '.json')
+        gdown.cached_download(url=diagnosis_pipeline_url, path=dl_dest)
 
         # Checking if dependencies must be updated.
         if len(diagnosis_dependencies) > 0:
@@ -369,7 +377,8 @@ class DownloadWorker(qt.QObject): #qt.QThread
     def download_cloud_diagnosis2(self, selected_diagnosis):
         diagnosis_url = ''
         diagnosis_dependencies = []
-        diagnosis_checksum = None
+        diagnosis_md5sum = None
+        diagnosis_pipeline_url = ''
         tmp_archive_dir = ''
         success = True
         cloud_diagnoses = get_available_cloud_diagnoses_list()
@@ -378,14 +387,23 @@ class DownloadWorker(qt.QObject): #qt.QThread
                 if diagnosis[0] == selected_diagnosis:
                     diagnosis_url = diagnosis[1]
                     diagnosis_dependencies = diagnosis[2].split(';') if diagnosis[2].strip() != '' else []
-                    diagnosis_checksum = diagnosis[3]
+                    diagnosis_md5sum = diagnosis[3]
+                    diagnosis_pipeline_url = diagnosis[4]
 
-            json_local_dir = SharedResources.getInstance().json_local_dir
-            dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
-                                   str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
-                                   + '.json')
-            gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)
-            shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
+                json_local_dir = SharedResources.getInstance().json_local_dir
+                dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
+                                       str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
+                                                                                                                 '-'))
+                                       + '.json')
+                gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_md5sum)
+                shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
+
+                diagnosis_dir = SharedResources.getInstance().diagnosis_path
+                dl_dest = os.path.join(diagnosis_dir,
+                                       str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
+                                                                                                                 '-'))
+                                       + '_pipeline.json')
+                gdown.cached_download(url=diagnosis_pipeline_url, path=dl_dest)
 
             # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
             if len(diagnosis_dependencies) > 0:

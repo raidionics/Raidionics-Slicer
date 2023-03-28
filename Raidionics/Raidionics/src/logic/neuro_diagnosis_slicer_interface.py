@@ -85,7 +85,7 @@ class NeuroDiagnosisSlicerInterface:
 
                     if 'description' in iodict[output] and iodict[output]['description'] == 'True':
                         desc_info = []
-                        csv_filename = str(os.path.join(SharedResources.getInstance().output_path, output + '_description.csv'))
+                        csv_filename = str(os.path.join(SharedResources.getInstance().output_path, "atlas_descriptions", output + '_description.csv'))
                         file = open(csv_filename, 'r')
                         csvfile = csv.DictReader(file)
                         for row in csvfile:

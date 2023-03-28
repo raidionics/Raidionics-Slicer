@@ -171,8 +171,10 @@ class ModelsInterfaceWidget(qt.QWidget):
         else:
             self.local_model_selector_combobox.setToolTip("")
 
-        # self.enable_user_interface(True)
-        #self.onLocateButton()
+        # Upon model selection, the required Docker image should be downloaded
+        # We assume the latest version of the image:tag should always be used, regardless of the sha256, and all
+        # models should be compatible with the latest image -- too annoying to pull different image versions with the
+        # tag...
         RaidionicsLogic.getInstance().selected_model = self.local_model_selector_combobox
         docker_status = RaidionicsLogic.getInstance().check_docker_image_local_existence(self.model_parameters.dockerImageName)
         if not docker_status:

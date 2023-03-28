@@ -64,8 +64,16 @@ class ModelParameters(object):
                         iodict[member["name"]]['threshold'] = member['threshold']
                     if 'color' in member:
                         iodict[member["name"]]['color'] = member['color']
+                    if 'atlas_category' in member:
+                        iodict[member["name"]]['atlas_category'] = member['atlas_category']
                 elif t in ["configuration"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
+                    if 'default' in member:
+                        iodict[member["name"]]['default'] = member['default']
+                elif t in ["text"]:
+                    iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
+                    if 'default' in member:
+                        iodict[member["name"]]['default'] = member['default']
                 else:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"]}
         return iodict
@@ -193,10 +201,6 @@ class ModelParameters(object):
                 pass
             elif t == "volume":
                 cname = member["name"]
-                # if "sequence_type" in member:
-                #     cname = cname + " " + member["sequence_type"]
-                # if "timestamp_order" in member:
-                #     cname = cname + " (T" + member["timestamp_order"] + ")"
                 w = self.createVolumeWidget(cname, member["iotype"], member["voltype"], False)
 
             elif t == "InterpolatorEnum":
@@ -437,6 +441,8 @@ class ModelParameters(object):
         tip = tip.rstrip()
 
         l = qt.QLabel(self.BeautifyCamelCase(memberJSON["name"]) + ": ")
+        if memberJSON["type"] == "volume":
+            l.setText(self.BeautifyCamelCase("(" + memberJSON["iotype"] + ") " + memberJSON["name"]) + ": ")
         self.widgets.append(l)
 
         widget.setToolTip(tip)

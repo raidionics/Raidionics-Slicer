@@ -55,6 +55,10 @@ class SharedResources:
         if not os.path.isdir(self.model_path):
             os.makedirs(self.model_path)
 
+        self.diagnosis_path = os.path.join(self.resources_path, 'diagnosis')
+        if not os.path.isdir(self.diagnosis_path):
+            os.makedirs(self.diagnosis_path)
+
         self.data_path = os.path.join(self.resources_path, 'data')
         if os.path.isdir(self.data_path):
             shutil.rmtree(self.data_path)

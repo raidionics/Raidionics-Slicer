@@ -219,8 +219,22 @@ class RaidionicsLogic:
             return True
         return False
 
-    def check_docker_image_local_existence(self, docker_image_name):
-        # Verify if the docker image exists on disk
+    def check_docker_image_local_existence(self, docker_image_name: str) -> bool:
+        """
+        Inspect the list of local Docker images. If the requested docker_image_name exists locally, the method will
+        return True, otherwise False.
+        For an existing local image, a pull operation is performed to have an up-to-date version.
+
+        Parameters
+        ----------
+        docker_image_name: str
+            Name of the Docker image in the form <user>/<image_name>:<tag>
+
+        Return
+        ------
+        bool
+            Boolean asserting whether the requested Docker image exists locally or not.
+        """
         result = False
         cmd_docker = [self.dockerPath, 'image', 'inspect', docker_image_name]
         p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -228,6 +242,12 @@ class RaidionicsLogic:
 
         if 'Error: No such image' not in stderr.decode("utf-8"):
             result = True
+        else:
+            # If the image exists already, we make sure it is up-to-date (minimal download time overhead)
+            cmd_docker = [self.dockerPath, 'pull', docker_image_name]
+            p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+
         # res_lines = ""
         # while True:
         #     slicer.app.processEvents()
@@ -239,53 +259,6 @@ class RaidionicsLogic:
         # # If the image has not been found, attempt to download it
         # if 'Error: No such image' not in res_lines:
         #     result = True
-
-        return result
-
-    # @TODO. Deprecated, to remove.
-    def checkDockerImageLocalExistence(self, docker_image_name):
-        # Verify if the docker image exists on disk, or ask to download it
-        result = False
-        cmd_docker = [self.dockerPath, 'image', 'inspect', docker_image_name]
-        p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # res_lines = ""
-        # while True:
-        #     slicer.app.processEvents()
-        #     line = p.stderr.readline().decode("utf-8")
-        #     if not line:
-        #         break
-        #     res_lines = res_lines + '/n' + line
-
-        stdout, stderr = p.communicate()
-
-        # If the image has not been found, attempt to download it
-        if 'Error: No such image' in stderr.decode("utf-8"):
-        # if 'Error: No such image' in res_lines:
-            cmd_docker = [self.dockerPath, 'image', 'pull', docker_image_name]
-            p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE)
-            cmd_docker = [self.dockerPath, 'image', 'inspect', docker_image_name]
-            p2 = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout2, stderr2 = p2.communicate()
-            # If the image could not be downloaded -- abort
-            if 'Error: No such image' in stderr2.decode("utf-8"):
-                result = False
-            else:
-                result = True
-            # res_lines = ""
-            # while True:
-            #     slicer.app.processEvents()
-            #     line = p.stderr.readline().decode("utf-8")
-            #     if not line:
-            #         break
-            #     res_lines = res_lines + '/n' + line
-            #
-            # # If the image could not be downloaded -- abort
-            # if 'Error: No such image' in res_lines:
-            #     result = False
-            # else:
-            #     result = True
-        else:
-            result = True
 
         return result
 
@@ -303,8 +276,6 @@ class RaidionicsLogic:
             widgetPresent = False
 
         dataPath = '/home/ubuntu/resources'
-        if self.logic_task == 'diagnosis':
-            dataPath = '/home/ubuntu/Raidionics-segmenter/resources'
 
         # Cleaning input/output folders for every run
         if os.path.exists(SharedResources.getInstance().data_path):
@@ -385,12 +356,14 @@ class RaidionicsLogic:
                                                          "T" + input_timestamp_order)), exist_ok=True)
                             sitk.WriteImage(img, str(os.path.join(SharedResources.getInstance().data_path,
                                                                   "T" + input_timestamp_order, fileName)))
+                            if input_timestamp_order == "1" and not os.path.exists(os.path.join(SharedResources.getInstance().data_path, "T0")):
+                                os.makedirs(os.path.join(SharedResources.getInstance().data_path, "T0"))
                         except Exception as e:
                             print("Issue preparing input volume.")
                             print(traceback.format_exc())
                     elif iodict[item]["type"] == "configuration":
                         generate_backend_config(SharedResources.getInstance().data_path,
-                                                iodict, self.logic_target_space, modelName)
+                                                iodict, self.logic_target_space, self.logic_task, modelName)
                 elif iodict[item]["iotype"] == "parameter":
                     paramDict[item] = str(params[item])
         except Exception:
@@ -436,51 +409,74 @@ class RaidionicsLogic:
         output_fiduciallist_files = dict()
         output_text_files = dict()
         self.output_raw_values = dict()
-        created_files = []
-        # @TODO. Have to fetch from the json files the correct timestamp for the task, to know in which folder to look.
-        for _, _, files in os.walk(os.path.join(SharedResources.getInstance().output_path, 'T0')):
-            for f, file in enumerate(files):
-                created_files.append(file)
+        created_files = {}
+        # Fetching all created outputs, including all timestamps.
+        for _, dirs, _ in os.walk(SharedResources.getInstance().output_path):
+            for d in dirs:
+                created_files[d] = []
             break
 
+        for d in list(created_files.keys()):
+            for _, _, files in os.walk(os.path.join(SharedResources.getInstance().output_path, d)):
+                for f in files:
+                    created_files[d].append(f)
+
         if len(created_files) == 0:
+            self.cmdStopLogic()
             logging.warning("No results were generated! If no other error message was printed, it might indicate an"
-                            "issue with Docker. Make sure the Docker service is running.")
+                            " issue with Docker. Make sure the Docker service is running.")
 
         for item in iodict:
-            if iodict[item]["iotype"] == "output":
-                if iodict[item]["type"] == "volume":
-                    # @TODO. Better way to disambiguate between output.nii.gz and output_description.csv for example?
-                    fileName = str(os.path.join(SharedResources.getInstance().output_path, 'T0', created_files[[item+'.' in x for x in created_files].index(True)]))
-                    output_volume_files[item] = fileName
-                if iodict[item]["type"] == "point_vec":
-                    fileName = str(os.path.join(SharedResources.getInstance().output_path, 'T0', item + '.fcsv'))
-                    output_fiduciallist_files[item] = fileName
-                if iodict[item]["type"] == "text":
-                    fileName = str(os.path.join(SharedResources.getInstance().output_path, 'T0', item + '.txt'))
-                    output_text_files[item] = fileName
+            try:
+                if iodict[item]["iotype"] == "output":
+                    ts_path = "T0"
+                    if "timestamp_order" in list(iodict[item].keys()):
+                        ts_path = "T" + str(iodict[item]["timestamp_order"])
+
+                    if iodict[item]["type"] == "volume":
+                        fileName = None
+                        if "atlas_category" in list(iodict[item].keys()):
+                            fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
+                                                        created_files[ts_path][[item + '_atlas' in x for x in created_files[ts_path]].index(True)]))
+                        else:
+                            fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
+                                                        created_files[ts_path][[item+'.' in x for x in created_files[ts_path]].index(True)]))
+                        output_volume_files[item] = fileName
+                    if iodict[item]["type"] == "point_vec":
+                        fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, item + '.fcsv'))
+                        output_fiduciallist_files[item] = fileName
+                    if iodict[item]["type"] == "text":
+                        fileName = str(os.path.join(SharedResources.getInstance().output_path, iodict[item]["default"] + '.txt'))
+                        output_text_files[item] = fileName
+            except Exception as e:
+                logging.warning("Unable to collect results for {}".format(item))
+                continue
 
         for output_volume in output_volume_files.keys():
-            result = sitk.ReadImage(output_volume_files[output_volume])
-            # print(result.GetPixelIDTypeAsString())
-            self.output_raw_values[output_volume] = deepcopy(sitk.GetArrayFromImage(result))
-            output_node = outputs[output_volume]
-            output_node_name = output_node.GetName()
-            # if iodict[output_volume]["voltype"] == 'LabelMap':
-            nodeWriteAddress = sitkUtils.GetSlicerITKReadWriteAddress(output_node_name)
-            self.display_port = nodeWriteAddress
-            sitk.WriteImage(result, nodeWriteAddress)
-            applicationLogic = slicer.app.applicationLogic()
-            selectionNode = applicationLogic.GetSelectionNode()
+            try:
+                result = sitk.ReadImage(output_volume_files[output_volume])
+                # print(result.GetPixelIDTypeAsString())
+                self.output_raw_values[output_volume] = deepcopy(sitk.GetArrayFromImage(result))
+                output_node = outputs[output_volume]
+                output_node_name = output_node.GetName()
+                # if iodict[output_volume]["voltype"] == 'LabelMap':
+                nodeWriteAddress = sitkUtils.GetSlicerITKReadWriteAddress(output_node_name)
+                self.display_port = nodeWriteAddress
+                sitk.WriteImage(result, nodeWriteAddress)
+                applicationLogic = slicer.app.applicationLogic()
+                selectionNode = applicationLogic.GetSelectionNode()
 
-            outputLabelMap = True
-            if outputLabelMap:
-                selectionNode.SetReferenceActiveLabelVolumeID(output_node.GetID())
-            else:
-                selectionNode.SetReferenceActiveVolumeID(output_node.GetID())
+                outputLabelMap = True
+                if outputLabelMap:
+                    selectionNode.SetReferenceActiveLabelVolumeID(output_node.GetID())
+                else:
+                    selectionNode.SetReferenceActiveVolumeID(output_node.GetID())
 
-            applicationLogic.PropagateVolumeSelection(0)
-            applicationLogic.FitSliceToAll()
+                applicationLogic.PropagateVolumeSelection(0)
+                applicationLogic.FitSliceToAll()
+            except Exception as e:
+                logging.warning("Unable to display results for volume: {}".format(output_volume))
+                continue
 
         for fiduciallist in output_fiduciallist_files.keys():
             # information about loading markups: https://www.slicer.org/wiki/Documentation/Nightly/Modules/Markups
@@ -492,9 +488,13 @@ class RaidionicsLogic:
             # reported bug reference: https://issues.slicer.org/view.php?id=4414
             # scene.RemoveNode(node)
         for text_key in output_text_files.keys():
-            text_file = output_text_files[text_key]
-            f = open(text_file, 'r')
-            current_text = f.read()
-            current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
-            current_widget.setPlainText(current_text)
-            f.close()
+            try:
+                text_file = output_text_files[text_key]
+                f = open(text_file, 'r')
+                current_text = f.read()
+                current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
+                current_widget.setPlainText(current_text)
+                f.close()
+            except Exception as e:
+                logging.warning("Unable to display results for report: {}".format(text_key))
+                continue
