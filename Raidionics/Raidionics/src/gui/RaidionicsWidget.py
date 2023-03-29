@@ -115,9 +115,11 @@ class RaidionicsWidget():
         self.global_options_active_models_update_checkbox = ctk.ctkCheckBox()
         self.global_options_active_models_update_checkbox.setToolTip("Click to let the system check for possible updates available for the local models.")
         self.global_options_groupbox_layout.addRow("Active model update:", self.global_options_active_models_update_checkbox)
+        # option 2: way to clean related Docker images
         self.global_options_purge_docker_images_pushbutton = ctk.ctkPushButton()
         self.global_options_purge_docker_images_pushbutton.setToolTip("Click to purge the computer from old/unused Docker images (Not Implemented Yet).")
         self.global_options_groupbox_layout.addRow("Purge old Docker images:", self.global_options_purge_docker_images_pushbutton)
+        # option 3: way to clean old models
 
     def setup_user_interactions_widget(self):
         self.user_interactions_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -129,8 +131,8 @@ class RaidionicsWidget():
         self.tasks_tabwidget.addTab(self.base_segmentation_widget, 'Segmentation')
         self.base_diagnosis_widget = BaseDiagnosisWidget(self.parent)
         self.tasks_tabwidget.addTab(self.base_diagnosis_widget, 'Reporting (RADS)')
-        self.base_diagnosis_widget.setEnabled(True)
-        self.base_diagnosis_widget.setToolTip("Currently disabled for maintenance, please use Raidionics in the meantime.")
+        # self.base_diagnosis_widget.setEnabled(True)
+        # self.base_diagnosis_widget.setToolTip("Currently disabled for maintenance, please use Raidionics in the meantime.")
         self.logging_textedit = qt.QTextEdit()
         #self.logging_textedit.setEnabled(False)
         self.logging_textedit.setReadOnly(True)

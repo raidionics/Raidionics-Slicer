@@ -435,9 +435,10 @@ class RaidionicsLogic:
 
                     if iodict[item]["type"] == "volume":
                         fileName = None
+                        # Including a . when looking for the filename, to make sure to hit the proper output.
                         if "atlas_category" in list(iodict[item].keys()):
                             fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
-                                                        created_files[ts_path][[item + '_atlas' in x for x in created_files[ts_path]].index(True)]))
+                                                        created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
                         else:
                             fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
                                                         created_files[ts_path][[item+'.' in x for x in created_files[ts_path]].index(True)]))
@@ -450,6 +451,7 @@ class RaidionicsLogic:
                         output_text_files[item] = fileName
             except Exception as e:
                 logging.warning("Unable to collect results for {}".format(item))
+                logging.warning(traceback.format_exc())
                 continue
 
         for output_volume in output_volume_files.keys():

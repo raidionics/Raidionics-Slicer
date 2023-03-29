@@ -44,6 +44,7 @@ class BaseDiagnosisWidget(qt.QTabWidget):
     Main GUI object, for the diagnosis task.
     """
     def __init__(self, parent=None):
+        # @TODO. The current widget should have a scrollable area for slightly better display
         super(BaseDiagnosisWidget, self).__init__(parent)
         self.base_layout = qt.QVBoxLayout()
         self.diagnosis_interface_widget = DiagnosisInterfaceWidget(parent=self)

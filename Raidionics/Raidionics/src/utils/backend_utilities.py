@@ -50,7 +50,7 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         # @TODO. Add a user option to include/exclude atlases
         rads_config.add_section('Neuro')
         rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
-        # rads_config.set('Neuro', 'subcortical_features', 'BCB')
+        rads_config.set('Neuro', 'subcortical_features', 'BCB')
         rads_config_filename = os.path.join(input_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)

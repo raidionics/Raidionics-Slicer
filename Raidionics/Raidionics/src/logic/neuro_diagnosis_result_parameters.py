@@ -57,9 +57,17 @@ class NeuroDiagnosisParameters:
             # self.statistics['Main']['CoM'].mni_space_lobes_overlap = lobes_overlap_o
 
             self.statistics['Main']['Overall'].original_space_tumor_volume = self.json_content['Main']['Total']['Volume original (ml)']
+            if self.statistics['Main']['Overall'].original_space_tumor_volume is None:
+                self.statistics['Main']['Overall'].original_space_tumor_volume = -1
             self.statistics['Main']['Overall'].mni_space_tumor_volume = self.json_content['Main']['Total']['Volume in MNI (ml)']
+            if self.statistics['Main']['Overall'].mni_space_tumor_volume is None:
+                self.statistics['Main']['Overall'].mni_space_tumor_volume = -1
             self.statistics['Main']['Overall'].left_laterality_percentage = self.json_content['Main']['Total']['Left laterality (%)']
+            if self.statistics['Main']['Overall'].left_laterality_percentage is None:
+                self.statistics['Main']['Overall'].left_laterality_percentage = -1
             self.statistics['Main']['Overall'].right_laterality_percentage = self.json_content['Main']['Total']['Right laterality (%)']
+            if self.statistics['Main']['Overall'].right_laterality_percentage is None:
+                self.statistics['Main']['Overall'].right_laterality_percentage = -1
             self.statistics['Main']['Overall'].laterality_midline_crossing = self.json_content['Main']['Total']['Midline crossing']
 
             if self.tumor_type == 'Glioblastoma':

@@ -1,3 +1,6 @@
+import logging
+import traceback
+
 from slicer.ScriptedLoadableModule import *
 
 import os
@@ -173,74 +176,42 @@ class NeuroDiagnosisSlicerInterface:
         cortical_atlases_names = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys()
         subcortical_atlases_names = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys()
         for output in model_parameters.outputs.keys():
-            if output == 'Tumor':
-                node = self.segmentation_nodes[output]
-                display_node = node.GetDisplayNode()
-                display_node.SetAllSegmentsVisibility(True)
-            elif output == 'Brain':
-                node = self.segmentation_nodes[output]
-                display_node = node.GetDisplayNode()
-                display_node.SetAllSegmentsVisibility(False)
-            else:
-                # @TODO. Might need to store the info about cortical/subcortical in the config.json file
-                struct_overlap_info = None
-                if output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
-                    struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap[output]
-                elif output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
-                    struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[output]
+            try:
+                if output == 'Tumor':
+                    node = self.segmentation_nodes[output]
+                    display_node = node.GetDisplayNode()
+                    display_node.SetAllSegmentsVisibility(True)
+                elif output == 'Brain':
+                    node = self.segmentation_nodes[output]
+                    display_node = node.GetDisplayNode()
+                    display_node.SetAllSegmentsVisibility(False)
+                else:
+                    # @TODO. Might need to store the info about cortical/subcortical in the config.json file
+                    struct_overlap_info = None
+                    if output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
+                        struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap[output]
+                    elif output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
+                        struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[output]
 
-                node = self.segmentation_nodes[output]
-                display_node = node.GetDisplayNode()
-                display_node.SetAllSegmentsVisibility(False)
-                segmentation = node.GetSegmentation()
-                # @TODO. Must clean diagnosis.json name and have them match the atlas_description.csv names for retrieval convenience
-                for ind, overlap in enumerate(struct_overlap_info.values()):
-                    if ind == 3:  # Only displaying the first three structures, not to overload display
-                        break
-                    # description_name = '_'.join(list(struct_overlap_info.keys())[ind].split('_')[1:-1])
-                    description_name = list(struct_overlap_info.keys())[ind]
-                    sname = segmentation.GetSegmentIdBySegmentName(description_name)
-                    if sname != '':
-                        display_node.SetSegmentVisibility(sname, True)
-                        display_node.SetSegmentOpacity(sname, 0.5)
+                    node = self.segmentation_nodes[output]
+                    display_node = node.GetDisplayNode()
+                    display_node.SetAllSegmentsVisibility(False)
+                    segmentation = node.GetSegmentation()
+                    # @TODO. Must clean diagnosis.json name and have them match the atlas_description.csv names for retrieval convenience
+                    for ind, overlap in enumerate(struct_overlap_info.values()):
+                        if ind == 3:  # Only displaying the first three structures, not to overload display
+                            break
+                        # description_name = '_'.join(list(struct_overlap_info.keys())[ind].split('_')[1:-1])
+                        description_name = list(struct_overlap_info.keys())[ind]
+                        sname = segmentation.GetSegmentIdBySegmentName(description_name)
+                        if sname == '' and output == 'MNI':  # Annoying exception to include, should adjust the backend to remove the trailing _gm
+                            description_name = description_name + '_gm'
+                            sname = segmentation.GetSegmentIdBySegmentName(description_name)
 
-            # elif output == 'Lobes':
-            #     node = self.segmentation_nodes[output]
-            #     display_node = node.GetDisplayNode()
-            #     segmentation = node.GetSegmentation()
-            #     # descriptions = model_parameters.segmentations_descriptions[output]
-            #     display_node.SetAllSegmentsVisibility(False)
-            #     laterality = 'left'
-            #     if 'right' in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].laterality.lower():
-            #         laterality = 'right'
-            #     for lobe in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_lobes_overlap.keys():
-            #         sname = segmentation.GetSegmentIdBySegmentName(lobe + '_' + laterality)
-            #         if sname is not None:
-            #             display_node.SetSegmentVisibility(sname, True)
-            #             display_node.SetSegmentOpacity(sname, 0.5)
-            # elif output == 'Tracts':
-            #     #@TODO. The tracts laterality should be reversed to match the MNI/Lobes laterality...
-            #     descriptions = self.segmentation_nodes_descriptions[output]
-            #     for d in descriptions:
-            #         item_name = d['text']
-            #         node = self.segmentation_nodes[item_name]
-            #         display_node = node.GetDisplayNode()
-            #         display_node.SetAllSegmentsVisibility(False)
-            #
-            #     laterality = 'Right'
-            #     if 'right' in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].laterality.lower():
-            #         laterality = 'Left'
-            #     for tract in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_tracts_overlap.keys():
-            #         split_tract = tract.split('_')
-            #         # if split_tract[-1] == 'Right' or split_tract[-1] == 'Left':
-            #         #     split_tract[-1] = 'Right' if split_tract[-1] == 'Left' else 'Left'
-            #         correct_tract_name = ' '.join(split_tract)
-            #         if correct_tract_name in self.segmentation_nodes.keys():
-            #             node = self.segmentation_nodes[correct_tract_name]
-            #             display_node = node.GetDisplayNode()
-            #             display_node.SetSegmentVisibility(correct_tract_name, True)
-            #             display_node.SetSegmentOpacity(correct_tract_name, 0.5)
-            #         # sname = segmentation.GetSegmentIdBySegmentName(correct_tract_name)
-            #         # if sname is not None:
-            #         #     display_node.SetSegmentVisibility(sname, True)
-            #         #     # display_node.SetSegmentOpacity(sname, 0.5)
+                        if sname != '':
+                            display_node.SetSegmentVisibility(sname, True)
+                            display_node.SetSegmentOpacity(sname, 0.5)
+
+            except Exception as e:
+                logging.warning("Issue during optimal display setup.")
+                logging.warning(traceback.format_exc())
