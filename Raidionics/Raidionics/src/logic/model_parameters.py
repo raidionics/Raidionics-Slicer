@@ -54,6 +54,8 @@ class ModelParameters(object):
                 elif t in ["volume"]:
                     iodict[member["name"]] = {"type": member["type"], "iotype": member["iotype"],
                                               "voltype": member["voltype"]}
+                    if 'importance' in member:
+                        iodict[member["name"]]['importance'] = member['importance']
                     if 'sequence_type' in member:
                         iodict[member["name"]]['sequence_type'] = member['sequence_type']
                     if 'timestamp_order' in member:
@@ -254,7 +256,8 @@ class ModelParameters(object):
             elif t == "configuration":
                 pass
             elif t == "text":
-                w = self.createTextWidget(member["name"], default=member["default"])
+                # w = self.createTextWidget(member["name"], default=member["default"])
+                pass
             elif t in ["uint8_t", "int8_t",
                        "uint16_t", "int16_t",
                        "uint32_t", "int32_t",

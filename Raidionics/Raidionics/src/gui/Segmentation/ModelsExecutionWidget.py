@@ -1,3 +1,4 @@
+import logging
 import traceback
 from __main__ import qt, ctk, slicer, vtk
 from glob import glob
@@ -215,6 +216,8 @@ class ModelsExecutionWidget(qt.QWidget):
         try:
             current_class = self.interactive_thresholding_combobox.currentText
             value = float(value)
+            if current_class not in list(RaidionicsLogic.getInstance().output_raw_values.keys()):
+                return
             original_data = deepcopy(RaidionicsLogic.getInstance().output_raw_values[current_class])
             volume_node = slicer.util.getNode(model_parameters.outputs[current_class].GetName())
             arr = slicer.util.arrayFromVolume(volume_node)
@@ -227,7 +230,7 @@ class ModelsExecutionWidget(qt.QWidget):
             # RaidionicsLogic.getInstance().current_class_thresholds[self.runtimeParametersThresholdClassCombobox.currentIndex] = value
             # self.interactive_current_threshold_lineedit.setText(str(value))
         except Exception:
-            print("{}".format(traceback.format_exc()))
+            logging.warning("{}".format(traceback.format_exc()))
 
     def on_interactive_best_threshold_clicked(self, model_parameters):
         current_class = self.interactive_thresholding_combobox.currentText

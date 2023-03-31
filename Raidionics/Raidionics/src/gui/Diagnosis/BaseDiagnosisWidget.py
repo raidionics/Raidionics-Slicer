@@ -93,7 +93,7 @@ class BaseDiagnosisWidget(qt.QTabWidget):
         self.diagnosis_results_stackedwidget.setVisible(True)
 
     def on_run_diagnosis(self):
-        RaidionicsLogic.getInstance().logic_task = 'diagnosis'
+        RaidionicsLogic.getInstance().logic_task = 'reporting'
         if self.diagnosis_interface_widget.diagnosis_model_parameters.json_dict['organ'] == 'Brain':
             # User input needed to select the correct brain tumor type in order to use the corresponding model
             diag = MyDialog(self)

@@ -55,7 +55,7 @@ class RaidionicsLogic:
         self.abort = False
         self.dockerPath = SharedResources.getInstance().docker_path
         self.file_extension_docker = '.nii.gz'
-        self.logic_task = 'segmentation'  # segmentation or diagnosis (RADS) for now
+        self.logic_task = 'segmentation'  # segmentation or reporting (RADS) for now
         self.logic_target_space = "neuro_diagnosis"
 
     def yieldPythonGIL(self, seconds=0):
@@ -342,8 +342,15 @@ class RaidionicsLogic:
                 if iodict[item]["iotype"] == "input":
                     if iodict[item]["type"] == "volume":
                         # print(inputs[item])
-                        input_node_name = inputs[item].GetName()
                         try:
+                            if (item not in list(inputs.keys()) or not inputs[item]) and "importance" in list(
+                                    iodict[item].keys()) and "Mandatory" in iodict[item]["importance"]:
+                                logging.error("Missing mandatory input for running the selected model: {}.".format(item))
+                                self.stop_logic()
+                                return
+                            elif item not in list(inputs.keys()) or not inputs[item]:
+                                continue
+                            input_node_name = inputs[item].GetName()
                             img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
                             input_sequence_type = iodict[item]["sequence_type"]
                             fileName = 'input_' + input_sequence_type + self.file_extension_docker
@@ -407,7 +414,7 @@ class RaidionicsLogic:
     def updateOutput(self, iodict, outputs, widgets):
         output_volume_files = dict()
         output_fiduciallist_files = dict()
-        output_text_files = dict()
+        # output_text_files = dict()
         self.output_raw_values = dict()
         created_files = {}
         # Fetching all created outputs, including all timestamps.
@@ -446,9 +453,9 @@ class RaidionicsLogic:
                     if iodict[item]["type"] == "point_vec":
                         fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, item + '.fcsv'))
                         output_fiduciallist_files[item] = fileName
-                    if iodict[item]["type"] == "text":
-                        fileName = str(os.path.join(SharedResources.getInstance().output_path, iodict[item]["default"] + '.txt'))
-                        output_text_files[item] = fileName
+                    # if iodict[item]["type"] == "text":
+                    #     fileName = str(os.path.join(SharedResources.getInstance().output_path, iodict[item]["default"] + '.txt'))
+                    #     output_text_files[item] = fileName
             except Exception as e:
                 logging.warning("Unable to collect results for {}".format(item))
                 logging.warning(traceback.format_exc())
@@ -489,14 +496,15 @@ class RaidionicsLogic:
             # todo: currently due to a bug in markups module removing the node will create some unexpected behaviors
             # reported bug reference: https://issues.slicer.org/view.php?id=4414
             # scene.RemoveNode(node)
-        for text_key in output_text_files.keys():
-            try:
-                text_file = output_text_files[text_key]
-                f = open(text_file, 'r')
-                current_text = f.read()
-                current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
-                current_widget.setPlainText(current_text)
-                f.close()
-            except Exception as e:
-                logging.warning("Unable to display results for report: {}".format(text_key))
-                continue
+
+        # for text_key in output_text_files.keys():
+        #     try:
+        #         text_file = output_text_files[text_key]
+        #         f = open(text_file, 'r')
+        #         current_text = f.read()
+        #         current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
+        #         current_widget.setPlainText(current_text)
+        #         f.close()
+        #     except Exception as e:
+        #         logging.warning("Unable to display results for report: {}".format(text_key))
+        #         continue

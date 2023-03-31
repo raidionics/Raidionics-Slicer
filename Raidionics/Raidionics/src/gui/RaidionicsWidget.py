@@ -1,3 +1,5 @@
+import traceback
+
 from slicer.ScriptedLoadableModule import *
 import logging
 
@@ -21,6 +23,26 @@ from src.RaidionicsLogic import *
 from src.gui.Segmentation.BaseSegmentationWidget import BaseSegmentationWidget
 from src.gui.Diagnosis.BaseDiagnosisWidget import BaseDiagnosisWidget
 from src.utils.resources import SharedResources
+
+
+class WarningDialog(qt.QDialog):
+
+    def __init__(self, parent=None):
+        super(qt.QDialog, self).__init__(parent)
+        self.setWindowTitle("Irreversible action.")
+        self.base_layout = qt.QGridLayout()
+        self.main_label = qt.QLabel()
+        self.base_layout.addWidget(self.main_label, 0, 0, 1, 2)
+        self.exit_accept_pushbutton = qt.QDialogButtonBox(qt.QDialogButtonBox.Ok)
+        self.base_layout.addWidget(self.exit_accept_pushbutton, 1, 0)
+        self.exit_cancel_pushbutton = qt.QDialogButtonBox(qt.QDialogButtonBox.Cancel)
+        self.base_layout.addWidget(self.exit_cancel_pushbutton, 1, 1)
+        self.setLayout(self.base_layout)
+        self.exit_accept_pushbutton.accepted.connect(self.accept)
+        self.exit_cancel_pushbutton.rejected.connect(self.reject)
+
+    def setText(self, text):
+        self.main_label.setText(text)
 
 
 class RaidionicsWidget():
@@ -118,8 +140,13 @@ class RaidionicsWidget():
         # option 2: way to clean related Docker images
         self.global_options_purge_docker_images_pushbutton = ctk.ctkPushButton()
         self.global_options_purge_docker_images_pushbutton.setToolTip("Click to purge the computer from old/unused Docker images (Not Implemented Yet).")
+        self.global_options_purge_docker_images_pushbutton.setFixedHeight(25)
         self.global_options_groupbox_layout.addRow("Purge old Docker images:", self.global_options_purge_docker_images_pushbutton)
         # option 3: way to clean old models
+        self.global_options_purge_models_pushbutton = ctk.ctkPushButton()
+        self.global_options_purge_models_pushbutton.setToolTip("Click to purge the computer from all existing Raidionics models.")
+        self.global_options_purge_models_pushbutton.setFixedHeight(25)
+        self.global_options_groupbox_layout.addRow("Purge Raidionics models:", self.global_options_purge_models_pushbutton)
 
     def setup_user_interactions_widget(self):
         self.user_interactions_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -157,6 +184,7 @@ class RaidionicsWidget():
         self.tasks_tabwidget.connect('currentChanged(int)', self.on_task_tabwidget_tabchanged)
         self.global_options_active_models_update_checkbox.stateChanged.connect(self.on_models_active_update_options_state_changed)
         self.global_options_purge_docker_images_pushbutton.clicked.connect(self.on_purge_docker_images_options_clicked)
+        self.global_options_purge_models_pushbutton.clicked.connect(self.on_purge_models_options_clicked)
 
     def on_test_docker_button_pressed(self):
         cmd = []
@@ -180,13 +208,13 @@ class RaidionicsWidget():
     def on_logic_event_start(self, task):
         if task == 'segmentation':
             self.base_segmentation_widget.on_logic_event_start()
-        elif task == 'diagnosis':
+        elif task == 'reporting':
             self.base_diagnosis_widget.on_logic_event_start()
 
     def on_logic_event_end(self, task):
         if task == 'segmentation':
             self.base_segmentation_widget.on_logic_event_end()
-        elif task == 'diagnosis':
+        elif task == 'reporting':
             self.base_diagnosis_widget.on_logic_event_end()
 
     def on_logic_event_abort(self, task):
@@ -199,7 +227,7 @@ class RaidionicsWidget():
     def on_logic_event_progress(self, task, progress, log):
         if task == 'segmentation':
             self.base_segmentation_widget.on_logic_event_progress(progress, log)
-        elif task == 'diagnosis':
+        elif task == 'reporting':
             self.base_diagnosis_widget.on_logic_event_progress(progress, log)
 
     def on_models_active_update_options_state_changed(self, state):
@@ -208,6 +236,32 @@ class RaidionicsWidget():
     def on_purge_docker_images_options_clicked(self):
         pass
 
+    def on_purge_models_options_clicked(self):
+        popup = WarningDialog()
+        popup.setText("Are you sure you want to delete all local Raidionics models?")
+        code = popup.exec()
+
+        if code == 1:
+            try:
+                logging.info("Deleting all local json from {}.".format(SharedResources.getInstance().json_local_dir))
+                if os.path.isdir(SharedResources.getInstance().json_local_dir):
+                    shutil.rmtree(SharedResources.getInstance().json_local_dir)
+                    os.makedirs(SharedResources.getInstance().json_local_dir)
+                logging.info("Deleting all models from {}.".format(SharedResources.getInstance().model_path))
+                if os.path.isdir(SharedResources.getInstance().model_path):
+                    shutil.rmtree(SharedResources.getInstance().model_path)
+                    os.makedirs(SharedResources.getInstance().model_path)
+                logging.info("Deleting all pipelines from {}.".format(SharedResources.getInstance().diagnosis_path))
+                if os.path.isdir(SharedResources.getInstance().diagnosis_path):
+                    shutil.rmtree(SharedResources.getInstance().diagnosis_path)
+                    os.makedirs(SharedResources.getInstance().diagnosis_path)
+                # @TODO. Should send a signal to refresh both local models boxes in segmentation and RADS
+            except Exception as e:
+                logging.error("Purging local models failed.")
+                logging.error(traceback.format_exc())
+                logging.error("Please manually delete the following folders: {}, {}, {}.".format(SharedResources.getInstance().json_local_dir,
+                              SharedResources.getInstance().model_path, SharedResources.getInstance().diagnosis_path))
+
     def set_default(self):
-        self.base_segmentation_widget.set_default()
-        self.base_diagnosis_widget.set_default()
+            self.base_segmentation_widget.set_default()
+            self.base_diagnosis_widget.set_default()

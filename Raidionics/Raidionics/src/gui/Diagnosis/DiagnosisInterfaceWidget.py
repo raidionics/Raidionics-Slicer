@@ -77,7 +77,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         # The ctk collapsible group box is the overall container, within which a scrollable area is set.
         # Ctk => Layout => scroll area => dummy widget => form layout => Content from ModelParameters
         parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        parametersCollapsibleButton.setTitle("Diagnosis Parameters")
+        parametersCollapsibleButton.setTitle("Reporting Parameters")
         self.base_layout.addWidget(parametersCollapsibleButton)
 
         self.parameters_scrollarea_layout = qt.QHBoxLayout(parametersCollapsibleButton)
@@ -144,14 +144,14 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         jsonFiles = sorted(jsonFiles)
         self.json_diagnoses = []
         for fname in jsonFiles:
-            if 'Diagnosis' in fname:
+            if 'Reporting' in fname:
                 with open(fname, "r") as fp:
                     j = json.load(fp, object_pairs_hook=OrderedDict)
 
                 self.json_diagnoses.append(j)
         for idx, j in enumerate(self.json_diagnoses):
             name = j["name"]
-            if 'task' in j and j['task'] == 'Diagnosis':
+            if 'task' in j and j['task'] == 'Reporting':
                 self.local_diagnosis_selector_combobox.addItem(name, idx + 1)
 
     def on_diagnosis_selection(self, index):
@@ -208,17 +208,20 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         searchTextList = search_text.split()
         for idx, j in enumerate(self.json_diagnoses):
             lname = j["name"].lower()
-            if 'task' in j and j['task'] == 'Diagnosis':
+            if 'task' in j and j['task'] == 'Reporting':
                 # require all elements in list, to add to select. case insensitive
                 if reduce(lambda x, y: x and (lname.find(y.lower()) != -1), [True] + searchTextList):
                     self.local_diagnosis_selector_combobox.addItem(j["name"], idx)
 
     def on_diagnosis_details_selected(self):
-        index = self.local_diagnosis_selector_combobox.currentIndex
+        if self.local_diagnosis_selector_combobox.currentText not in [x['name'] for x in self.json_diagnoses]:
+            # Pointing at the first empty element, which does not have any info for display.
+            return
+
         model_json = self.json_diagnoses[[x['name'] == self.local_diagnosis_selector_combobox.currentText for x in self.json_diagnoses].index(True)]
 
         tip = ''
-        exhaustive_list = ['owner', 'task', 'organ', 'target', 'modality', 'sequence', 'dataset_description']
+        exhaustive_list = ['owner', 'organ', 'target', 'sequence', 'briefdescription', 'detaileddescription']
         for a in exhaustive_list:
             if a in model_json:
                 tip = tip + '\n' + a + ':' + model_json[a]

@@ -35,9 +35,9 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         rads_config.set('System', 'output_folder', '/home/ubuntu/resources/output')
         rads_config.set('System', 'model_folder', '/home/ubuntu/resources/models')
         rads_config.set('System', 'pipeline_filename', '/home/ubuntu/resources/models/' + model_name + '/pipeline.json')
-        if logic_task == 'diagnosis':
+        if logic_task == 'reporting':
             rads_config.set('System', 'pipeline_filename',
-                            '/home/ubuntu/resources/diagnosis/' + parameters['UserConfiguration']['default'])
+                            '/home/ubuntu/resources/reporting/' + parameters['UserConfiguration']['default'])
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method',
                         SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'])

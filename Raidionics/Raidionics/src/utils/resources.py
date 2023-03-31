@@ -55,7 +55,7 @@ class SharedResources:
         if not os.path.isdir(self.model_path):
             os.makedirs(self.model_path)
 
-        self.diagnosis_path = os.path.join(self.resources_path, 'diagnosis')
+        self.diagnosis_path = os.path.join(self.resources_path, 'reporting')
         if not os.path.isdir(self.diagnosis_path):
             os.makedirs(self.diagnosis_path)
 
