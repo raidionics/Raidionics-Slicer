@@ -10,28 +10,32 @@ segmentation and standardized reporting"_, published in [Frontiers in Neurology]
 <details open>
 <summary>
 
-# Installation
+## Installation
 </summary>
-2.1 Download 3D Slicer for your running operating system at https://download.slicer.org/ (running on stable 5.2.1).  
 
-2.2 Download the Raidionics plugin code:  
-* release candidate with name Raidionics-Slicer on the right-hand panel (GitHub repo).  
-Or
-* git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git /path/to/folder/.  
+The plugin has been tested with the stable release 5.2.1 of 3D Slicer.
 
-2.3 Download and install Docker (see below).  
+* Download 3D Slicer for your running operating system from [here](https://download.slicer.org/).
 
-2.4 Load the plugin into 3D Slicer:   
+* Download the plugin source code through one of:  
+    ∘ Downloading stable release from [here](https://github.com/dbouget/Raidionics-Slicer/releases).  
+    ∘ Cloning current state: `git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git`
+
+* Download and install Docker (see below).
+
+* Load the plugin into 3D Slicer:  
 	∘ All Modules > Extension Wizard.  
 	∘ Developer Tools > Extension Wizard.  
-	∘ Select Extension > point to the folder (second Raidionics) and add it to the path (tick the small box at the bottom).  
-:warning: A restart of 3D Slicer is necessary after the initial launch with the plugin to have the proper Python environment.  
+	∘ Select Extension > point to the folder (second Raidionics) and add it to the path (tick the small box at the bottom).
+
+* Restart 3D Slicer to setup Python environment.
+
 </details>
 
 <details open>
 <summary>
 
-# How to cite </summary>
+## How to cite </summary>
 If you are using Raidionics-Slicer in your research, please use the following citation:  
 
 ```
@@ -51,18 +55,18 @@ If you are using Raidionics-Slicer in your research, please use the following ci
 <details>
 <summary>
 
-# Methodological background </summary>
+## Methodological background </summary>
 
 More information about the different models provided and architectures used can be accessed from the below-listed publications.  
 
-## Neuro  
+### Neuro  
 * AGU-Net neural network architecture => [Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms](https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)
 
 * Standardized reporting and Data System => [Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations ](https://www.mdpi.com/2072-6694/13/12/2854)
 
 * Segmentation performance => [Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task ](https://www.mdpi.com/2072-6694/13/18/4674)
 
-## Mediastinum
+### Mediastinum
 * Mediastinum organs segmentation => [Semantic segmentation and detection of mediastinal lymph nodes and anatomical structures in CT data for lung cancer staging](https://link.springer.com/article/10.1007/s11548-019-01948-8)  
 * Lymph nodes segmentation => [Mediastinal lymph nodes segmentation using 3D convolutional neural network ensembles and anatomical priors guiding](https://www.tandfonline.com/doi/pdf/10.1080/21681163.2022.2043778)
 
@@ -71,13 +75,13 @@ More information about the different models provided and architectures used can 
 <details>
 <summary>
 
-# Docker setup  </summary>  
+## Docker setup  </summary>  
 A proper Docker setup is **mandatory** since all processing is performed within
 a Docker image. 3D Slicer is only used for its graphical user interface.  
 Start by downloading the Docker Desktop app at https://www.docker.com/products/docker-desktop/.
 Then click on the downloaded executable and follow the instructions.  
 
-## Ubuntu installation: 
+### Ubuntu installation: 
 * https://docs.docker.com/install/linux/docker-ce/ubuntu/  
     > ‣ sudo apt-get update  
     > ‣ sudo apt-get install \  
@@ -90,7 +94,7 @@ Then click on the downloaded executable and follow the instructions.
     > ‣ sudo apt-key fingerprint 0EBFCD88   
     > ‣ sudo apt-get install docker-ce docker-ce-cli containerd.io  
 
-## Setup the Docker images
+### Setup the Docker images
 • The necessary Docker images are public, therefore an account is not necessary. 
 All images will be automatically downloaded upon model selection, which might 
 take some minutes while the 3D Slicer interface won't be responding.  
