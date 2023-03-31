@@ -17,9 +17,10 @@ The plugin has been tested with the stable release 5.2.1 of 3D Slicer.
 
 * Download 3D Slicer for your running operating system from [here](https://download.slicer.org/).
 
-* Download the plugin source code through one of:  
+* Download the plugin source code through either:  
     ∘ Downloading stable release from [here](https://github.com/dbouget/Raidionics-Slicer/releases).  
-    ∘ Cloning current state: `git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git`
+    ∘ (Alt.) Cloning current state:  
+    > git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git
 
 * Download and install Docker (see below).
 
