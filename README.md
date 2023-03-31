@@ -77,8 +77,9 @@ More information about the different models provided and architectures used can 
 
 ## Docker setup  </summary>  
 A proper Docker setup is **mandatory** since all processing is performed within
-a Docker image. 3D Slicer is only used for its graphical user interface.  
-Start by downloading the Docker Desktop app at https://www.docker.com/products/docker-desktop/.
+a Docker image. 3D Slicer is only used for its graphical user interface.
+
+Start by downloading the Docker Desktop app from [here](https://www.docker.com/products/docker-desktop/).
 Then click on the downloaded executable and follow the instructions.  
 
 ### Ubuntu installation: 
@@ -95,16 +96,14 @@ Then click on the downloaded executable and follow the instructions.
     > ‣ sudo apt-get install docker-ce docker-ce-cli containerd.io  
 
 ### Setup the Docker images
-• The necessary Docker images are public, therefore an account is not necessary. 
+* The necessary Docker images are public, therefore an account is not necessary. 
 All images will be automatically downloaded upon model selection, which might 
 take some minutes while the 3D Slicer interface won't be responding.  
 
-The main Docker image can also be downloaded manually:
-```
-docker pull dbouget/raidionics-rads:v1.1
-```
+* The main Docker image can also be downloaded manually by:   
+    > docker pull dbouget/raidionics-rads:v1.1
 
-• When you execute for the first time, you might get a pop-up from Docker asking to allow
-the sharing of a .raidonics-slicer directory, accept!
+* When you execute for the first time, you might get a pop-up from Docker asking to allow
+the sharing of a `.raidonics-slicer/` directory, accept!
 
 </details>
