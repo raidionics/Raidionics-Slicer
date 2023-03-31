@@ -22,7 +22,7 @@ The plugin has been tested with the stable release 5.2.1 of 3D Slicer.
     ∘ (Alt.) Cloning current state:  
     > git clone --single-branch --branch master https://github.com/dbouget/Raidionics-Slicer.git
 
-* Download and install Docker (see below).
+* Download and install Docker (see [below](https://github.com/dbouget/Raidionics-Slicer#docker-setup--)).
 
 * Load the plugin into 3D Slicer:  
 	∘ All Modules > Extension Wizard.  
