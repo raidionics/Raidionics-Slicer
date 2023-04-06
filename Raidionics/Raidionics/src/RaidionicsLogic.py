@@ -27,7 +27,7 @@ from __main__ import qt, ctk, slicer, vtk
 import SimpleITK as sitk
 import sitkUtils
 from src.utils.resources import SharedResources
-from src.utils.backend_utilities import generate_backend_config
+from src.utils.backend_utilities import generate_backend_config, postop_model_selection
 
 
 class RaidionicsLogic:
@@ -369,6 +369,8 @@ class RaidionicsLogic:
                             print("Issue preparing input volume.")
                             print(traceback.format_exc())
                     elif iodict[item]["type"] == "configuration":
+                        # if modelName == "MRI_GBM_Postop":
+                        #     modelName = postop_model_selection(inputs)
                         generate_backend_config(SharedResources.getInstance().data_path,
                                                 iodict, self.logic_target_space, self.logic_task, modelName)
                 elif iodict[item]["iotype"] == "parameter":

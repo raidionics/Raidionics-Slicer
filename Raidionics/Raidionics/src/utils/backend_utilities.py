@@ -57,3 +57,19 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
     except Exception:
         print("Backend config file creation failed.")
         print(traceback.format_exc())
+
+
+def postop_model_selection(inputs: dict) -> str:
+    model_name = "MRI_GBM_Postop_FV_4p"
+    if inputs["T1w postop"] is None and inputs["FLAIR postop"] is None and inputs["T1wCE preop"] is None:
+        model_name = "MRI_GBM_Postop_FV_1p"
+    elif inputs["FLAIR postop"] is None and inputs["T1wCE preop"] is None:
+        model_name = "MRI_GBM_Postop_FV_2p"
+    elif inputs["T1wCE preop"] is None:
+        model_name = "MRI_GBM_Postop_FV_3p"
+    elif inputs["FLAIR postop"] is None and inputs["T1wCE preop"] is not None:
+        model_name = "MRI_GBM_Postop_FV_4p"
+    else:
+        model_name = "MRI_GBM_Postop_FV_5p"
+
+    return model_name

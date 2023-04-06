@@ -139,7 +139,7 @@ class RaidionicsWidget():
         self.global_options_groupbox_layout.addRow("Active model update:", self.global_options_active_models_update_checkbox)
         # option 2: way to clean related Docker images
         self.global_options_purge_docker_images_pushbutton = ctk.ctkPushButton()
-        self.global_options_purge_docker_images_pushbutton.setToolTip("Click to purge the computer from old/unused Docker images (Not Implemented Yet).")
+        self.global_options_purge_docker_images_pushbutton.setToolTip("Click to purge the computer from old/unused Docker images.")
         self.global_options_purge_docker_images_pushbutton.setFixedHeight(25)
         self.global_options_groupbox_layout.addRow("Purge old Docker images:", self.global_options_purge_docker_images_pushbutton)
         # option 3: way to clean old models
@@ -234,7 +234,10 @@ class RaidionicsWidget():
         SharedResources.getInstance().global_active_model_update = False if state == 0 else True
 
     def on_purge_docker_images_options_clicked(self):
-        pass
+        popup = WarningDialog()
+        popup.setText("""Open the Docker Desktop Application and delete the following image: dbouget/raidionics-rads:v1.1\n
+        Alternatively, write the following in a command line window: docker image rm dbouget/raidionics-rads:v1.1""")
+        code = popup.exec()
 
     def on_purge_models_options_clicked(self):
         popup = WarningDialog()

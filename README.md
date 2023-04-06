@@ -13,7 +13,7 @@ segmentation and standardized reporting"_, published in [Frontiers in Neurology]
 ## Installation
 </summary>
 
-The plugin has been tested with the stable release 5.2.1 of 3D Slicer.
+The plugin has been tested with the stable release 5.2.2 of 3D Slicer.
 
 * Download 3D Slicer for your running operating system from [here](https://download.slicer.org/).
 
@@ -30,6 +30,8 @@ The plugin has been tested with the stable release 5.2.1 of 3D Slicer.
 	∘ Select Extension > point to the folder (second Raidionics) and add it to the path (tick the small box at the bottom).
 
 * Restart 3D Slicer to setup Python environment.
+
+* Raidionics will appear in the list of modules inside the _Machine Learning_ category
 
 </details>
 

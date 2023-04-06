@@ -439,6 +439,8 @@ class ModelParameters(object):
             tip = memberJSON["briefdescriptionSet"]
         elif "detaileddescriptionSet" in memberJSON:
             tip = memberJSON["detaileddescriptionSet"]
+        elif "importance" in memberJSON and len(memberJSON["importance"]):
+            tip = memberJSON["importance"]
 
         # remove trailing white space
         tip = tip.rstrip()
