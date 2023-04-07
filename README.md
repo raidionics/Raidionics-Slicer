@@ -22,7 +22,10 @@ The plugin has been tested with the stable release 5.2.2 of 3D Slicer.
     ∘ (Alt.) Cloning current state:  
     > git clone --single-branch --branch master https://github.com/raidionics/Raidionics-Slicer.git
 
-* Download and install Docker (see [below](https://github.com/raidionics/Raidionics-Slicer#docker-setup--)).
+* Download and install Docker (see [below](https://github.com/raidionics/Raidionics-Slicer#docker-setup--)).  
+  The necessary _Raidionics_ Docker image should be collected automatically when downloading a model for the first time.
+  Please do the following if it did not happen correctly:
+     > docker pull dbouget/raidionics-rads:v1.1
 
 * Load the plugin into 3D Slicer:  
 	∘ All Modules > Extension Wizard.  

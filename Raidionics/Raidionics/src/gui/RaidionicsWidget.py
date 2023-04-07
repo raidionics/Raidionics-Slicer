@@ -258,6 +258,9 @@ class RaidionicsWidget():
                 if os.path.isdir(SharedResources.getInstance().diagnosis_path):
                     shutil.rmtree(SharedResources.getInstance().diagnosis_path)
                     os.makedirs(SharedResources.getInstance().diagnosis_path)
+                if os.path.isdir(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache')):
+                    shutil.rmtree(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache'))
+                    os.makedirs(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache'))
                 # @TODO. Should send a signal to refresh both local models boxes in segmentation and RADS
             except Exception as e:
                 logging.error("Purging local models failed.")

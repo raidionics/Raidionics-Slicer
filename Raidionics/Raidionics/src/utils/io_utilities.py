@@ -390,20 +390,20 @@ class DownloadWorker(qt.QObject): #qt.QThread
                     diagnosis_md5sum = diagnosis[3]
                     diagnosis_pipeline_url = diagnosis[4]
 
-                json_local_dir = SharedResources.getInstance().json_local_dir
-                dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
-                                       str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
-                                                                                                                 '-'))
-                                       + '.json')
-                gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_md5sum)
-                shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
+            json_local_dir = SharedResources.getInstance().json_local_dir
+            dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
+                                   str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
+                                                                                                             '-'))
+                                   + '.json')
+            gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_md5sum)
+            shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
 
-                diagnosis_dir = SharedResources.getInstance().diagnosis_path
-                dl_dest = os.path.join(diagnosis_dir,
-                                       str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
-                                                                                                                 '-'))
-                                       + '_pipeline.json')
-                gdown.cached_download(url=diagnosis_pipeline_url, path=dl_dest)
+            diagnosis_dir = SharedResources.getInstance().diagnosis_path
+            dl_dest = os.path.join(diagnosis_dir,
+                                   str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
+                                                                                                             '-'))
+                                   + '_pipeline.json')
+            gdown.cached_download(url=diagnosis_pipeline_url, path=dl_dest)
 
             # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
             if len(diagnosis_dependencies) > 0:
