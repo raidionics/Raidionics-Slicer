@@ -38,12 +38,21 @@ def get_available_cloud_models_list() -> List[List[str]]:
     Each model list element corresponds to the following headers: Item,link,dependencies,sum.
     """
     cloud_models_list = []
-    # cloud_models_list_url = 'https://drive.google.com/uc?id=1wVjqpQ7S3xTcNJyV2Sp_hSyKglcxfQLe'
-    cloud_models_list_url = 'https://drive.google.com/uc?id=1uibFBPBQywX7EGK5G_Oc6CXlDSiOePKF'
+    # cloud_models_list_url = 'https://drive.google.com/uc?id=1uibFBPBQywX7EGK5G_Oc6CXlDSiOePKF'
+    cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/rsv1.1.1/Slicer_cloud_models_list.csv'
     try:
         cloud_models_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_models_list.csv')
-        gdown.cached_download(url=cloud_models_list_url, path=cloud_models_list_filename)
+        headers = {}
+
+        response = requests.get(cloud_models_list_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(cloud_models_list_filename, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
         line_count = 0
+
         with open(cloud_models_list_filename) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
@@ -103,9 +112,16 @@ def download_cloud_model(selected_model):
                                                                                                              '-'))
                                        + '.zip')
         os.makedirs(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache'), exist_ok=True)
-        gdown.cached_download(url=model_config_url,
-                              path=os.path.join(SharedResources.getInstance().json_local_dir,
-                                                '_'.join(selected_model[1:-1].split('][')) + '.json'))
+        headers = {}
+
+        response = requests.get(model_config_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(os.path.join(SharedResources.getInstance().json_local_dir,
+                                                '_'.join(selected_model[1:-1].split('][')) + '.json'), "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
 
         if not os.path.exists(archive_dl_dest) or hashlib.md5(
                 open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum:
@@ -190,10 +206,19 @@ def check_local_model_for_update(selected_model):
 
 def get_available_cloud_diagnoses_list():
     cloud_diagnoses_list = []
-    cloud_diagnoses_list_url = 'https://drive.google.com/uc?id=1lFlfUGxiHxykmf_2keLhXX6k2PG5jn6M'
+    # cloud_diagnoses_list_url = 'https://drive.google.com/uc?id=1lFlfUGxiHxykmf_2keLhXX6k2PG5jn6M'
+    cloud_diagnoses_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/rsv1.1.1/Slicer_cloud_pipelines_list.csv'
     try:
         cloud_diagnoses_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_diagnoses_list.csv')
-        gdown.cached_download(url=cloud_diagnoses_list_url, path=cloud_diagnoses_list_filename)
+        headers = {}
+        response = requests.get(cloud_diagnoses_list_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(cloud_diagnoses_list_filename, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
+
         line_count = 0
         with open(cloud_diagnoses_list_filename) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
@@ -228,14 +253,30 @@ def check_local_diagnosis_for_update(selected_diagnosis):
         dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.json')
-        gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_md5sum)
+
+        headers = {}
+        response = requests.get(diagnosis_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(dl_dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
+
         shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
 
         diagnosis_dir = SharedResources.getInstance().diagnosis_path
         dl_dest = os.path.join(diagnosis_dir,
                                str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                + '.json')
-        gdown.cached_download(url=diagnosis_pipeline_url, path=dl_dest)
+        headers = {}
+        response = requests.get(diagnosis_pipeline_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(dl_dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
 
         # Checking if dependencies must be updated.
         if len(diagnosis_dependencies) > 0:
@@ -268,7 +309,15 @@ def download_cloud_diagnosis(selected_diagnosis):
         dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
                                        str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
                                        + '.json')
-        gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_checksum)
+        headers = {}
+        response = requests.get(diagnosis_url, headers=headers, stream=True)
+        response.raise_for_status()
+
+        if response.status_code == requests.codes.ok:
+            with open(dl_dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1048576):
+                    f.write(chunk)
+
         shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
 
         # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
@@ -332,8 +381,13 @@ class DownloadWorker(qt.QObject): #qt.QThread
                                                                                                                  '-'))
                                            + '.zip')
             os.makedirs(os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache'), exist_ok=True)
-            gdown.cached_download(url=model_config_url,
-                                  path=os.path.join(SharedResources.getInstance().json_local_dir, '_'.join(selected_model[1:-1].split('][')) + '.json'))
+            headers = {}
+            response = requests.get(model_config_url, headers=headers, stream=True)
+            response.raise_for_status()
+            if response.status_code == requests.codes.ok:
+                with open(os.path.join(SharedResources.getInstance().json_local_dir, '_'.join(selected_model[1:-1].split('][')) + '.json'), "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
 
             if not os.path.exists(archive_dl_dest) or hashlib.md5(open(archive_dl_dest, 'rb').read()).hexdigest() != model_checksum:
                 download_state = True
@@ -395,7 +449,14 @@ class DownloadWorker(qt.QObject): #qt.QThread
                                    str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
                                                                                                              '-'))
                                    + '.json')
-            gdown.cached_download(url=diagnosis_url, path=dl_dest, md5=diagnosis_md5sum)
+            headers = {}
+            response = requests.get(diagnosis_url, headers=headers, stream=True)
+            response.raise_for_status()
+            if response.status_code == requests.codes.ok:
+                with open(dl_dest, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
+
             shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
 
             diagnosis_dir = SharedResources.getInstance().diagnosis_path
@@ -403,7 +464,13 @@ class DownloadWorker(qt.QObject): #qt.QThread
                                    str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
                                                                                                              '-'))
                                    + '_pipeline.json')
-            gdown.cached_download(url=diagnosis_pipeline_url, path=dl_dest)
+            headers = {}
+            response = requests.get(diagnosis_pipeline_url, headers=headers, stream=True)
+            response.raise_for_status()
+            if response.status_code == requests.codes.ok:
+                with open(dl_dest, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
 
             # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
             if len(diagnosis_dependencies) > 0:

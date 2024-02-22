@@ -275,7 +275,7 @@ class RaidionicsLogic:
         else:
             widgetPresent = False
 
-        dataPath = '/home/ubuntu/resources'
+        dataPath = '/workspace/resources'
 
         # Cleaning input/output folders for every run
         if os.path.exists(SharedResources.getInstance().data_path):
@@ -383,14 +383,16 @@ class RaidionicsLogic:
 
         cmd = list()
         cmd.append(self.dockerPath)
-        cmd.extend(('run', '-t', '-v'))
+        cmd.extend(('run', '-t'))
         # if self.use_gpu:
         #     cmd.append(' --runtime=nvidia ')
-        #cmd.append(TMP_PATH + ':' + dataPath)
+        cmd.append('--user')
+        cmd.append(str(os.getuid()))
+        cmd.append('-v')
         cmd.append(SharedResources.getInstance().resources_path + ':' + dataPath)
         cmd.append(dockerName)
         cmd.append('-c')
-        cmd.append('/home/ubuntu/resources/data/rads_config.ini')
+        cmd.append('/workspace/resources/data/rads_config.ini')
         cmd.append('-v')
         cmd.append('debug')
 

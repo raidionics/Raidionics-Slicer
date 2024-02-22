@@ -31,13 +31,13 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         rads_config.set('Default', 'caller', '')
         rads_config.add_section('System')
         rads_config.set('System', 'gpu_id', "-1")  # Always running on CPU
-        rads_config.set('System', 'input_folder', '/home/ubuntu/resources/data')
-        rads_config.set('System', 'output_folder', '/home/ubuntu/resources/output')
-        rads_config.set('System', 'model_folder', '/home/ubuntu/resources/models')
-        rads_config.set('System', 'pipeline_filename', '/home/ubuntu/resources/models/' + model_name + '/pipeline.json')
+        rads_config.set('System', 'input_folder', '/workspace/resources/data')
+        rads_config.set('System', 'output_folder', '/workspace/resources/output')
+        rads_config.set('System', 'model_folder', '/workspace/resources/models')
+        rads_config.set('System', 'pipeline_filename', '/workspace/resources/models/' + model_name + '/pipeline.json')
         if logic_task == 'reporting':
             rads_config.set('System', 'pipeline_filename',
-                            '/home/ubuntu/resources/reporting/' + parameters['UserConfiguration']['default'])
+                            '/workspace/resources/reporting/' + parameters['UserConfiguration']['default'])
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method',
                         SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'])
