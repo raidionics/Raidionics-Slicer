@@ -3,6 +3,7 @@ import SimpleITK as sitk
 import sitkUtils
 import re
 from src.utils.resources import SharedResources
+from src.gui.UtilsWidgets.VolumeSelectorWidget import VolumeSelectorWidget
 
 
 class ModelParameters(object):
@@ -28,12 +29,25 @@ class ModelParameters(object):
         self.dockerImageName = ''
         self.modelName = None
         self.dataPath = None
+        self.tumorType = None
 
         self.outputSelector = None
         self.outputLabelMapBox = None
+        self.__set_stylesheet()
 
     def __del__(self):
         self.widgets = []
+
+    def __set_stylesheet(self):
+        software_ss = SharedResources.getInstance().stylesheet_components
+        background_color = software_ss["Color2"]
+        self.parent.setStyleSheet("""
+        ctkCollapsibleGroupBox{
+        background-color:""" + background_color + """;
+        }
+        
+        
+        """)
 
     def BeautifyCamelCase(self, str):
         return self.reCamelCase.sub(r' \1', str)
@@ -85,7 +99,8 @@ class ModelParameters(object):
         modelName = json_dict.get('model_name')
         modelTarget = json_dict.get('target')
         dataPath = json_dict.get('data_path')
-        return dockerImageName, modelName, modelTarget, dataPath
+        tumor_type = json_dict.get('tumor_type')
+        return dockerImageName, modelName, modelTarget, dataPath, tumor_type
 
     def create(self, json_dict):
         if not self.parent:
@@ -97,7 +112,7 @@ class ModelParameters(object):
 
         self.json_dict = json_dict
         self.iodict = self.create_iodict(json_dict)
-        self.dockerImageName, self.modelName, self.modelTarget, self.dataPath = self.create_model_info(json_dict)
+        self.dockerImageName, self.modelName, self.modelTarget, self.dataPath, self.tumorType = self.create_model_info(json_dict)
 
         self.prerun_callbacks = []
         self.inputs = dict()
@@ -203,7 +218,14 @@ class ModelParameters(object):
                 pass
             elif t == "volume":
                 cname = member["name"]
-                w = self.createVolumeWidget(cname, member["iotype"], member["voltype"], False)
+                w = VolumeSelectorWidget(member, False) #self.createVolumeWidget(cname, member["iotype"], member["voltype"], False)
+                w.volume_selector.connect("currentNodeChanged(vtkMRMLNode*)",
+                               lambda node, n=cname, io=member["iotype"]: self.onVolumeSelect(node, n, io))
+                if member["iotype"] == "input":
+                    self.inputs[cname] = w.volume_selector.currentNode()
+                elif member["iotype"] == "output":
+                    self.outputs[cname] = w.volume_selector.currentNode()
+                self.widgets.append(w)
 
             elif t == "InterpolatorEnum":
                 labels = ["Nearest Neighbor",
@@ -273,8 +295,12 @@ class ModelParameters(object):
 
     def createVolumeWidget(self, name, iotype, voltype, noneEnabled=False):
         # print("create volume widget : {0}".format(name))
+        volume_widget = qt.QWidget()
+        volume_layout = qt.QHBoxLayout()
+        volume_widget.setLayout(volume_layout)
         volumeSelector = slicer.qMRMLNodeComboBox()
-        self.widgets.append(volumeSelector)
+        #self.widgets.append(volumeSelector)
+        self.widgets.append(volume_widget)
         if voltype == 'ScalarVolume':
             volumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode", ]
         elif voltype == 'LabelMap':
@@ -296,16 +322,23 @@ class ModelParameters(object):
         volumeSelector.showChildNodeTypes = False
         volumeSelector.setMRMLScene(slicer.mrmlScene)
         volumeSelector.setToolTip("Pick the volume.")
+        act_button = qt.QPushButton()
+        act_button.setCheckable(True)
+
+        volume_layout.addWidget(volumeSelector)
+        volume_layout.addWidget(act_button)
 
         # connect and verify parameters
         volumeSelector.connect("currentNodeChanged(vtkMRMLNode*)",
                                lambda node, n=name, io=iotype: self.onVolumeSelect(node, n, io))
+        act_button.clicked.connect(self.onVolumeSelectToggle)
         if iotype == "input":
             self.inputs[name] = volumeSelector.currentNode()
         elif iotype == "output":
             self.outputs[name] = volumeSelector.currentNode()
+            act_button.setEnabled(False)
 
-        return volumeSelector
+        return volume_widget #volumeSelector
 
     def createEnumWidget(self, name, enumList, valueList=None):
 
@@ -434,6 +467,9 @@ class ModelParameters(object):
         return w
 
     def addWidgetWithToolTipAndLabel(self, widget, memberJSON):
+        software_ss = SharedResources.getInstance().stylesheet_components
+        font_color = software_ss["Color7"]
+        background_color = software_ss["White"]
         tip = ""
         if "briefdescriptionSet" in memberJSON and len(memberJSON["briefdescriptionSet"]):
             tip = memberJSON["briefdescriptionSet"]
@@ -447,7 +483,13 @@ class ModelParameters(object):
 
         l = qt.QLabel(self.BeautifyCamelCase(memberJSON["name"]) + ": ")
         if memberJSON["type"] == "volume":
-            l.setText(self.BeautifyCamelCase("(" + memberJSON["iotype"] + ") " + memberJSON["name"]) + ": ")
+            l.setText(self.BeautifyCamelCase("(" + memberJSON["iotype"] + ") " + memberJSON["name"]) + " scan: ")
+        l.setStyleSheet("""
+        QLabel{
+        color: """ + font_color + """;
+        background-color: transparent;
+        border-style: none;
+        }""")
         self.widgets.append(l)
 
         widget.setToolTip(tip)
@@ -584,7 +626,9 @@ class ModelParameters(object):
         self.inputs = dict()
         self.outputs = dict()
         for w in self.widgets:
-            # self.parent.layout().removeWidget(w)
-            w.deleteLater()
+            layout = w.parent().layout()
+            if layout:
+                layout.removeWidget(w)
+            w.hide()
             w.setParent(None)
-        self.widgets = []
+        self.widgets.clear()

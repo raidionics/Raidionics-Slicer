@@ -39,7 +39,8 @@ def get_available_cloud_models_list() -> List[List[str]]:
     """
     cloud_models_list = []
     # cloud_models_list_url = 'https://drive.google.com/uc?id=1uibFBPBQywX7EGK5G_Oc6CXlDSiOePKF'
-    cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/rsv1.1.1/Slicer_cloud_models_list.csv'
+    #cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/rsv1.1.1/Slicer_cloud_models_list.csv'
+    cloud_models_list_url = "https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Slicer_cloud_models_list_v13.csv"
     try:
         cloud_models_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_models_list.csv')
         headers = {}

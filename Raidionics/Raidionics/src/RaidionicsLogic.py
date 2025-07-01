@@ -142,6 +142,7 @@ class RaidionicsLogic:
         modelTarget = model_parameters.modelTarget
         dataPath = model_parameters.dataPath
         widgets = model_parameters.widgets
+        json_params = model_parameters.json_dict
         # The Docker image existence should have been checked when the model was selected.
         go_flag = self.check_docker_image_local_existence(docker_image_name=dockerName)
         if not go_flag:
@@ -153,7 +154,7 @@ class RaidionicsLogic:
             self.main_queue_start()
             self.logic_target_space = "neuro_diagnosis" if modelTarget == "Neuro" else "mediastinum_diagnosis"
 
-            self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
+            self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets, json_params)
             if not self.abort:
                 self.updateOutput(iodict, outputs, widgets)
                 # self.main_queue_stop()
@@ -262,7 +263,7 @@ class RaidionicsLogic:
 
         return result
 
-    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets):
+    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets, json_params):
         try:
             assert self.checkDockerDaemon(), "Docker Daemon is not running"
         except Exception as e:
@@ -298,7 +299,11 @@ class RaidionicsLogic:
                         outputDict[item] = item
                         # curr_output = outputs[item]
                         nodes = slicer.util.getNodes(outputDict[item])
-                        manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].currentNode()
+                        manual_node = None
+                        try:
+                            manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].volume_selector.currentNode()
+                        except:
+                            pass
                         if len(nodes) == 0 and manual_node is None:
                             # If the output volume is not set, a new one is created
                             node = slicer.vtkMRMLLabelMapVolumeNode()
@@ -314,7 +319,7 @@ class RaidionicsLogic:
 
                             # Select the correct item in the combobox upon creation
                             combobox_widget = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)]
-                            combobox_widget.setCurrentNode(node)
+                            combobox_widget.volume_selector.setCurrentNode(node)
                         elif not manual_node is None and not manual_node.GetImageData() is None:
                             # If the node links to a manually imported volume, used as input (e.g., for faster diagnosis)
                             # Working only if pointing to a file, not if a new empty LabelMapVolume was created.
@@ -350,6 +355,11 @@ class RaidionicsLogic:
                                 return
                             elif item not in list(inputs.keys()) or not inputs[item]:
                                 continue
+                            elif iodict[item] != iodict[list(iodict.keys())[1]] and iodict[item]['voltype'] == "ScalarVolume":
+                                input_node_name = inputs[item].GetName()
+                                if input_node_name == inputs[iodict[list(iodict.keys())[1]]["sequence_type"]].GetName():
+                                    # The input is supposed to be empty, discarding the doppelganger input
+                                    continue
                             input_node_name = inputs[item].GetName()
                             img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
                             input_sequence_type = iodict[item]["sequence_type"]
@@ -372,7 +382,7 @@ class RaidionicsLogic:
                         # if modelName == "MRI_GBM_Postop":
                         #     modelName = postop_model_selection(inputs)
                         generate_backend_config(SharedResources.getInstance().data_path,
-                                                iodict, self.logic_target_space, self.logic_task, modelName)
+                                                iodict, self.logic_target_space, self.logic_task, modelName, json_params)
                 elif iodict[item]["iotype"] == "parameter":
                     paramDict[item] = str(params[item])
         except Exception:
@@ -452,7 +462,7 @@ class RaidionicsLogic:
                                                         created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
                         else:
                             fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
-                                                        created_files[ts_path][[item+'.' in x for x in created_files[ts_path]].index(True)]))
+                                                        created_files[ts_path][['annotation-' + item in x for x in created_files[ts_path]].index(True)]))
                         output_volume_files[item] = fileName
                     if iodict[item]["type"] == "point_vec":
                         fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, item + '.fcsv'))

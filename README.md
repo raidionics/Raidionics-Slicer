@@ -20,7 +20,7 @@ segmentation and standardized reporting"_, published in [Frontiers in Neurology]
 
 ## [Installation](https://github.com/raidionics/Raidionics-Slicer#installation)
 
-The plugin has been tested with the stable release 5.6.1 of 3D Slicer, and the upcoming release 5.7.0.  
+The plugin has been tested with the stable release 5.8.1 of 3D Slicer, and the upcoming release 5.9.0.  
 A [step-by-step video](https://www.youtube.com/watch?v=NStMzLcj1WE) for installing the plugin and running a segmentation model for the first time is available.
 
 <details>
@@ -38,7 +38,7 @@ A [step-by-step video](https://www.youtube.com/watch?v=NStMzLcj1WE) for installi
 * Download and install Docker (see [below](https://github.com/raidionics/Raidionics-Slicer#docker-setup--)).  
   The necessary _Raidionics_ Docker image should be collected automatically when downloading a model for the first time.
   Please do the following if it did not happen correctly:
-     > docker pull dbouget/raidionics-rads:v1.1-py38-cpu
+     > docker pull dbouget/raidionics-rads:v1.3-py39-cpu
 
 * Load the plugin into 3D Slicer:  
 	∘ All Modules > Extension Wizard.  
@@ -124,7 +124,7 @@ All images will be automatically downloaded upon model selection, which might
 take some minutes while the 3D Slicer interface won't be responding.  
 
 * The main Docker image can also be downloaded manually by:   
-    > docker pull dbouget/raidionics-rads:v1.1-py38-cpu
+    > docker pull dbouget/raidionics-rads:v1.3-py39-cpu
 
 * When you execute for the first time, you might get a pop-up from Docker asking to allow
 the sharing of a `.raidonics-slicer/` directory, accept!
