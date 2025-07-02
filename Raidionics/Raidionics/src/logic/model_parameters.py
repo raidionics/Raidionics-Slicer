@@ -41,13 +41,6 @@ class ModelParameters(object):
     def __set_stylesheet(self):
         software_ss = SharedResources.getInstance().stylesheet_components
         background_color = software_ss["Color2"]
-        self.parent.setStyleSheet("""
-        ctkCollapsibleGroupBox{
-        background-color:""" + background_color + """;
-        }
-        
-        
-        """)
 
     def BeautifyCamelCase(self, str):
         return self.reCamelCase.sub(r' \1', str)
@@ -483,13 +476,18 @@ class ModelParameters(object):
 
         l = qt.QLabel(self.BeautifyCamelCase(memberJSON["name"]) + ": ")
         if memberJSON["type"] == "volume":
-            l.setText(self.BeautifyCamelCase("(" + memberJSON["iotype"] + ") " + memberJSON["name"]) + " scan: ")
-        l.setStyleSheet("""
-        QLabel{
-        color: """ + font_color + """;
-        background-color: transparent;
-        border-style: none;
-        }""")
+            if memberJSON["iotype"] == "input":
+                l.setText(self.BeautifyCamelCase("(" + memberJSON["iotype"] + ") " + memberJSON["name"]) + " scan: ")
+            else:
+                l.setText(self.BeautifyCamelCase("(" + memberJSON["iotype"] + ") " + memberJSON["name"]) + " annotation: ")
+        # l.setStyleSheet("""
+        # QLabel{
+        # color: """ + font_color + """;
+        # background-color: transparent;
+        # border-style: none;
+        # font-style: bold;
+        # font-size: 13px;
+        # }""")
         self.widgets.append(l)
 
         widget.setToolTip(tip)

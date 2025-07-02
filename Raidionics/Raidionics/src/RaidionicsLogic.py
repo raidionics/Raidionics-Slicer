@@ -357,9 +357,9 @@ class RaidionicsLogic:
                                 continue
                             elif iodict[item] != iodict[list(iodict.keys())[1]] and iodict[item]['voltype'] == "ScalarVolume":
                                 input_node_name = inputs[item].GetName()
-                                if input_node_name == inputs[iodict[list(iodict.keys())[1]]["sequence_type"]].GetName():
-                                    # The input is supposed to be empty, discarding the doppelganger input
-                                    continue
+                                # if input_node_name == inputs[iodict[list(iodict.keys())[1]]["sequence_type"]].GetName():
+                                #     # The input is supposed to be empty, discarding the doppelganger input
+                                #     continue
                             input_node_name = inputs[item].GetName()
                             img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
                             input_sequence_type = iodict[item]["sequence_type"]
@@ -457,12 +457,16 @@ class RaidionicsLogic:
                     if iodict[item]["type"] == "volume":
                         fileName = None
                         # Including a . when looking for the filename, to make sure to hit the proper output.
-                        if "atlas_category" in list(iodict[item].keys()):
-                            fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
-                                                        created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
-                        else:
-                            fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
-                                                        created_files[ts_path][['annotation-' + item in x for x in created_files[ts_path]].index(True)]))
+                        try:
+                            if "atlas_category" in list(iodict[item].keys()):
+                                fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
+                                                            created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
+                            else:
+                                fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
+                                                            created_files[ts_path][['annotation-' + item in x for x in created_files[ts_path]].index(True)]))
+                        except:
+                            logging.warning(f"Could not find any output file matching the {item} category.")
+                            continue
                         output_volume_files[item] = fileName
                     if iodict[item]["type"] == "point_vec":
                         fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, item + '.fcsv'))

@@ -121,3 +121,5 @@ class SharedResources:
         self.stylesheet_components["Import_pressed"] = "rgba(81, 101, 153, 1)"  # Dark greyish blue
         self.stylesheet_components["Data"] = "rgba(204, 224, 255, 1)"  # Greyish blue
         self.stylesheet_components["Background_pressed"] = "rgba(0, 120, 230, 1)"  # Dark blue
+
+        self.stylesheet_components["Font-size"] = "11px"

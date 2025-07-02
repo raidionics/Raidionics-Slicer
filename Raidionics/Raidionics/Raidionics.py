@@ -30,7 +30,7 @@ class Raidionics(ScriptedLoadableModule):
     self.parent.title = "Raidionics"
     self.parent.categories = ["Machine Learning"]
     self.parent.dependencies = []
-    self.parent.contributors = ["David Bouget (Medical Technology, SINTEF Digital) david.bouget@sintef.no"]
+    self.parent.contributors = ["David Bouget (Medical Image Analysis group, Health Research Department, SINTEF Digital) david.bouget@sintef.no"]
     self.parent.helpText = """
     The Raidionics plugin for 3D Slicer allows users to run pre-trained models for segmentation and standardized
     reporting (RADS) over MRI volumes for patients diagnosed with brain cancer, and CT volumes for patients diagnosed 

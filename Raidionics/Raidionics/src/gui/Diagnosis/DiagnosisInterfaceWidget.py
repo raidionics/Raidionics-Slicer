@@ -92,6 +92,15 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         dummy_widget.setLayout(parametersFormLayout)
         self.diagnosis_model_parameters = ModelParameters(dummy_widget)
 
+        # # Parameters Area
+        # parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
+        # parametersCollapsibleButton.setTitle("Model Parameters")
+        # self.base_layout.addWidget(parametersCollapsibleButton)
+        #
+        # # Layout within the dummy collapsible button
+        # parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+        # self.diagnosis_model_parameters = ModelParameters(parametersCollapsibleButton)
+
     def setup_connections(self):
         self.local_diagnosis_area_searchbox.connect("textChanged(QString)", self.on_local_diagnosis_search)
         self.local_diagnosis_selector_combobox.connect('currentIndexChanged(int)', self.on_diagnosis_selection)

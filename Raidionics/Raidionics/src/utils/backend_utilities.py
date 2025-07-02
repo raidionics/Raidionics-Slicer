@@ -10,6 +10,7 @@ def generate_segmentation_pipeline(model_name: str, tumor_type: str) -> dict:
     """
 
     """
+    ts = 0
     pip = {}
     pip_num_int = 0
 
@@ -20,8 +21,8 @@ def generate_segmentation_pipeline(model_name: str, tumor_type: str) -> dict:
         pip[pip_num] = {}
         pip[pip_num]["task"] = 'Model selection'
         pip[pip_num]["model"] = model
-        pip[pip_num]["timestamp"] = 0
-        pip[pip_num]["format"] = "probabilities"
+        pip[pip_num]["timestamp"] = ts
+        pip[pip_num]["format"] = "probabilities" if len(all_models) == 1 else "thresholding"
         pip[pip_num]["description"] = f"Identifying the best segmentation model for existing inputs for {model}"
     if len(all_models) > 1:
         pip_num_int = pip_num_int + 1
@@ -30,11 +31,11 @@ def generate_segmentation_pipeline(model_name: str, tumor_type: str) -> dict:
         pip[pip_num]["task"] = 'Segmentation refinement'
         pip[pip_num]["inputs"] = {}
         pip[pip_num]["inputs"]["0"] = {}
-        pip[pip_num]["inputs"]["0"]["timestamp"] = 0
+        pip[pip_num]["inputs"]["0"]["timestamp"] = ts
         pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE" if tumor_type == "Contrast-Enhancing" else "FLAIR"
         pip[pip_num]["inputs"]["0"]["labels"] = "Tumor"
         pip[pip_num]["inputs"]["0"]["space"] = {}
-        pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = 0
+        pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = ts
         pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE" if tumor_type == "Contrast-Enhancing" else "FLAIR"
         pip[pip_num]["operation"] = "global_context"
         pip[pip_num]["args"] = {}
