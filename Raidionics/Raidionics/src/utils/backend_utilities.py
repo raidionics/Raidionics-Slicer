@@ -6,45 +6,50 @@ import traceback
 from src.utils.resources import SharedResources
 
 
-def generate_segmentation_pipeline(model_name: str, tumor_type: str) -> dict:
+def generate_segmentation_pipeline(model_name: str, params: dict) -> dict:
     """
 
     """
     ts = 0
+    global_target = params["target"] if "target" in params else None
     pip = {}
     pip_num_int = 0
 
     all_models = [x.strip() for x in model_name.split(',')]
-    for model in all_models:
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = {}
-        pip[pip_num]["task"] = 'Model selection'
-        pip[pip_num]["model"] = model
-        pip[pip_num]["timestamp"] = ts
-        pip[pip_num]["format"] = "probabilities" if len(all_models) == 1 else "thresholding"
-        pip[pip_num]["description"] = f"Identifying the best segmentation model for existing inputs for {model}"
-    if len(all_models) > 1:
-        pip_num_int = pip_num_int + 1
-        pip_num = str(pip_num_int)
-        pip[pip_num] = {}
-        pip[pip_num]["task"] = 'Segmentation refinement'
-        pip[pip_num]["inputs"] = {}
-        pip[pip_num]["inputs"]["0"] = {}
-        pip[pip_num]["inputs"]["0"]["timestamp"] = ts
-        pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE" if tumor_type == "Contrast-Enhancing" else "FLAIR"
-        pip[pip_num]["inputs"]["0"]["labels"] = "Tumor"
-        pip[pip_num]["inputs"]["0"]["space"] = {}
-        pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = ts
-        pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE" if tumor_type == "Contrast-Enhancing" else "FLAIR"
-        pip[pip_num]["operation"] = "global_context"
-        pip[pip_num]["args"] = {}
-        pip[pip_num]["description"] = f"Global segmented structures context refinement."
+    if global_target in ["Neuro", "Mediastinum"]:
+        tumor_type = params['tumor_type'] if 'tumor_type' in params else None
+        for model in all_models:
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Model selection'
+            pip[pip_num]["model"] = model
+            pip[pip_num]["timestamp"] = ts
+            pip[pip_num]["format"] = "probabilities" if len(all_models) == 1 else "thresholding"
+            pip[pip_num]["description"] = f"Identifying the best segmentation model for existing inputs for {model}"
+        if len(all_models) > 1:
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Segmentation refinement'
+            pip[pip_num]["inputs"] = {}
+            pip[pip_num]["inputs"]["0"] = {}
+            pip[pip_num]["inputs"]["0"]["timestamp"] = ts
+            pip[pip_num]["inputs"]["0"]["sequence"] = "T1-CE" if tumor_type == "Contrast-Enhancing" else "FLAIR"
+            pip[pip_num]["inputs"]["0"]["labels"] = "Tumor"
+            pip[pip_num]["inputs"]["0"]["space"] = {}
+            pip[pip_num]["inputs"]["0"]["space"]["timestamp"] = ts
+            pip[pip_num]["inputs"]["0"]["space"]["sequence"] = "T1-CE" if tumor_type == "Contrast-Enhancing" else "FLAIR"
+            pip[pip_num]["operation"] = "global_context"
+            pip[pip_num]["args"] = {}
+            pip[pip_num]["description"] = f"Global segmented structures context refinement."
+    else:
+        print(f"No implementation matching the requested context: {global_target}")
 
     return pip
 
 
-def generate_reporting_pipeline(task, tumor_type):
+def generate_reporting_pipeline(task, params):
     pip = {}
     pip_num_int = 0
 
@@ -86,9 +91,9 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         rads_config.set('System', 'output_folder', '/workspace/resources/output')
         rads_config.set('System', 'model_folder', '/workspace/resources/models')
         if logic_task == "segmentation":
-            pipeline = generate_segmentation_pipeline(model_name=model_name, tumor_type=json_params['tumor_type'])
+            pipeline = generate_segmentation_pipeline(model_name=model_name, params=json_params)
         elif logic_task == "complex_diagnosis":
-            pipeline = generate_reporting_pipeline(task=None, tumor_type=json_params['tumor_type'])
+            pipeline = generate_reporting_pipeline(task=None, params=json_params)
         pipeline_filename = os.path.join(input_folder, 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
             json.dump(pipeline, outfile, indent=4)
