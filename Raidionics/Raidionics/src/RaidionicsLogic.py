@@ -14,6 +14,7 @@ import platform
 import os
 import numpy
 import re
+import fnmatch
 import subprocess
 import shutil
 import threading
@@ -27,7 +28,7 @@ from __main__ import qt, ctk, slicer, vtk
 import SimpleITK as sitk
 import sitkUtils
 from src.utils.resources import SharedResources
-from src.utils.backend_utilities import generate_backend_config, postop_model_selection
+from src.utils.backend_utilities import generate_backend_config
 
 
 class RaidionicsLogic:
@@ -379,8 +380,6 @@ class RaidionicsLogic:
                             print("Issue preparing input volume.")
                             print(traceback.format_exc())
                     elif iodict[item]["type"] == "configuration":
-                        # if modelName == "MRI_GBM_Postop":
-                        #     modelName = postop_model_selection(inputs)
                         generate_backend_config(SharedResources.getInstance().data_path,
                                                 iodict, self.logic_target_space, self.logic_task, modelName, json_params)
                 elif iodict[item]["iotype"] == "parameter":
@@ -428,7 +427,7 @@ class RaidionicsLogic:
     def updateOutput(self, iodict, outputs, widgets):
         output_volume_files = dict()
         output_fiduciallist_files = dict()
-        # output_text_files = dict()
+        output_text_files = dict()
         self.output_raw_values = dict()
         created_files = {}
         # Fetching all created outputs, including all timestamps.
@@ -456,23 +455,32 @@ class RaidionicsLogic:
 
                     if iodict[item]["type"] == "volume":
                         fileName = None
-                        # Including a . when looking for the filename, to make sure to hit the proper output.
                         try:
                             if "atlas_category" in list(iodict[item].keys()):
-                                fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
-                                                            created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
+                                if iodict[item]["atlas_category"] == "Cortical":
+                                    fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
+                                                                created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
+                                elif iodict[item]["atlas_category"] == "Subcortical":
+                                    fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
+                                                                created_files[ts_path][[item + '_atlas_overall_mask' in x for x in created_files[ts_path]].index(True)]))
+                                # @TODO. Brain Grid will have to be handled differently
                             else:
+                                patterns = ["*annotation-"+item+'.*', "*annotation-"+item+'_*']
+                                existing_files = created_files[ts_path]
                                 fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
-                                                            created_files[ts_path][['annotation-' + item in x for x in created_files[ts_path]].index(True)]))
-                        except:
+                                                            [x for x in existing_files if any(fnmatch.fnmatch(x, pattern) for pattern in patterns)][0]))
+                        except Exception as e:
                             logging.warning(f"Could not find any output file matching the {item} category.")
+                            logging.warning(f"Collected the following exception: {e}")
                             continue
                         output_volume_files[item] = fileName
                     if iodict[item]["type"] == "point_vec":
                         fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, item + '.fcsv'))
                         output_fiduciallist_files[item] = fileName
                     # if iodict[item]["type"] == "text":
-                    #     fileName = str(os.path.join(SharedResources.getInstance().output_path, iodict[item]["default"] + '.txt'))
+                    #     fileName = str(os.path.join(SharedResources.getInstance().output_path, 'reporting',
+                    #                                 'T' + str(iodict[item]["timestamp_order"]) +
+                    #                                 iodict[item]["default"] + '.txt'))
                     #     output_text_files[item] = fileName
             except Exception as e:
                 logging.warning("Unable to collect results for {}".format(item))
@@ -515,14 +523,14 @@ class RaidionicsLogic:
             # reported bug reference: https://issues.slicer.org/view.php?id=4414
             # scene.RemoveNode(node)
 
-        # for text_key in output_text_files.keys():
-        #     try:
-        #         text_file = output_text_files[text_key]
-        #         f = open(text_file, 'r')
-        #         current_text = f.read()
-        #         current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
-        #         current_widget.setPlainText(current_text)
-        #         f.close()
-        #     except Exception as e:
-        #         logging.warning("Unable to display results for report: {}".format(text_key))
-        #         continue
+        for text_key in output_text_files.keys():
+            try:
+                text_file = output_text_files[text_key]
+                f = open(text_file, 'r')
+                current_text = f.read()
+                current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
+                current_widget.setPlainText(current_text)
+                f.close()
+            except Exception as e:
+                logging.warning("Unable to display results for report: {}".format(text_key))
+                continue

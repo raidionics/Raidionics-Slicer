@@ -23,18 +23,19 @@ class DiagnosisInterfaceWidget(qt.QWidget):
 
     def __init__(self, parent=None):
         super(DiagnosisInterfaceWidget, self).__init__(parent)
-        self.base_layout = qt.QVBoxLayout()
-        self.setup_cloud_diagnosis_area()
-        self.setup_local_diagnosis_area()
-        # self.populate_local_diagnosis()
-        # self.populate_cloud_diagnosis()
-        self.setup_diagnosis_parameters_area()
-        self.setLayout(self.base_layout)
+        self.__set_interface()
         self.setup_connections()
         # self.on_diagnosis_selection(0)
         self.json_diagnoses = []
         self.populate_local_diagnosis()
         self.populate_cloud_diagnosis()
+
+    def __set_interface(self):
+        self.base_layout = qt.QVBoxLayout()
+        self.setup_cloud_diagnosis_area()
+        self.setup_local_diagnosis_area()
+        self.setup_diagnosis_parameters_area()
+        self.setLayout(self.base_layout)
 
     def setup_cloud_diagnosis_area(self):
         self.cloud_diagnosis_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -74,32 +75,32 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         self.modelsFormLayout.addRow("Details:", self.local_diagnosis_moreinfo_pushbutton)
 
     def setup_diagnosis_parameters_area(self):
-        # The ctk collapsible group box is the overall container, within which a scrollable area is set.
-        # Ctk => Layout => scroll area => dummy widget => form layout => Content from ModelParameters
-        parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        parametersCollapsibleButton.setTitle("Reporting Parameters")
-        self.base_layout.addWidget(parametersCollapsibleButton)
-
-        self.parameters_scrollarea_layout = qt.QHBoxLayout(parametersCollapsibleButton)
-        self.parameters_groupbox_scrollarea = qt.QScrollArea()
-        self.parameters_groupbox_scrollarea.setVerticalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOn)
-        self.parameters_groupbox_scrollarea.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
-        self.parameters_groupbox_scrollarea.setWidgetResizable(True)
-        self.parameters_scrollarea_layout.addWidget(self.parameters_groupbox_scrollarea)
-        dummy_widget = qt.QWidget()
-        self.parameters_groupbox_scrollarea.setWidget(dummy_widget)
-        parametersFormLayout = qt.QFormLayout()
-        dummy_widget.setLayout(parametersFormLayout)
-        self.diagnosis_model_parameters = ModelParameters(dummy_widget)
-
-        # # Parameters Area
+        # # The ctk collapsible group box is the overall container, within which a scrollable area is set.
+        # # Ctk => Layout => scroll area => dummy widget => form layout => Content from ModelParameters
         # parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
-        # parametersCollapsibleButton.setTitle("Model Parameters")
+        # parametersCollapsibleButton.setTitle("Reporting Parameters")
         # self.base_layout.addWidget(parametersCollapsibleButton)
         #
-        # # Layout within the dummy collapsible button
-        # parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-        # self.diagnosis_model_parameters = ModelParameters(parametersCollapsibleButton)
+        # self.parameters_scrollarea_layout = qt.QHBoxLayout(parametersCollapsibleButton)
+        # self.parameters_groupbox_scrollarea = qt.QScrollArea()
+        # self.parameters_groupbox_scrollarea.setVerticalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOn)
+        # self.parameters_groupbox_scrollarea.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
+        # self.parameters_groupbox_scrollarea.setWidgetResizable(True)
+        # self.parameters_scrollarea_layout.addWidget(self.parameters_groupbox_scrollarea)
+        # dummy_widget = qt.QWidget()
+        # self.parameters_groupbox_scrollarea.setWidget(dummy_widget)
+        # parametersFormLayout = qt.QFormLayout()
+        # dummy_widget.setLayout(parametersFormLayout)
+        # self.diagnosis_model_parameters = ModelParameters(dummy_widget)
+
+        # Parameters Area
+        parametersCollapsibleButton = ctk.ctkCollapsibleGroupBox()
+        parametersCollapsibleButton.setTitle("Model Parameters")
+        self.base_layout.addWidget(parametersCollapsibleButton)
+
+        # Layout within the dummy collapsible button
+        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+        self.diagnosis_model_parameters = ModelParameters(parametersCollapsibleButton)
 
     def setup_connections(self):
         self.local_diagnosis_area_searchbox.connect("textChanged(QString)", self.on_local_diagnosis_search)

@@ -50,17 +50,88 @@ def generate_segmentation_pipeline(model_name: str, params: dict) -> dict:
 
 
 def generate_reporting_pipeline(task, params):
+    global_target = params["target"] if "target" in params else None
+    ts = int(params['members'][-1]["timestamp_order"])
     pip = {}
     pip_num_int = 0
 
-    pip_num_int = pip_num_int + 1
-    pip_num = str(pip_num_int)
-    pip[pip_num] = {}
-    pip[pip_num]["task"] = 'Model selection'
-    pip[pip_num]["model"] = ""
-    pip[pip_num]["timestamp"] = 0
-    pip[pip_num]["format"] = "probabilities"
-    pip[pip_num]["description"] = "Identifying the best tumor core segmentation model for existing inputs"
+    if global_target in ["Neuro"]:
+        tumor_type = params['tumor_type'] if 'tumor_type' in params else None
+        if tumor_type.lower() == "contrast-enhancing" and ts == 0:
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = "Classification"
+            pip[pip_num]["inputs"] = {}
+            pip[pip_num]["inputs"]['0'] = {}
+            pip[pip_num]["inputs"]['0']["timestamp"] = 0
+            pip[pip_num]["inputs"]['0']["sequence"] = "T1-CE"
+            pip[pip_num]["inputs"]['0']['labels'] = None
+            pip[pip_num]["inputs"]['0']['space'] = {}
+            pip[pip_num]["inputs"]['0']['space']["timestamp"] = 0
+            pip[pip_num]["inputs"]['0']['space']["sequence"] = "T1-CE"
+            pip[pip_num]["target"] = ["BrainTumorType"]
+            pip[pip_num]["model"] = "MRI_TumorTypeClassifier"
+            pip[pip_num]["description"] = "Classification of the contrast-enhancing tumor type in T1CE"
+
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Model selection'
+            pip[pip_num]["model"] = 'MRI_TumorCore'
+            pip[pip_num]["timestamp"] = 0
+            pip[pip_num]["format"] = "thresholding"
+            pip[pip_num]["description"] = "Identifying the best tumor core segmentation model for existing inputs"
+
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Model selection'
+            pip[pip_num]["model"] = 'MRI_Necrosis'
+            pip[pip_num]["timestamp"] = 0
+            pip[pip_num]["format"] = "thresholding"
+            pip[pip_num]["description"] = "Identifying the best necrosis segmentation model for existing inputs"
+        elif tumor_type.lower() == "contrast-enhancing" and ts == 1:
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Model selection'
+            pip[pip_num]["model"] = 'MRI_TumorCE_Postop'
+            pip[pip_num]["timestamp"] = 0
+            pip[pip_num]["format"] = "thresholding"
+            pip[pip_num]["description"] = "Identifying the best rest tumor segmentation model for existing inputs"
+
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Model selection'
+        pip[pip_num]["model"] = 'MRI_FLAIRChanges'
+        pip[pip_num]["timestamp"] = 0
+        pip[pip_num]["format"] = "thresholding"
+        pip[pip_num]["description"] = "Identifying the best FLAIR changes segmentation model for existing inputs"
+
+        if ts ==1:
+            pip_num_int = pip_num_int + 1
+            pip_num = str(pip_num_int)
+            pip[pip_num] = {}
+            pip[pip_num]["task"] = 'Model selection'
+            pip[pip_num]["model"] = 'MRI_Cavity'
+            pip[pip_num]["timestamp"] = 0
+            pip[pip_num]["format"] = "thresholding"
+            pip[pip_num]["description"] = "Identifying the best cavity segmentation model for existing inputs"
+
+        pip_num_int = pip_num_int + 1
+        pip_num = str(pip_num_int)
+        pip[pip_num] = {}
+        pip[pip_num]["task"] = 'Reporting selection'
+        pip[pip_num]["scope"] = "standalone"
+        pip[pip_num]["tumor_type"] = tumor_type.lower()
+        pip[pip_num]["timestamps"] = [0]
+        pip[pip_num]["description"] = "Setting up the reporting steps for features computation"
+    else:
+        print(f"No implementation matching the requested context: {global_target}")
+
+    return pip
 
 def generate_backend_config(input_folder: str, parameters, logic_target_space: str, logic_task: str,
                             model_name: str, json_params: dict) -> None:
@@ -92,15 +163,12 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         rads_config.set('System', 'model_folder', '/workspace/resources/models')
         if logic_task == "segmentation":
             pipeline = generate_segmentation_pipeline(model_name=model_name, params=json_params)
-        elif logic_task == "complex_diagnosis":
+        elif logic_task == "reporting":
             pipeline = generate_reporting_pipeline(task=None, params=json_params)
         pipeline_filename = os.path.join(input_folder, 'rads_pipeline.json')
         with open(pipeline_filename, 'w', newline='\n') as outfile:
             json.dump(pipeline, outfile, indent=4)
         rads_config.set('System', 'pipeline_filename', '/workspace/resources/data/rads_pipeline.json')
-        if logic_task == 'reporting':
-            rads_config.set('System', 'pipeline_filename',
-                            '/workspace/resources/reporting/' + parameters['UserConfiguration']['default'])
         rads_config.add_section('Runtime')
         rads_config.set('Runtime', 'reconstruction_method',
                         SharedResources.getInstance().user_configuration['Predictions']['reconstruction_method'])
@@ -121,18 +189,3 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
         print("Backend config file creation failed.")
         print(traceback.format_exc())
 
-
-def postop_model_selection(inputs: dict) -> str:
-    model_name = "MRI_GBM_Postop_FV_4p"
-    if inputs["T1w postop"] is None and inputs["FLAIR postop"] is None and inputs["T1wCE preop"] is None:
-        model_name = "MRI_GBM_Postop_FV_1p"
-    elif inputs["FLAIR postop"] is None and inputs["T1wCE preop"] is None:
-        model_name = "MRI_GBM_Postop_FV_2p"
-    elif inputs["T1wCE preop"] is None:
-        model_name = "MRI_GBM_Postop_FV_3p"
-    elif inputs["FLAIR postop"] is None and inputs["T1wCE preop"] is not None:
-        model_name = "MRI_GBM_Postop_FV_4p"
-    else:
-        model_name = "MRI_GBM_Postop_FV_5p"
-
-    return model_name

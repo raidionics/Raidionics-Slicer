@@ -26,12 +26,9 @@ class NeuroDiagnosisParameters:
             NeuroDiagnosisParameters.__instance = self
 
     def clear(self):
-        self.tumor_presence_state = False
         self.tumor_type = None
-        self.tumor_multifocal = False
-        self.tumor_parts = 0
-        self.tumor_multifocal_distance = -1.
-        self.statistics = {}
+        self.volumes = {}
+        self.structure_features = {}
 
     def from_json(self, filename):
         try:
@@ -39,101 +36,86 @@ class NeuroDiagnosisParameters:
             with open(filename, 'r') as pfile:
                 self.json_content = json.load(pfile)
 
-            self.tumor_presence_state = self.json_content['Overall']['Presence'] if "Presence" in list(self.json_content['Overall'].keys()) else None
-            self.tumor_type = self.json_content['Overall']['Type'] if "Type" in list(self.json_content['Overall'].keys()) else None
-            self.tumor_multifocal = self.json_content['Overall']['Multifocality'] if "Multifocality" in list(self.json_content['Overall'].keys()) else None
-            self.tumor_parts = self.json_content['Overall']['Tumor parts nb'] if "Tumor parts nb" in list(self.json_content['Overall'].keys()) else None
-            self.tumor_multifocal_distance = self.json_content['Overall']['Multifocal distance (mm)'] if "Multifocal distance (mm)" in list(self.json_content['Overall'].keys()) else None
-
-            self.statistics = {}
-            self.statistics['Main'] = {}
-            self.statistics['Main']['Overall'] = TumorStatistics()
-            self.statistics['Main']['CoM'] = TumorStatistics()
-
-            # self.statistics['Main']['CoM'].laterality = self.json_content['Main']['CenterOfMass']['Laterality']
-            # self.statistics['Main']['CoM'].laterality_percentage = self.json_content['Main']['CenterOfMass']['Laterality_perc']
-            # lobes_overlap = {item[0]: item[1] for item in self.json_content['Main']['CenterOfMass']['Lobe']}
-            # lobes_overlap_o = collections.OrderedDict(sorted(lobes_overlap.items(), key=operator.itemgetter(1), reverse=True))
-            # self.statistics['Main']['CoM'].mni_space_lobes_overlap = lobes_overlap_o
-
-            self.statistics['Main']['Overall'].original_space_tumor_volume = self.json_content['Main']['Total']['Volume original (ml)']
-            if self.statistics['Main']['Overall'].original_space_tumor_volume is None:
-                self.statistics['Main']['Overall'].original_space_tumor_volume = -1
-            self.statistics['Main']['Overall'].mni_space_tumor_volume = self.json_content['Main']['Total']['Volume in MNI (ml)']
-            if self.statistics['Main']['Overall'].mni_space_tumor_volume is None:
-                self.statistics['Main']['Overall'].mni_space_tumor_volume = -1
-            self.statistics['Main']['Overall'].left_laterality_percentage = self.json_content['Main']['Total']['Left laterality (%)']
-            if self.statistics['Main']['Overall'].left_laterality_percentage is None:
-                self.statistics['Main']['Overall'].left_laterality_percentage = -1
-            self.statistics['Main']['Overall'].right_laterality_percentage = self.json_content['Main']['Total']['Right laterality (%)']
-            if self.statistics['Main']['Overall'].right_laterality_percentage is None:
-                self.statistics['Main']['Overall'].right_laterality_percentage = -1
-            self.statistics['Main']['Overall'].laterality_midline_crossing = self.json_content['Main']['Total']['Midline crossing']
-
-            if self.tumor_type == 'Glioblastoma':
-                self.statistics['Main']['Overall'].mni_space_expected_residual_tumor_volume = self.json_content['Main']['Total']['ExpectedResidualVolume (ml)']
-                self.statistics['Main']['Overall'].mni_space_resectability_index = self.json_content['Main']['Total']['ResectionIndex']
-
-            # @TODO. Have to fix it based on the actual format, see end of page
-            for a in self.json_content['Main']['Total']['CorticalStructures'].keys():
-                structures_overlap_o = collections.OrderedDict(sorted(self.json_content['Main']['Total']['CorticalStructures'][a].items(), key=operator.itemgetter(1), reverse=True))
-                self.statistics['Main']['Overall'].mni_space_cortical_structures_overlap[a] = structures_overlap_o
-
-            for a in self.json_content['Main']['Total']['SubcorticalStructures'].keys():
-                structures_overlap_o = collections.OrderedDict(sorted(self.json_content['Main']['Total']['SubcorticalStructures'][a]['Overlap'].items(), key=operator.itemgetter(1), reverse=True))
-                self.statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[a] = structures_overlap_o
-                structures_distance_o = collections.OrderedDict(sorted(self.json_content['Main']['Total']['SubcorticalStructures'][a]['Distance'].items(), key=operator.itemgetter(1), reverse=False))
-                self.statistics['Main']['Overall'].mni_space_subcortical_structures_distance[a] = structures_distance_o
-
-            # tracts_overlap = {item[0]: item[1] for item in self.json_content['Main']['Total']['Tract']['Overlap']}
-            # tracts_overlap_o = collections.OrderedDict(sorted(tracts_overlap.items(), key=operator.itemgetter(1), reverse=True))
-            # self.statistics['Main']['Overall'].mni_space_tracts_overlap = tracts_overlap_o
-            #
-            # tracts_dist = {item[0]: item[1] for item in self.json_content['Main']['Total']['Tract']['Distance']}
-            # tracts_dist_o = collections.OrderedDict(sorted(tracts_dist.items(), key=operator.itemgetter(1), reverse=False))
-            # self.statistics['Main']['Overall'].mni_space_tracts_distance = tracts_dist_o
-
-            # if self.tumor_multifocal:
-            #     for p in range(self.tumor_parts):
-            #         pname = str(p + 1)
-            #         self.statistics[pname] = {}
-            #         self.statistics[pname]['Overall'] = TumorStatistics()
-            #         self.statistics[pname]['CoM'] = TumorStatistics()
-            #
-            #         self.statistics[pname]['Overall'].laterality = self.json_content[pname]['Total']['Laterality']
-            #         self.statistics[pname]['Overall'].laterality_percentage = self.json_content[pname]['Total']['Laterality_perc']
-            #         self.statistics[pname]['Overall'].mni_space_tumor_volume = self.json_content[pname]['Total']['Volume']
-            #         self.statistics[pname]['Overall'].mni_space_resectability_score = self.json_content[pname]['Total']['Resectability']
-            #
-            #         lobes_overlap = {item[0]: item[1] for item in self.json_content[pname]['Total']['Lobe']}
-            #         lobes_overlap_o = collections.OrderedDict(
-            #             sorted(lobes_overlap.items(), key=operator.itemgetter(1), reverse=True))
-            #         self.statistics[pname]['Overall'].mni_space_lobes_overlap = lobes_overlap_o
-            #
-            #         tracts_overlap = {item[0]: item[1] for item in self.json_content[pname]['Total']['Tract']['Overlap']}
-            #         tracts_overlap_o = collections.OrderedDict(
-            #             sorted(tracts_overlap.items(), key=operator.itemgetter(1), reverse=True))
-            #         self.statistics[pname]['Overall'].mni_space_tracts_overlap = tracts_overlap_o
-            #
-            #         tracts_dist = {item[0]: item[1] for item in self.json_content[pname]['Total']['Tract']['Distance']}
-            #         tracts_dist_o = collections.OrderedDict(
-            #             sorted(tracts_dist.items(), key=operator.itemgetter(1), reverse=False))
-            #         self.statistics[pname]['Overall'].mni_space_tracts_distance = tracts_dist_o
+            self.structure_features = {}
+            for s in self.json_content.keys():
+                self.structure_features[s] = {}
+                for space in self.json_content[s].keys():
+                    curr_features = StructureFeatures()
+                    curr_features.init_from_json(self.json_content[s][space])
+                    if curr_features.type:
+                        self.tumor_type = curr_features.type
+                    self.structure_features[s][space] = curr_features
         except Exception as e:
             logging.warning("Issue encountered when parsing the json file containing the clinical report.")
             logging.warning(traceback.format_exc())
 
 
-class TumorStatistics():
+class StructureFeatures():
     def __init__(self):
-        self.left_laterality_percentage = None
-        self.right_laterality_percentage = None
-        self.laterality_midline_crossing = None
-        self.original_space_tumor_volume = None
-        self.mni_space_tumor_volume = None
-        self.mni_space_expected_resectable_tumor_volume = None
-        self.mni_space_expected_residual_tumor_volume = None
-        self.mni_space_resectability_index = None
-        self.mni_space_cortical_structures_overlap = {}
-        self.mni_space_subcortical_structures_overlap = {}
-        self.mni_space_subcortical_structures_distance = {}
+        self.type = None
+        self.volume = None
+        self.diameters_shortaxis = None
+        self.diameters_longaxis = None
+        self.diameters_feret = None
+        self.diameters_equivalent = None
+        self.location_left_laterality = None
+        self.location_right_laterality = None
+        self.location_midline_crossing = None
+        self.multifocality_elements = None
+        self.multifocality_max_distance = None
+        self.multifocality_status = None
+        self.resectability_index = None
+        self.resectability_residual = None
+        self.resectability_resectable = None
+        self.cortical_structures_overlap = {}
+        self.subcortical_structures_overlap = {}
+        self.subcortical_structures_distance = {}
+
+    def init_from_json(self, json_dict):
+        if "Type" in json_dict.keys():
+            self.type = json_dict["Type"]
+        if "Volume (ml)" in json_dict.keys():
+            self.volume = json_dict["Volume (ml)"]
+        if "Diameters" in json_dict.keys():
+            if "Short-axis diameter (mm)" in json_dict["Diameters"].keys():
+                self.diameters_shortaxis = json_dict["Diameters"]["Short-axis diameter (mm)"]
+            if "Long-axis diameter (mm)" in json_dict["Diameters"].keys():
+                self.diameters_longaxis = json_dict["Diameters"]["Long-axis diameter (mm)"]
+            if "Feret diameter (mm)" in json_dict["Diameters"].keys():
+                self.diameters_feret = json_dict["Diameters"]["Feret diameter (mm)"]
+            if "Equivalent diameter area (mm)" in json_dict["Diameters"].keys():
+                self.diameters_equivalent = json_dict["Diameters"]["Equivalent diameter area (mm)"]
+        if "Location" in json_dict.keys():
+            if "Left laterality (%)" in json_dict["Location"].keys():
+                self.location_left_laterality = json_dict["Location"]["Left laterality (%)"]
+            if "Right laterality (%)" in json_dict["Location"].keys():
+                self.location_right_laterality = json_dict["Location"]["Right laterality (%)"]
+            if "Midline crossing" in json_dict["Location"].keys():
+                self.location_midline_crossing = json_dict["Location"]["Midline crossing"]
+        if "Multifocality" in json_dict.keys():
+            if "Elements" in json_dict["Multifocality"].keys():
+                self.multifocality_elements = json_dict["Multifocality"]["Elements"]
+            if "Max distance (mm)" in json_dict["Multifocality"].keys():
+                self.multifocality_max_distance = json_dict["Multifocality"]["Max distance (mm)"]
+            if "Status" in json_dict["Multifocality"].keys():
+                self.multifocality_status = json_dict["Multifocality"]["Status"]
+        if "Resectability" in json_dict.keys():
+            if "Index" in json_dict["Resectability"].keys():
+                self.resectability_index = json_dict["Resectability"]["Index"]
+            if "Resectable volume (ml)" in json_dict["Resectability"].keys():
+                self.resectability_resectable = json_dict["Resectability"]["Resectable volume (ml)"]
+            if "Expected residual volume (ml)" in json_dict["Resectability"].keys():
+                self.resectability_residual = json_dict["Resectability"]["Expected residual volume (ml)"]
+        if "Cortical Profile" in json_dict.keys():
+            for atlas in json_dict["Cortical Profile"].keys():
+                self.cortical_structures_overlap[atlas] = dict(
+                    sorted(json_dict["Cortical Profile"][atlas]["Overlap"].items(), key=lambda item: item[1],
+                           reverse=True))
+        if "Subcortical Profile" in json_dict.keys():
+            for atlas in json_dict["Subcortical Profile"].keys():
+                self.subcortical_structures_distance[atlas] = dict(
+                    sorted(json_dict["Subcortical Profile"][atlas]["Distance"].items(), key=lambda item: item[1],
+                           reverse=False))
+                self.subcortical_structures_overlap[atlas] = dict(
+                    sorted(json_dict["Subcortical Profile"][atlas]["Overlap"].items(), key=lambda item: item[1],
+                           reverse=True))

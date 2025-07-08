@@ -27,7 +27,7 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
     def setup_results_area(self):
         # Setting up the CtkCollapsible and inner scrollable widgets/layouts
         self.results_collapsible_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.results_collapsible_groupbox.setTitle("RADS results")
+        self.results_collapsible_groupbox.setTitle("Reporting results")
         self.base_layout.addWidget(self.results_collapsible_groupbox)
 
         self.results_scrollarea_layout = qt.QHBoxLayout(self.results_collapsible_groupbox)
@@ -51,14 +51,6 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
         self.results_status_groupbox = ctk.ctkCollapsibleGroupBox()
         self.results_status_groupbox.setTitle("Status")
         self.results_status_groupbox_layout = qt.QVBoxLayout()
-        self.results_overall_tumor_found_layout = qt.QHBoxLayout()
-        self.results_overall_tumor_found_label = qt.QLabel('Tumor found:')
-        self.results_overall_tumor_found_lineedit = qt.QLineEdit()
-        self.results_overall_tumor_found_lineedit.setReadOnly(True)
-        self.results_overall_tumor_found_layout.addWidget(self.results_overall_tumor_found_label)
-        self.results_overall_tumor_found_layout.addWidget(self.results_overall_tumor_found_lineedit)
-        self.results_status_groupbox_layout.addLayout(self.results_overall_tumor_found_layout)
-
         self.results_overall_tumor_type_layout = qt.QHBoxLayout()
         self.results_overall_tumor_type_label = qt.QLabel('Tumor type:')
         self.results_overall_tumor_type_lineedit = qt.QLineEdit()
@@ -66,34 +58,34 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
         self.results_overall_tumor_type_layout.addWidget(self.results_overall_tumor_type_label)
         self.results_overall_tumor_type_layout.addWidget(self.results_overall_tumor_type_lineedit)
         self.results_status_groupbox_layout.addLayout(self.results_overall_tumor_type_layout)
-
-        self.results_overall_tumor_multifocal_layout = qt.QHBoxLayout()
-        self.results_overall_tumor_multifocal_label = qt.QLabel('Mutifocality:')
-        self.results_overall_tumor_mutifocal_lineedit = qt.QLineEdit()
-        self.results_overall_tumor_mutifocal_lineedit.setReadOnly(True)
-        self.results_overall_tumor_multifocal_layout.addWidget(self.results_overall_tumor_multifocal_label)
-        self.results_overall_tumor_multifocal_layout.addWidget(self.results_overall_tumor_mutifocal_lineedit)
-        self.results_status_groupbox_layout.addLayout(self.results_overall_tumor_multifocal_layout)
+        self.results_tumor_volumes_layout = qt.QHBoxLayout()
+        self.results_tumor_volumes_pat_label = qt.QLabel('Tumor core volume (Patient):')
+        self.results_tumor_volumes_pat_lineedit = qt.QLineEdit()
+        self.results_tumor_volumes_pat_lineedit.setReadOnly(True)
+        self.results_tumor_volumes_mni_label = qt.QLabel('Tumor core volume (MNI):')
+        self.results_tumor_volumes_mni_lineedit = qt.QLineEdit()
+        self.results_tumor_volumes_mni_lineedit.setReadOnly(True)
+        self.results_tumor_volumes_layout.addWidget(self.results_tumor_volumes_pat_label)
+        self.results_tumor_volumes_layout.addWidget(self.results_tumor_volumes_pat_lineedit)
+        self.results_tumor_volumes_layout.addWidget(self.results_tumor_volumes_mni_label)
+        self.results_tumor_volumes_layout.addWidget(self.results_tumor_volumes_mni_lineedit)
+        self.results_status_groupbox_layout.addLayout(self.results_tumor_volumes_layout)
+        self.results_tumorce_volumes_layout = qt.QHBoxLayout()
+        self.results_tumorce_volumes_pat_label = qt.QLabel('Tumor-CE volume (Patient):')
+        self.results_tumorce_volumes_pat_lineedit = qt.QLineEdit()
+        self.results_tumorce_volumes_pat_lineedit.setReadOnly(True)
+        self.results_tumorce_volumes_mni_label = qt.QLabel('Tumor-CE volume (MNI):')
+        self.results_tumorce_volumes_mni_lineedit = qt.QLineEdit()
+        self.results_tumorce_volumes_mni_lineedit.setReadOnly(True)
+        self.results_tumorce_volumes_layout.addWidget(self.results_tumorce_volumes_pat_label)
+        self.results_tumorce_volumes_layout.addWidget(self.results_tumorce_volumes_pat_lineedit)
+        self.results_tumorce_volumes_layout.addWidget(self.results_tumorce_volumes_mni_label)
+        self.results_tumorce_volumes_layout.addWidget(self.results_tumorce_volumes_mni_lineedit)
+        self.results_status_groupbox_layout.addLayout(self.results_tumorce_volumes_layout)
         self.results_status_groupbox_layout.addStretch(1)
 
         self.results_status_groupbox.setLayout(self.results_status_groupbox_layout)
         self.overall_results_base_layout.addWidget(self.results_status_groupbox)
-
-        self.results_overall_tumor_multifocality_groupbox = ctk.ctkCollapsibleGroupBox()
-        self.results_overall_tumor_multifocality_groupbox.setTitle('Multifocality')
-        self.results_overall_tumor_multifocality_layout = qt.QGridLayout()
-        self.results_overall_tumor_multifocal_pieces_label = qt.QLabel('Number of focis:')
-        self.results_overall_tumor_mutifocal_pieces_lineedit = qt.QLineEdit()
-        self.results_overall_tumor_mutifocal_pieces_lineedit.setReadOnly(True)
-        self.results_overall_tumor_multifocal_distance_label = qt.QLabel('Maximum distance between foci (mm):')
-        self.results_overall_tumor_mutifocal_distance_lineedit = qt.QLineEdit()
-        self.results_overall_tumor_mutifocal_distance_lineedit.setReadOnly(True)
-        self.results_overall_tumor_multifocality_layout.addWidget(self.results_overall_tumor_multifocal_pieces_label, 0, 0)
-        self.results_overall_tumor_multifocality_layout.addWidget(self.results_overall_tumor_mutifocal_pieces_lineedit, 0, 1)
-        self.results_overall_tumor_multifocality_layout.addWidget(self.results_overall_tumor_multifocal_distance_label, 1, 0)
-        self.results_overall_tumor_multifocality_layout.addWidget(self.results_overall_tumor_mutifocal_distance_lineedit, 1, 1)
-        self.results_overall_tumor_multifocality_groupbox.setLayout(self.results_overall_tumor_multifocality_layout)
-        self.overall_results_base_layout.addWidget(self.results_overall_tumor_multifocality_groupbox)
 
         self.results_export_groupbox = ctk.ctkCollapsibleGroupBox()
         self.results_export_groupbox.setTitle("Export")
@@ -124,43 +116,55 @@ class DiagnosisNeuroResultsWidget(qt.QWidget):
 
     def __clean_results_area(self):
         for i in reversed(range(len(self.results_widgets))):
-            # Should have index+1, assuming 'Overall' is at position 0 all the time
             self.overall_results_area_tabwidget.removeTab(i+1)
 
         self.results_widgets = {}
-        w = DiagnosisNeuroPartResultsWidget(parent=self)
-        self.overall_results_area_tabwidget.addTab(w, 'Full extent')
-        self.results_widgets['Main'] = w
 
-    def __setup_tumor_parts_results_area(self, nb_parts):
-        for i in range(nb_parts):
+    def __setup_structure_results_area(self, structures):
+        for s in structures:
             w = DiagnosisNeuroPartResultsWidget(parent=self)
-            self.overall_results_area_tabwidget.addTab(w, 'Focus ' + str(i+1))
-            self.results_widgets[str(i+1)] = w
+            self.overall_results_area_tabwidget.addTab(w, s)
+            self.results_widgets[s] = w
 
     def update_results(self):
-        diagnosis_file = os.path.join(SharedResources.getInstance().output_path, 'neuro_clinical_report.json')
+        diagnosis_file = os.path.join(SharedResources.getInstance().output_path, 'reporting', 'T0', 'neuro_clinical_report.json')
         NeuroDiagnosisParameters.getInstance().from_json(diagnosis_file)
 
         self.__clean_results_area()
-        if NeuroDiagnosisParameters.getInstance().tumor_multifocal:
-            self.__setup_tumor_parts_results_area(nb_parts=NeuroDiagnosisParameters.getInstance().tumor_parts)
+        self.__setup_structure_results_area(structures=NeuroDiagnosisParameters.getInstance().structure_features.keys())
 
         self.__update_results_gui()
         self.results_collapsible_groupbox.setCollapsed(True)
 
     def __update_results_gui(self):
-        self.results_overall_tumor_found_lineedit.setText(NeuroDiagnosisParameters.getInstance().tumor_presence_state)
         self.results_overall_tumor_type_lineedit.setText(NeuroDiagnosisParameters.getInstance().tumor_type)
-        multifocality_text = "Yes" if NeuroDiagnosisParameters.getInstance().tumor_multifocal else "No"
-        self.results_overall_tumor_mutifocal_lineedit.setText(multifocality_text)
-        self.results_overall_tumor_mutifocal_pieces_lineedit.setText(NeuroDiagnosisParameters.getInstance().tumor_parts)
-        self.results_overall_tumor_mutifocal_distance_lineedit.setText(str(NeuroDiagnosisParameters.getInstance().tumor_multifocal_distance) + " mm")
 
-        if NeuroDiagnosisParameters.getInstance().tumor_parts > 1:
-            self.results_overall_tumor_multifocality_groupbox.setVisible(True)
+        if "Tumor" in NeuroDiagnosisParameters.getInstance().structure_features.keys():
+            self.results_tumor_volumes_pat_lineedit.setText(str(round(NeuroDiagnosisParameters.getInstance().structure_features["Tumor"]['Patient'].volume, 2)) + ' ml')
+            self.results_tumor_volumes_mni_lineedit.setText(
+                str(round(NeuroDiagnosisParameters.getInstance().structure_features["Tumor"]['MNI'].volume, 2)) + ' ml')
+            self.results_tumor_volumes_pat_label.setVisible(True)
+            self.results_tumor_volumes_pat_lineedit.setVisible(True)
+            self.results_tumor_volumes_mni_label.setVisible(True)
+            self.results_tumor_volumes_mni_lineedit.setVisible(True)
         else:
-            self.results_overall_tumor_multifocality_groupbox.setVisible(False)
+            self.results_tumor_volumes_pat_label.setVisible(False)
+            self.results_tumor_volumes_pat_lineedit.setVisible(False)
+            self.results_tumor_volumes_mni_label.setVisible(False)
+            self.results_tumor_volumes_mni_lineedit.setVisible(False)
+        if "TumorCE" in NeuroDiagnosisParameters.getInstance().structure_features.keys():
+            self.results_tumorce_volumes_pat_lineedit.setText(str(round(NeuroDiagnosisParameters.getInstance().structure_features["TumorCE"]['Patient'].volume, 2)) + ' ml')
+            self.results_tumorce_volumes_mni_lineedit.setText(
+                str(round(NeuroDiagnosisParameters.getInstance().structure_features["TumorCE"]['MNI'].volume, 2)) + ' ml')
+            self.results_tumorce_volumes_pat_label.setVisible(True)
+            self.results_tumorce_volumes_pat_lineedit.setVisible(True)
+            self.results_tumorce_volumes_mni_label.setVisible(True)
+            self.results_tumorce_volumes_mni_lineedit.setVisible(True)
+        else:
+            self.results_tumorce_volumes_pat_label.setVisible(False)
+            self.results_tumorce_volumes_pat_lineedit.setVisible(False)
+            self.results_tumorce_volumes_mni_label.setVisible(False)
+            self.results_tumorce_volumes_mni_lineedit.setVisible(False)
 
         for i, wid in enumerate(self.results_widgets.keys()):
-            self.results_widgets[wid].update_results(NeuroDiagnosisParameters.getInstance().statistics[wid])
+            self.results_widgets[wid].update_results(NeuroDiagnosisParameters.getInstance().structure_features[wid])

@@ -57,6 +57,7 @@ class VolumeSelectorWidget(QWidget):
 
     def __set_dimensions(self):
         # self.volume_selector.setMinimumSize(100, 50)
+        self.setMinimumHeight(30)
         self.activation_button.setMaximumWidth(40)
 
     def __set_stylesheet(self):

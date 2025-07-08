@@ -173,25 +173,36 @@ class NeuroDiagnosisSlicerInterface:
         """
 
         """
-        cortical_atlases_names = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys()
-        subcortical_atlases_names = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys()
+        struct_res = None
+        if "FLAIRChanges" in NeuroDiagnosisParameters.getInstance().structure_features.keys() and "Tumor" not in NeuroDiagnosisParameters.getInstance().structure_features.keys():
+            struct_res = NeuroDiagnosisParameters.getInstance().structure_features['FLAIRChanges']
+        else:
+            struct_res = NeuroDiagnosisParameters.getInstance().structure_features['Tumor']
         for output in model_parameters.outputs.keys():
             try:
-                if output == 'Tumor':
+                output_target = None
+                if model_parameters.json_dict['members'][-1]["timestamp_order"] == "0" and model_parameters.json_dict['members'][1]['sequence_type'] == "T1-CE":
+                    output_target = "Tumor"
+                elif model_parameters.json_dict['members'][-1]["timestamp_order"] == "1" and model_parameters.json_dict['members'][1]['sequence_type'] == "T1-CE":
+                    output_target = "TumorCE"
+                elif model_parameters.json_dict['members'][1]['sequence_type'] == "FLAIR":
+                    output_target = "FLAIRChanges"
+
+                if output == output_target:
                     node = self.segmentation_nodes[output]
                     display_node = node.GetDisplayNode()
                     display_node.SetAllSegmentsVisibility(True)
-                elif output == 'Brain':
+                elif output in ['Brain', "TumorCE", "Necrosis", "TumorCE", "FLAIRChanges"]:
                     node = self.segmentation_nodes[output]
                     display_node = node.GetDisplayNode()
                     display_node.SetAllSegmentsVisibility(False)
                 else:
                     # @TODO. Might need to store the info about cortical/subcortical in the config.json file
                     struct_overlap_info = None
-                    if output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap.keys():
-                        struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_cortical_structures_overlap[output]
-                    elif output in NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap.keys():
-                        struct_overlap_info = NeuroDiagnosisParameters.getInstance().statistics['Main']['Overall'].mni_space_subcortical_structures_overlap[output]
+                    if output in struct_res["MNI"].cortical_structures_overlap.keys():
+                        struct_overlap_info = struct_res["MNI"].cortical_structures_overlap[output]
+                    elif output in struct_res["MNI"].subcortical_structures_overlap.keys():
+                        struct_overlap_info = struct_res["MNI"].subcortical_structures_overlap[output]
 
                     node = self.segmentation_nodes[output]
                     display_node = node.GetDisplayNode()
@@ -211,7 +222,6 @@ class NeuroDiagnosisSlicerInterface:
                         if sname != '':
                             display_node.SetSegmentVisibility(sname, True)
                             display_node.SetSegmentOpacity(sname, 0.5)
-
             except Exception as e:
-                logging.warning("Issue during optimal display setup.")
+                logging.warning(f"Issue during optimal display setup with {e}.")
                 logging.warning(traceback.format_exc())
