@@ -101,6 +101,8 @@ class SharedResources:
         self.user_diagnosis_configuration['Default']['trace'] = 'false'
         self.user_diagnosis_configuration['Default']['from_slicer'] = 'true'
         self.user_diagnosis_configuration['Neuro'] = {}
+        self.user_diagnosis_configuration['Neuro']['cortical_features'] = ''
+        self.user_diagnosis_configuration['Neuro']['subcortical_features'] = ''
         self.user_diagnosis_configuration['Neuro']['tumor_segmentation_filename'] = ''
         self.user_diagnosis_configuration['Neuro']['brain_segmentation_filename'] = ''
 

@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Paper](https://zenodo.org/badge/DOI/10.1038/s41598-023-42048-7.svg)](https://doi.org/10.1038/s41598-023-42048-7)
 [![Paper](https://zenodo.org/badge/DOI/10.3389/fneur.2022.932219.svg)](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full)
+[![GitHub release](https://img.shields.io/github/v/release/raidionics/raidionics-slicer?sort=semver)](https://github.com/raidionics/raidionics-slicer/releases)
 
 
 Plugin for 3D Slicer to use the segmentation models and clinical reporting techniques (RADS) packaged in Raidionics.
@@ -13,7 +14,7 @@ The plugin was first introduced in the article _"Brain tumor preoperative surger
 segmentation and standardized reporting"_, published in [Frontiers in Neurology](https://www.frontiersin.org/articles/10.3389/fneur.2022.932219/full).  
 
 <p align="center">
-<img src="Raidionics/Raidionics/Resources/Icons/Raidionics-Slicer.gif" width="85%">
+<img src="Raidionics/Resources/Icons/Raidionics-Slicer.gif" width="85%">
 </p>
 </div>
 
@@ -43,7 +44,7 @@ A [step-by-step video](https://www.youtube.com/watch?v=NStMzLcj1WE) for installi
 * Load the plugin into 3D Slicer:  
 	∘ All Modules > Extension Wizard.  
 	∘ Developer Tools > Extension Wizard.  
-	∘ Select Extension > point to the first Raidionics subfolder (inside Raidionics-Slicer) and add it to the path (tick the small box at the bottom).
+	∘ Select Extension > select your local Raidionics-Slicer folder and add it to the path (tick the small box at the bottom).
 
 * :warning: Restarting 3D Slicer to setup Python environment might be necessary on some occasions.
 
@@ -81,16 +82,17 @@ If you are using Raidionics-Slicer in your research, please use the following ci
 More information about the different models provided and architectures used can be accessed from the below-listed publications.  
 
 ### Neuro  
-* AGU-Net neural network architecture => [Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms](https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)
+* Raidionics => [Raidionics: an open software for pre-and postoperative central nervous system tumor segmentation and standardized reporting](https://www.nature.com/articles/s41598-023-42048-7)
+* Preoperative CNS segmentation performance => [Preoperative brain tumor imaging: models and software for segmentation and standardized reporting](https://www.frontiersin.org/journals/neurology/articles/10.3389/fneur.2022.932219/full)
 * Standardized reporting and Data System => [Glioblastoma Surgery Imaging—Reporting and Data System: Standardized Reporting of Tumor Volume, Location, and Resectability Based on Automated Segmentations ](https://www.mdpi.com/2072-6694/13/12/2854)
 * Preoperative GBM segmentation performance => [Glioblastoma Surgery Imaging–Reporting and Data System: Validation and Performance of the Automated Segmentation Task ](https://www.mdpi.com/2072-6694/13/18/4674)
 * Postoperative GBM segmentation performance => [Segmentation of glioblastomas in early post-operative multi-modal MRI with deep neural networks](https://www.nature.com/articles/s41598-023-45456-x)
-* Preoperative CNS segmentation performance => [Preoperative brain tumor imaging: models and software for segmentation and standardized reporting](https://www.frontiersin.org/journals/neurology/articles/10.3389/fneur.2022.932219/full)
+* AGU-Net neural network architecture => [Meningioma Segmentation in T1-Weighted MRI Leveraging Global Context and Attention Mechanisms](https://www.frontiersin.org/articles/10.3389/fradi.2021.711514/full)
 
 ### Mediastinum
 * Mediastinum organs segmentation => [Semantic segmentation and detection of mediastinal lymph nodes and anatomical structures in CT data for lung cancer staging](https://link.springer.com/article/10.1007/s11548-019-01948-8)  
 * Lymph nodes segmentation => [Mediastinal lymph nodes segmentation using 3D convolutional neural network ensembles and anatomical priors guiding](https://www.tandfonline.com/doi/pdf/10.1080/21681163.2022.2043778)
-* Airways segmentation => [AeroPath: An airway segmentation benchmark dataset with challenging pathology](https://arxiv.org/abs/2311.01138)
+* Airways segmentation => [AeroPath: An airway segmentation benchmark dataset with challenging pathology](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0311416)
 
 </details>
 

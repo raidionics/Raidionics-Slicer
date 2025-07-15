@@ -1,7 +1,6 @@
 from __main__ import qt, ctk, slicer, vtk
 import threading
-from src.utils.io_utilities import download_cloud_model, download_cloud_model_thread, download_cloud_diagnosis,\
-    DownloadWorker
+from src.utils.io_utilities import DownloadWorker
 
 
 class DownloadDialog(qt.QDialog):

@@ -297,6 +297,12 @@ class RaidionicsLogic:
             for item in iodict:
                 if iodict[item]["iotype"] == "output":
                     if iodict[item]["type"] == "volume":
+                        # If an atlas has not been manually selected by the user, it is skipped for display
+                        if "atlas_category" in iodict[item].keys():
+                            if iodict[item]["atlas_category"] == "Cortical" and item not in SharedResources.getInstance().user_diagnosis_configuration['Neuro']['cortical_features'].split(','):
+                                continue
+                            elif iodict[item]["atlas_category"] == "Subcortical" and item not in SharedResources.getInstance().user_diagnosis_configuration['Neuro']['subcortical_features'].split(','):
+                                continue
                         outputDict[item] = item
                         # curr_output = outputs[item]
                         nodes = slicer.util.getNodes(outputDict[item])
@@ -457,6 +463,7 @@ class RaidionicsLogic:
                         fileName = None
                         try:
                             if "atlas_category" in list(iodict[item].keys()):
+                                # @TODO. Might add a check with the user config, to only look for it if selected
                                 if iodict[item]["atlas_category"] == "Cortical":
                                     fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
                                                                 created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))

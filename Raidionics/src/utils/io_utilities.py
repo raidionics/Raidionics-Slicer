@@ -1,5 +1,5 @@
 from __main__ import qt, ctk, slicer, vtk
-
+import urllib3
 import subprocess
 import shutil
 import os
@@ -15,18 +15,18 @@ import requests
 from email.utils import parsedate_to_datetime, formatdate
 import webbrowser
 import time
-try:
-    import gdown
-    if int(gdown.__version__.split('.')[0]) < 4 or int(gdown.__version__.split('.')[1]) < 4:
-        from __main__ import slicer
-        slicer.util.pip_install('gdown==4.4.0')
-except:
-    from __main__ import slicer
-    slicer.util.pip_install('gdown==4.4.0')
-    import gdown
-
 from src.utils.resources import SharedResources
 
+
+def check_internet_conn():
+    http = urllib3.PoolManager(timeout=3.0)
+    r = http.request('GET', 'google.com', preload_content=False)
+    code = r.status
+    r.release_conn()
+    if code == 200:
+        return True
+    else:
+        return False
 
 def get_available_cloud_models_list() -> List[List[str]]:
     """
@@ -38,22 +38,21 @@ def get_available_cloud_models_list() -> List[List[str]]:
     Each model list element corresponds to the following headers: Item,link,dependencies,sum.
     """
     cloud_models_list = []
-    # cloud_models_list_url = 'https://drive.google.com/uc?id=1uibFBPBQywX7EGK5G_Oc6CXlDSiOePKF'
     #cloud_models_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/rsv1.1.1/Slicer_cloud_models_list.csv'
     cloud_models_list_url = "https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Slicer_cloud_models_list_v13.csv"
     try:
         cloud_models_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_models_list.csv')
         headers = {}
 
-        response = requests.get(cloud_models_list_url, headers=headers, stream=True)
-        response.raise_for_status()
+        if check_internet_conn():
+            response = requests.get(cloud_models_list_url, headers=headers, stream=True)
+            response.raise_for_status()
+            if response.status_code == requests.codes.ok:
+                with open(cloud_models_list_filename, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
 
-        if response.status_code == requests.codes.ok:
-            with open(cloud_models_list_filename, "wb") as f:
-                for chunk in response.iter_content(chunk_size=1048576):
-                    f.write(chunk)
         line_count = 0
-
         with open(cloud_models_list_filename) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
@@ -98,6 +97,8 @@ def download_cloud_model(selected_model):
     extract_state = False
     cloud_models = get_available_cloud_models_list()
     try:
+        if not check_internet_conn():
+            raise ValueError("No internet access!")
         for model in cloud_models:
             if model[0] == selected_model:
                 model_url = model[1]
@@ -177,6 +178,8 @@ def check_local_model_for_update(selected_model):
     cloud_models = get_available_cloud_models_list()
     download_required = False
     try:
+        if not check_internet_conn():
+            raise ValueError("No internet access!")
         for model in cloud_models:
             if model[0] == selected_model:
                 model_url = model[1]
@@ -205,34 +208,34 @@ def check_local_model_for_update(selected_model):
     return download_required
 
 
-def get_available_cloud_diagnoses_list():
-    cloud_diagnoses_list = []
-    # cloud_diagnoses_list_url = 'https://drive.google.com/uc?id=1lFlfUGxiHxykmf_2keLhXX6k2PG5jn6M'
-    cloud_diagnoses_list_url = 'https://github.com/raidionics/Raidionics-models/releases/download/rsv1.1.1/Slicer_cloud_pipelines_list.csv'
+def get_available_cloud_rads_list():
+    cloud_rads_list = []
+    cloud_rads_list_url = "https://github.com/raidionics/Raidionics-models/releases/download/v1.3.0-rc/Slicer_cloud_pipelines_list_v13.csv"
     try:
-        cloud_diagnoses_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_diagnoses_list.csv')
-        headers = {}
-        response = requests.get(cloud_diagnoses_list_url, headers=headers, stream=True)
-        response.raise_for_status()
+        cloud_rads_list_filename = os.path.join(SharedResources.getInstance().json_cloud_dir, 'cloud_rads_list.csv')
+        if check_internet_conn():
+            headers = {}
+            response = requests.get(cloud_rads_list_url, headers=headers, stream=True)
+            response.raise_for_status()
 
-        if response.status_code == requests.codes.ok:
-            with open(cloud_diagnoses_list_filename, "wb") as f:
-                for chunk in response.iter_content(chunk_size=1048576):
-                    f.write(chunk)
+            if response.status_code == requests.codes.ok:
+                with open(cloud_rads_list_filename, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=1048576):
+                        f.write(chunk)
 
         line_count = 0
-        with open(cloud_diagnoses_list_filename) as csv_file:
+        with open(cloud_rads_list_filename) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
                 if line_count == 0:
                     line_count += 1
                 else:
-                    cloud_diagnoses_list.append(row)
+                    cloud_rads_list.append(row)
     except Exception as e:
-        print('Impossible to access the cloud diagnoses list.\n')
+        print('Impossible to access the cloud rads list.\n')
         print('{}'.format(traceback.format_exc()))
 
-    return cloud_diagnoses_list
+    return cloud_rads_list
 
 
 def check_local_diagnosis_for_update(selected_diagnosis):
@@ -241,8 +244,10 @@ def check_local_diagnosis_for_update(selected_diagnosis):
     diagnosis_md5sum = None
     diagnosis_pipeline_url = ''
     download_required = False
-    cloud_diagnoses = get_available_cloud_diagnoses_list()
+    cloud_diagnoses = get_available_cloud_rads_list()
     try:
+        if not check_internet_conn():
+            raise ValueError("No internet access!")
         for diagnosis in cloud_diagnoses:
             if diagnosis[0] == selected_diagnosis:
                 diagnosis_url = diagnosis[1]
@@ -292,49 +297,6 @@ def check_local_diagnosis_for_update(selected_diagnosis):
     return download_required
 
 
-def download_cloud_diagnosis(selected_diagnosis):
-    diagnosis_url = ''
-    diagnosis_dependencies = []
-    diagnosis_checksum = None
-    tmp_archive_dir = ''
-    success = True
-    cloud_diagnoses = get_available_cloud_diagnoses_list()
-    try:
-        for diagnosis in cloud_diagnoses:
-            if diagnosis[0] == selected_diagnosis:
-                diagnosis_url = diagnosis[1]
-                diagnosis_dependencies = diagnosis[2].split(';') if diagnosis[2].strip() != '' else []
-                diagnosis_checksum = diagnosis[3]
-
-        json_local_dir = SharedResources.getInstance().json_local_dir
-        dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
-                                       str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/', '-'))
-                                       + '.json')
-        headers = {}
-        response = requests.get(diagnosis_url, headers=headers, stream=True)
-        response.raise_for_status()
-
-        if response.status_code == requests.codes.ok:
-            with open(dl_dest, "wb") as f:
-                for chunk in response.iter_content(chunk_size=1048576):
-                    f.write(chunk)
-
-        shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
-
-        # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
-        if len(diagnosis_dependencies) > 0:
-            for dep in diagnosis_dependencies:
-                success_dep = download_cloud_model(dep)
-                success = success & success_dep
-    except Exception as e:
-        print('Impossible to download the selected cloud model.\n')
-        print('{}'.format(traceback.format_exc()))
-        success = False
-        if os.path.exists(tmp_archive_dir):
-            shutil.rmtree(tmp_archive_dir)
-    return success
-
-
 class WorkerFinishedSignal(qt.QObject):
     finished_signal = qt.Signal()
 
@@ -350,7 +312,7 @@ class DownloadWorker(qt.QObject): #qt.QThread
             if model is not None:
                 self.download_cloud_model(model)
             elif diagnosis is not None:
-                self.download_cloud_diagnosis2(diagnosis)
+                self.download_cloud_diagnosis(diagnosis)
             elif docker_image is not None:
                 self.download_docker_image(docker_image)
         except Exception:
@@ -367,6 +329,8 @@ class DownloadWorker(qt.QObject): #qt.QThread
         extract_state = False
         cloud_models = get_available_cloud_models_list()
         try:
+            if not check_internet_conn():
+                raise ValueError("No internet access!")
             for model in cloud_models:
                 if model[0] == selected_model:
                     model_url = model[1]
@@ -429,21 +393,21 @@ class DownloadWorker(qt.QObject): #qt.QThread
         self.finished_signal.emit(success)
         # return success
 
-    def download_cloud_diagnosis2(self, selected_diagnosis):
+    def download_cloud_diagnosis(self, selected_diagnosis):
         diagnosis_url = ''
         diagnosis_dependencies = []
         diagnosis_md5sum = None
-        diagnosis_pipeline_url = ''
         tmp_archive_dir = ''
         success = True
-        cloud_diagnoses = get_available_cloud_diagnoses_list()
+        cloud_diagnoses = get_available_cloud_rads_list()
         try:
+            if not check_internet_conn():
+                raise ValueError("No internet access!")
             for diagnosis in cloud_diagnoses:
                 if diagnosis[0] == selected_diagnosis:
                     diagnosis_url = diagnosis[1]
                     diagnosis_dependencies = diagnosis[2].split(';') if diagnosis[2].strip() != '' else []
                     diagnosis_md5sum = diagnosis[3]
-                    diagnosis_pipeline_url = diagnosis[4]
 
             json_local_dir = SharedResources.getInstance().json_local_dir
             dl_dest = os.path.join(SharedResources.getInstance().Raidionics_dir, '.cache',
@@ -459,19 +423,6 @@ class DownloadWorker(qt.QObject): #qt.QThread
                         f.write(chunk)
 
             shutil.copy(src=dl_dest, dst=os.path.join(json_local_dir, os.path.basename(dl_dest)))
-
-            diagnosis_dir = SharedResources.getInstance().diagnosis_path
-            dl_dest = os.path.join(diagnosis_dir,
-                                   str('_'.join(selected_diagnosis.split(']')[:-1]).replace('[', '').replace('/',
-                                                                                                             '-'))
-                                   + '_pipeline.json')
-            headers = {}
-            response = requests.get(diagnosis_pipeline_url, headers=headers, stream=True)
-            response.raise_for_status()
-            if response.status_code == requests.codes.ok:
-                with open(dl_dest, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=1048576):
-                        f.write(chunk)
 
             # Checking if dependencies are needed and if they exist already locally, otherwise triggers a download
             if len(diagnosis_dependencies) > 0:

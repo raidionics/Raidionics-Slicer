@@ -178,10 +178,13 @@ def generate_backend_config(input_folder: str, parameters, logic_target_space: s
                         SharedResources.getInstance().user_configuration['Runtime']['use_stripped_data'])
         rads_config.set('Runtime', 'use_registered_data',
                         SharedResources.getInstance().user_configuration['Runtime']['use_registered_data'])
-        # @TODO. Add a user option to include/exclude atlases
         rads_config.add_section('Neuro')
-        rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
-        rads_config.set('Neuro', 'subcortical_features', 'BCB')
+        # rads_config.set('Neuro', 'cortical_features', 'MNI, Schaefer7, Schaefer17, Harvard-Oxford')
+        # rads_config.set('Neuro', 'subcortical_features', 'BCB')
+        if len(SharedResources.getInstance().user_diagnosis_configuration["Neuro"]["cortical_features"]) != 0:
+            rads_config.set('Neuro', 'cortical_features', SharedResources.getInstance().user_diagnosis_configuration["Neuro"]["cortical_features"])
+        if len(SharedResources.getInstance().user_diagnosis_configuration["Neuro"]["subcortical_features"]) != 0:
+            rads_config.set('Neuro', 'subcortical_features', SharedResources.getInstance().user_diagnosis_configuration["Neuro"]["subcortical_features"])
         rads_config_filename = os.path.join(input_folder, 'rads_config.ini')
         with open(rads_config_filename, 'w') as outfile:
             rads_config.write(outfile)

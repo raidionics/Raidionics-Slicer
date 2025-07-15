@@ -11,7 +11,7 @@ if sys.version_info.major == 3:
 from src.utils.resources import SharedResources
 from src.logic.model_parameters import *
 from src.RaidionicsLogic import RaidionicsLogic
-from src.utils.io_utilities import get_available_cloud_diagnoses_list, download_cloud_diagnosis, check_local_diagnosis_for_update
+from src.utils.io_utilities import get_available_cloud_rads_list, check_local_diagnosis_for_update
 from src.gui.UtilsWidgets.DownloadDialog import DownloadDialog
 
 
@@ -135,7 +135,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
     def populate_cloud_diagnosis(self):
         self.cloud_diagnosis_list = []
         self.cloud_diagnosis_selector_combobox.clear()
-        cloud_diagnosis_list = get_available_cloud_diagnoses_list()
+        cloud_diagnosis_list = get_available_cloud_rads_list()
         for idx, model in enumerate(cloud_diagnosis_list):
             already_local = True if True in [x["name"] == model[0] for x in self.json_diagnoses] else False
             if not already_local:
@@ -249,8 +249,7 @@ class DiagnosisInterfaceWidget(qt.QWidget):
         diag = DownloadDialog(self)
         diag.set_diagnosis_name(selected_diagnosis)
         diag.exec()
-        # success = download_cloud_diagnosis(selected_diagnosis)
-        # if True: #success:
+
         self.populate_local_diagnosis()
         self.populate_cloud_diagnosis()
 

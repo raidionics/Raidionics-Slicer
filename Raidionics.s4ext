@@ -16,14 +16,12 @@
 depends ScriptedModule
 
 # homepage
-homepage  http://www.slicer.org
+homepage  https://raidionics.github.io/
 
 # match category in the xml description of the module (where it shows up in Modules menu)
 category  Machine Learning
 
-# give people an idea what to expect from this code 
-# - is it just a test or something you stand beind?
 status    Beta
 
 # One line description of what the module does
-description This is an extension module written in python for Deep Learning inference
+description Module for pre-/post-operative central nervous system tumor segmentation and standardized reporting
