@@ -14,6 +14,7 @@ import platform
 import os
 import numpy
 import re
+import fnmatch
 import subprocess
 import shutil
 import threading
@@ -27,7 +28,7 @@ from __main__ import qt, ctk, slicer, vtk
 import SimpleITK as sitk
 import sitkUtils
 from src.utils.resources import SharedResources
-from src.utils.backend_utilities import generate_backend_config, postop_model_selection
+from src.utils.backend_utilities import generate_backend_config
 
 
 class RaidionicsLogic:
@@ -142,6 +143,7 @@ class RaidionicsLogic:
         modelTarget = model_parameters.modelTarget
         dataPath = model_parameters.dataPath
         widgets = model_parameters.widgets
+        json_params = model_parameters.json_dict
         # The Docker image existence should have been checked when the model was selected.
         go_flag = self.check_docker_image_local_existence(docker_image_name=dockerName)
         if not go_flag:
@@ -153,7 +155,7 @@ class RaidionicsLogic:
             self.main_queue_start()
             self.logic_target_space = "neuro_diagnosis" if modelTarget == "Neuro" else "mediastinum_diagnosis"
 
-            self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets)
+            self.executeDocker(dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets, json_params)
             if not self.abort:
                 self.updateOutput(iodict, outputs, widgets)
                 # self.main_queue_stop()
@@ -262,7 +264,7 @@ class RaidionicsLogic:
 
         return result
 
-    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets):
+    def executeDocker(self, dockerName, modelName, dataPath, iodict, inputs, outputs, params, widgets, json_params):
         try:
             assert self.checkDockerDaemon(), "Docker Daemon is not running"
         except Exception as e:
@@ -295,10 +297,20 @@ class RaidionicsLogic:
             for item in iodict:
                 if iodict[item]["iotype"] == "output":
                     if iodict[item]["type"] == "volume":
+                        # If an atlas has not been manually selected by the user, it is skipped for display
+                        if "atlas_category" in iodict[item].keys():
+                            if iodict[item]["atlas_category"] == "Cortical" and item not in SharedResources.getInstance().user_diagnosis_configuration['Neuro']['cortical_features'].split(','):
+                                continue
+                            elif iodict[item]["atlas_category"] == "Subcortical" and item not in SharedResources.getInstance().user_diagnosis_configuration['Neuro']['subcortical_features'].split(','):
+                                continue
                         outputDict[item] = item
                         # curr_output = outputs[item]
                         nodes = slicer.util.getNodes(outputDict[item])
-                        manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].currentNode()
+                        manual_node = None
+                        try:
+                            manual_node = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)].volume_selector.currentNode()
+                        except:
+                            pass
                         if len(nodes) == 0 and manual_node is None:
                             # If the output volume is not set, a new one is created
                             node = slicer.vtkMRMLLabelMapVolumeNode()
@@ -314,7 +326,7 @@ class RaidionicsLogic:
 
                             # Select the correct item in the combobox upon creation
                             combobox_widget = widgets[[x.accessibleName == item + '_combobox' for x in widgets].index(True)]
-                            combobox_widget.setCurrentNode(node)
+                            combobox_widget.volume_selector.setCurrentNode(node)
                         elif not manual_node is None and not manual_node.GetImageData() is None:
                             # If the node links to a manually imported volume, used as input (e.g., for faster diagnosis)
                             # Working only if pointing to a file, not if a new empty LabelMapVolume was created.
@@ -350,6 +362,11 @@ class RaidionicsLogic:
                                 return
                             elif item not in list(inputs.keys()) or not inputs[item]:
                                 continue
+                            elif iodict[item] != iodict[list(iodict.keys())[1]] and iodict[item]['voltype'] == "ScalarVolume":
+                                input_node_name = inputs[item].GetName()
+                                # if input_node_name == inputs[iodict[list(iodict.keys())[1]]["sequence_type"]].GetName():
+                                #     # The input is supposed to be empty, discarding the doppelganger input
+                                #     continue
                             input_node_name = inputs[item].GetName()
                             img = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress(input_node_name))
                             input_sequence_type = iodict[item]["sequence_type"]
@@ -369,10 +386,8 @@ class RaidionicsLogic:
                             print("Issue preparing input volume.")
                             print(traceback.format_exc())
                     elif iodict[item]["type"] == "configuration":
-                        # if modelName == "MRI_GBM_Postop":
-                        #     modelName = postop_model_selection(inputs)
                         generate_backend_config(SharedResources.getInstance().data_path,
-                                                iodict, self.logic_target_space, self.logic_task, modelName)
+                                                iodict, self.logic_target_space, self.logic_task, modelName, json_params)
                 elif iodict[item]["iotype"] == "parameter":
                     paramDict[item] = str(params[item])
         except Exception:
@@ -418,7 +433,7 @@ class RaidionicsLogic:
     def updateOutput(self, iodict, outputs, widgets):
         output_volume_files = dict()
         output_fiduciallist_files = dict()
-        # output_text_files = dict()
+        output_text_files = dict()
         self.output_raw_values = dict()
         created_files = {}
         # Fetching all created outputs, including all timestamps.
@@ -446,19 +461,33 @@ class RaidionicsLogic:
 
                     if iodict[item]["type"] == "volume":
                         fileName = None
-                        # Including a . when looking for the filename, to make sure to hit the proper output.
-                        if "atlas_category" in list(iodict[item].keys()):
-                            fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
-                                                        created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
-                        else:
-                            fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
-                                                        created_files[ts_path][[item+'.' in x for x in created_files[ts_path]].index(True)]))
+                        try:
+                            if "atlas_category" in list(iodict[item].keys()):
+                                # @TODO. Might add a check with the user config, to only look for it if selected
+                                if iodict[item]["atlas_category"] == "Cortical":
+                                    fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
+                                                                created_files[ts_path][[item + '_atlas.' in x for x in created_files[ts_path]].index(True)]))
+                                elif iodict[item]["atlas_category"] == "Subcortical":
+                                    fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, iodict[item]["atlas_category"] + '-structures',
+                                                                created_files[ts_path][[item + '_atlas_overall_mask' in x for x in created_files[ts_path]].index(True)]))
+                                # @TODO. Brain Grid will have to be handled differently
+                            else:
+                                patterns = ["*annotation-"+item+'.*', "*annotation-"+item+'_*']
+                                existing_files = created_files[ts_path]
+                                fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path,
+                                                            [x for x in existing_files if any(fnmatch.fnmatch(x, pattern) for pattern in patterns)][0]))
+                        except Exception as e:
+                            logging.warning(f"Could not find any output file matching the {item} category.")
+                            logging.warning(f"Collected the following exception: {e}")
+                            continue
                         output_volume_files[item] = fileName
                     if iodict[item]["type"] == "point_vec":
                         fileName = str(os.path.join(SharedResources.getInstance().output_path, ts_path, item + '.fcsv'))
                         output_fiduciallist_files[item] = fileName
                     # if iodict[item]["type"] == "text":
-                    #     fileName = str(os.path.join(SharedResources.getInstance().output_path, iodict[item]["default"] + '.txt'))
+                    #     fileName = str(os.path.join(SharedResources.getInstance().output_path, 'reporting',
+                    #                                 'T' + str(iodict[item]["timestamp_order"]) +
+                    #                                 iodict[item]["default"] + '.txt'))
                     #     output_text_files[item] = fileName
             except Exception as e:
                 logging.warning("Unable to collect results for {}".format(item))
@@ -501,14 +530,14 @@ class RaidionicsLogic:
             # reported bug reference: https://issues.slicer.org/view.php?id=4414
             # scene.RemoveNode(node)
 
-        # for text_key in output_text_files.keys():
-        #     try:
-        #         text_file = output_text_files[text_key]
-        #         f = open(text_file, 'r')
-        #         current_text = f.read()
-        #         current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
-        #         current_widget.setPlainText(current_text)
-        #         f.close()
-        #     except Exception as e:
-        #         logging.warning("Unable to display results for report: {}".format(text_key))
-        #         continue
+        for text_key in output_text_files.keys():
+            try:
+                text_file = output_text_files[text_key]
+                f = open(text_file, 'r')
+                current_text = f.read()
+                current_widget = widgets[[x.accessibleName == text_key for x in widgets].index(True)]
+                current_widget.setPlainText(current_text)
+                f.close()
+            except Exception as e:
+                logging.warning("Unable to display results for report: {}".format(text_key))
+                continue

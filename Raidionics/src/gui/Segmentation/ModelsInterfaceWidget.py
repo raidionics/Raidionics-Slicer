@@ -26,18 +26,20 @@ class ModelsInterfaceWidget(qt.QWidget):
 
     def __init__(self, parent=None):
         super(ModelsInterfaceWidget, self).__init__(parent)
-        self.base_layout = qt.QVBoxLayout()
-        self.setup_cloud_models_area()
-        self.setup_local_models_area()
-        # self.populate_local_models()
-        # self.populate_cloud_models()
-        self.setup_model_parameters_area()
-        self.setLayout(self.base_layout)
+        self.__set_interface()
+        self.__set_stylesheets()
         self.setup_connections()
         # self.on_model_selection(0)
         self.jsonModels = []
         self.populate_local_models()
         self.populate_cloud_models()
+
+    def __set_interface(self):
+        self.base_layout = qt.QVBoxLayout()
+        self.setup_cloud_models_area()
+        self.setup_local_models_area()
+        self.setup_model_parameters_area()
+        self.setLayout(self.base_layout)
 
     def setup_cloud_models_area(self):
         self.cloud_models_area_groupbox = ctk.ctkCollapsibleGroupBox()
@@ -76,6 +78,10 @@ class ModelsInterfaceWidget(qt.QWidget):
         self.local_model_moreinfo_pushbutton = qt.QPushButton('Press to display')
         self.modelsFormLayout.addRow("Details:", self.local_model_moreinfo_pushbutton)
         self.local_model_moreinfo_pushbutton.setEnabled(False)
+
+    def __set_stylesheets(self):
+        software_ss = SharedResources.getInstance().stylesheet_components
+        background_color = software_ss["Color2"]
 
     def setup_model_parameters_area(self):
         # Parameters Area

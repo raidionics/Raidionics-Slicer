@@ -74,31 +74,15 @@ class RaidionicsWidget():
         Instantiate the plugin layout and connect widgets
         :return:
         """
+        self.__set_interface()
+        self.__set_layout_dimensions()
+        self.setup_connections()
 
-        # Setting the Docker widget, necessary to run either a segmentation or diagnosis task
+    def __set_interface(self):
         self.setup_docker_widget()
-
-        # # Reload and Test area
-        # reloadCollapsibleButton = ctk.ctkCollapsibleButton()
-        # reloadCollapsibleButton.collapsed = True
-        # reloadCollapsibleButton.text = "Reload && Test"
-        # reloadFormLayout = qt.QFormLayout(reloadCollapsibleButton)
-        # # reload button
-        # # (use this during development, but remove it when delivering
-        # #  your module to users)
-        # self.reloadButton = qt.QPushButton("Reload")
-        # self.reloadButton.toolTip = "Reload this module."
-        # self.reloadButton.name = "Freehand3DUltrasound Reload"
-        # reloadFormLayout.addWidget(self.reloadButton)
-        # self.reloadButton.connect('clicked()', self.onReload)
-        # # uncomment the following line for debug/development.
-        # self.layout.addWidget(reloadCollapsibleButton)
-        # self.layout.addWidget(self.base_segmentation_widget)
-
         self.setup_global_options_widget()
         self.setup_user_interactions_widget()
         self.layout.addStretch(1)
-        self.setup_connections()
 
     def setup_docker_widget(self):
         self.dockerGroupBox = ctk.ctkCollapsibleGroupBox()
@@ -140,12 +124,10 @@ class RaidionicsWidget():
         # option 2: way to clean related Docker images
         self.global_options_purge_docker_images_pushbutton = ctk.ctkPushButton()
         self.global_options_purge_docker_images_pushbutton.setToolTip("Click to purge the computer from old/unused Docker images.")
-        self.global_options_purge_docker_images_pushbutton.setFixedHeight(25)
-        self.global_options_groupbox_layout.addRow("Purge old Docker images:", self.global_options_purge_docker_images_pushbutton)
+        self.global_options_groupbox_layout.addRow("Purge Docker images:", self.global_options_purge_docker_images_pushbutton)
         # option 3: way to clean old models
         self.global_options_purge_models_pushbutton = ctk.ctkPushButton()
         self.global_options_purge_models_pushbutton.setToolTip("Click to purge the computer from all existing Raidionics models.")
-        self.global_options_purge_models_pushbutton.setFixedHeight(25)
         self.global_options_groupbox_layout.addRow("Purge Raidionics models:", self.global_options_purge_models_pushbutton)
 
     def setup_user_interactions_widget(self):
@@ -178,6 +160,14 @@ class RaidionicsWidget():
         # self.logging_textedit.setReadOnly(True)
         # self.tasks_tabwidget.addTab(self.logging_textedit, 'Logging')
         # self.layout.addWidget(self.tasks_tabwidget)
+
+    def __set_layout_dimensions(self):
+        self.global_options_purge_docker_images_pushbutton.setMinimumHeight(22)
+        self.global_options_purge_docker_images_pushbutton.setMaximumHeight(28)
+        self.global_options_purge_docker_images_pushbutton.setMaximumWidth(400)
+        self.global_options_purge_models_pushbutton.setMinimumHeight(22)
+        self.global_options_purge_models_pushbutton.setMaximumHeight(28)
+        self.global_options_purge_models_pushbutton.setMaximumWidth(400)
 
     def setup_connections(self):
         self.docker_test_pushbutton.connect('clicked(bool)', self.on_test_docker_button_pressed)
@@ -235,8 +225,8 @@ class RaidionicsWidget():
 
     def on_purge_docker_images_options_clicked(self):
         popup = WarningDialog()
-        popup.setText("""Open the Docker Desktop Application and delete the following image: dbouget/raidionics-rads:v1.1\n
-        Alternatively, write the following in a command line window: docker image rm dbouget/raidionics-rads:v1.1""")
+        popup.setText("""Open the Docker Desktop Application and delete the following image: dbouget/raidionics-rads:v1.3\n
+        Alternatively, write the following in a command line window: docker image rm dbouget/raidionics-rads:v1.3""")
         code = popup.exec()
 
     def on_purge_models_options_clicked(self):
