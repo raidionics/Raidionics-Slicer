@@ -350,7 +350,7 @@ class DownloadWorker(qt.QObject): #qt.QThread
             response = requests.get(model_config_url, headers=headers, stream=True)
             response.raise_for_status()
             if response.status_code == requests.codes.ok:
-                with open(os.path.join(SharedResources.getInstance().json_local_dir, '_'.join(selected_model[1:-1].split('][')) + '.json'), "wb") as f:
+                with open(os.path.join(SharedResources.getInstance().json_local_dir, '_'.join(selected_model[1:-1].split('][')).replace('/', '_') + '.json'), "wb") as f:
                     for chunk in response.iter_content(chunk_size=1048576):
                         f.write(chunk)
 
