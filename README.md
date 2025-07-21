@@ -1,6 +1,6 @@
 <div align="center">
 <h1 align="center">Raidionics plugin (3D Slicer)</h1>
-<h3 align="center">Open plugin for AI-based segmentation and standardized reporting for neuro and mediastinal applications</h3>
+<h3 align="center">Open plugin for AI-based segmentation and standardized reporting for central nervous system and mediastinal applications</h3>
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Paper](https://zenodo.org/badge/DOI/10.1038/s41598-023-42048-7.svg)](https://doi.org/10.1038/s41598-023-42048-7)
@@ -18,10 +18,17 @@ segmentation and standardized reporting"_, published in [Frontiers in Neurology]
 </p>
 </div>
 
+## [Getting started](https://github.com/raidionics/Raidionics-Slicer#getting-started)
+
+* Please follow the [installation](https://github.com/raidionics/Raidionics-Slicer#installation) guidelines.  
+:warning: The Docker image is **needed** to successfully use the plugin, make sure you have downloaded it locally on your machine!
+* Don't hesitate to visit the [wiki](https://github.com/raidionics/Raidionics-Slicer/wiki) to know more about usage and use-cases.
+* For any issue, please have a look at the [Frequently asked questions (FAQs) section](https://github.com/raidionics/Raidionics-Slicer/wiki/Frequently-Asked-Questions-(FAQ)) or report them [here](https://github.com/raidionics/Raidionics-Slicer/issues).
 
 ## [Installation](https://github.com/raidionics/Raidionics-Slicer#installation)
 
-The plugin has been tested with the stable release 5.8.1 of 3D Slicer, and the upcoming release 5.9.0.  
+The plugin has been tested with the stable release 5.8.1 of 3D Slicer, and the upcoming release 5.9.0. The steps to 
+follow for installing the plugin are described [below](https://github.com/raidionics/Raidionics-Slicer#step-by-step).  
 A [step-by-step video](https://www.youtube.com/watch?v=NStMzLcj1WE) for installing the plugin and running a segmentation model for the first time is available.
 
 <details>
