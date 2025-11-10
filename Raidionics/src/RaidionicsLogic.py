@@ -401,8 +401,9 @@ class RaidionicsLogic:
         cmd.extend(('run', '-t'))
         # if self.use_gpu:
         #     cmd.append(' --runtime=nvidia ')
-        cmd.append('--user')
-        cmd.append(str(os.getuid()))
+        if sys.platform != 'win32':
+            cmd.append('--user')
+            cmd.append(str(os.getuid()))
         cmd.append('-v')
         cmd.append(SharedResources.getInstance().resources_path + ':' + dataPath)
         cmd.append(dockerName)
